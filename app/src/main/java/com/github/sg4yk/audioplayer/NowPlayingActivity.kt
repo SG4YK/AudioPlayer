@@ -4,10 +4,13 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock.sleep
 import android.view.View
 import android.view.ViewAnimationUtils
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
 import com.google.android.material.appbar.MaterialToolbar
 import kotlin.math.hypot
 
@@ -60,17 +63,13 @@ class NowPlayingActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         val endRadius = 100.0f
-        val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
-        anim.duration = 400
-        anim.interpolator = DecelerateInterpolator(1.0f)
-        anim.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                super.onAnimationEnd(animation)
-                rootLayout.visibility = View.INVISIBLE
-                finishAfterTransition()
-            }
-        })
+        val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, 0f)
+        anim.duration = 500
+        anim.interpolator = AccelerateInterpolator()
+        anim.doOnEnd {
+            rootLayout.visibility = View.INVISIBLE
+            finishAfterTransition()
+        }
         anim.start()
-        super.onBackPressed()
     }
 }
