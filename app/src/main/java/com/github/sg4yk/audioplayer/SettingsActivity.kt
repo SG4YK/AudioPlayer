@@ -14,8 +14,8 @@ class SettingsActivity : AppCompatActivity() {
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         toolbar.post {
             setSupportActionBar(toolbar)
-            getSupportActionBar()?.setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar()?.setDisplayShowHomeEnabled(true);
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setDisplayShowHomeEnabled(true)
         }
 
         supportFragmentManager

@@ -2,6 +2,7 @@ package com.github.sg4yk.audioplayer
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.view.get
@@ -10,6 +11,7 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -64,6 +66,9 @@ class MainActivity : AppCompatActivity() {
             toolbar.inflateMenu(R.menu.app_bar_menu_main)
             toolbar.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.menu_search->{
+                        true
+                    }
                     R.id.menu_settings -> {
                         val intent = Intent(this, SettingsActivity::class.java)
 //                        val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(toolbar,0,0,
@@ -95,6 +100,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
+        val audioList = AudioHunter.getAllAudios(this)
+        audioList.forEach { audio ->
+            Log.d("scanaudio",audio.title)
+        }
+        Log.d("scanaudio","scancomplete")
     }
 }

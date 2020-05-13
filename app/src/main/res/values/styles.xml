@@ -40,6 +40,11 @@
         <item name="android:textColor">?android:textColorPrimary</item>
     </style>
 
+    <style name="secondaryTextLight">
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
+
     <style name="TransparentToolBar" parent="Widget.MaterialComponents.Toolbar">
         <item  name="android:background">@color/transparent</item>
         <item  name="titleTextColor">?android:attr/textColorSecondary</item>

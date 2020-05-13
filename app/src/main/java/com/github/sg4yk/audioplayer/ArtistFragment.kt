@@ -1,11 +1,11 @@
 package com.github.sg4yk.audioplayer
 
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 
 
 class ArtistFragment : Fragment() {
@@ -25,7 +25,7 @@ class ArtistFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(ArtistViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(ArtistViewModel::class.java)
         // TODO: Use the ViewModel
     }
 
