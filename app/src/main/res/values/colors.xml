@@ -16,5 +16,5 @@
     <color name="blueLighter">#659CF6</color>
     <color name="blueLighter2">#2EC7DC</color>
     <color name="grayLighter">#9E9E9E</color>
-
+    <color name="transparent">@android:color/transparent</color>
 </resources>
