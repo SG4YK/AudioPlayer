@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/nav_main"
+            app:startDestination="@id/nav_playlist">
+    <fragment android:id="@+id/nav_playlist"
+              android:name="com.github.sg4yk.audioplayer.PlaylistFragment"
+              android:label="playlist_fragment"
+              tools:layout="@layout/playlist_fragment"/>
+    <fragment android:id="@+id/nav_library"
+              android:name="com.github.sg4yk.audioplayer.LibraryFragment"
+              android:label="library_fragment"
+              tools:layout="@layout/library_fragment"/>
+    <fragment android:id="@+id/nav_album" android:name="com.github.sg4yk.audioplayer.AlbumFragment"
+              android:label="album_fragment" tools:layout="@layout/album_fragment"/>
+    <fragment android:id="@+id/nav_artist" android:name="com.github.sg4yk.audioplayer.ArtistFragment"
+              android:label="artist_fragment" tools:layout="@layout/artist_fragment"/>
+    <fragment android:id="@+id/nav_folder" android:name="com.github.sg4yk.audioplayer.FolderFragment"
+              android:label="folder_fragment" tools:layout="@layout/folder_fragment"/>
+</navigation>
