@@ -81,8 +81,9 @@ class MainActivity : AppCompatActivity() {
 //                val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(v, v.width / 2, v.height / 2, 0, 0)
                 val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
                 val intent = Intent(this, NowPlayingActivity::class.java)
-                intent.putExtra("startX", location[0] + v.width / 2)
-                intent.putExtra("startY", location[1] + v.height / 2)
+                intent.putExtra("fabX", location[0] + fab.width / 2)
+                intent.putExtra("fabY", location[1] + fab.height / 2)
+                intent.putExtra("fabD", fab.width)
                 startActivity(intent, activityOptions.toBundle())
             }
         }
