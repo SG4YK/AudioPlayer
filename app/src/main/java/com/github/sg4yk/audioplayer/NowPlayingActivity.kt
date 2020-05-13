@@ -1,15 +1,11 @@
 package com.github.sg4yk.audioplayer
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.SystemClock.sleep
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import com.google.android.material.appbar.MaterialToolbar
 import kotlin.math.hypot

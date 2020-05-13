@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.get
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navControl: NavController
     private lateinit var toolbar: MaterialToolbar
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navDrawer : NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
             toolbar = findViewById(R.id.toolbar)
             nav_host.post {
                 navControl = findNavController(R.id.nav_host)
+
                 appBarConfiguration = AppBarConfiguration(
                     setOf(
                         // top level fragments
@@ -38,7 +41,9 @@ class MainActivity : AppCompatActivity() {
                     findViewById<DrawerLayout>(R.id.drawer_layout)
                 )
 
+                navDrawer = findViewById(R.id.nav_drawer)
                 toolbar.setupWithNavController(navControl, appBarConfiguration)
+
                 findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
                 navControl.addOnDestinationChangedListener { controller, destination, arguments ->
 
@@ -51,6 +56,8 @@ class MainActivity : AppCompatActivity() {
                         R.id.nav_artist -> getString(R.string.artist)
                         else -> getString(R.string.app_name)
                     }
+
+//                    navDrawer.menu.getItem(0).actionView.get
                 }
             }
 

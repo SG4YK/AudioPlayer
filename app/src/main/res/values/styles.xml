@@ -35,4 +35,13 @@
         <item name="colorControlNormal">@color/gray</item>
         <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
     </style>
+
+    <style name="primaryTextLight">
+        <item name="android:textColor">?android:textColorPrimary</item>
+    </style>
+
+    <style name="TransparentToolBar" parent="Widget.MaterialComponents.Toolbar">
+        <item  name="android:background">@color/transparent</item>
+        <item  name="titleTextColor">?android:attr/textColorSecondary</item>
+    </style>
 </resources>
