@@ -28,7 +28,6 @@ class NowPlayingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
-
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         toolbar.post {
             setSupportActionBar(toolbar)

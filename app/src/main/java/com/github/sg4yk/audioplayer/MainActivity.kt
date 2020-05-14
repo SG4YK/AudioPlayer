@@ -2,6 +2,7 @@ package com.github.sg4yk.audioplayer
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navDrawer: NavigationView
     private var lastNavSlideOffset: Float = 0f
     private lateinit var decorView: View
+    private lateinit var navHeaderBg: ImageView
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -89,15 +92,9 @@ class MainActivity : AppCompatActivity() {
 
                 navDrawer = findViewById(R.id.nav_drawer)
                 navDrawer.post {
-                    val navHeaderBg: ImageView = findViewById(R.id.nav_header_bg)
+                    navHeaderBg = findViewById(R.id.nav_header_bg)
                     navHeaderBg.post {
-                        val drawable: Drawable? = getDrawable(R.drawable.lucas_benjamin_unsplash)
-                        if (drawable != null) {
-                            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
-                                .from(drawable.toBitmap()).into(navHeaderBg)
-                        } else {
-                            navHeaderBg.setBackgroundColor(R.color.colorAccent)
-                        }
+                        setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
                     }
                 }
 
@@ -179,11 +176,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scanAllAudio() {
-        val audioList = AudioHunter.getAllAudio(this)
-        audioList.forEach { audio ->
-            Log.d("AudioHunter", audio.toString())
-        }
-        Log.d("AudioHunter", "Scan Complete")
+        Thread(Runnable {
+            val audioList = AudioHunter.getAllAudio(this)
+            audioList.forEach { audio ->
+                Log.d("AudioHunter", audio.toString())
+            }
+            Log.d("AudioHunter", "Scan Complete")
+        }).start()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -204,6 +203,25 @@ class MainActivity : AppCompatActivity() {
             view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         } else {
             view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        }
+    }
+
+    private fun setDrawerBg(drawable: Drawable?) {
+        if (drawable != null) {
+            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
+                .from(drawable.toBitmap()).into(navHeaderBg)
+        } else {
+            navHeaderBg.setBackgroundColor(R.color.colorAccent)
+        }
+
+    }
+
+    private fun setDrawerBg(bitmap: Bitmap?) {
+        if (bitmap != null) {
+            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
+                .from(bitmap).into(navHeaderBg)
+        } else {
+            navHeaderBg.setBackgroundColor(R.color.colorAccent)
         }
     }
 }

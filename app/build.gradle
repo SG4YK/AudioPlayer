@@ -43,7 +43,6 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.preference:preference:1.1.1'
-    implementation 'com.google.android.material:material:1.2.0-alpha06'
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.0-alpha06'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.0-alpha06'
@@ -53,7 +52,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha02'
 
 //    Open source projects
-    implementation 'jp.wasabeef:blurry:3.0.0'   //https://github.com/wasabeef/Blurry
-    implementation 'com.google.oboe:oboe:1.3.0' //https://github.com/google/oboe
+    implementation 'jp.wasabeef:blurry:3.0.0'           //github.com/wasabeef/Blurry
+    implementation 'com.google.oboe:oboe:1.3.0'         //github.com/google/oboe
+    implementation 'de.hdodenhof:circleimageview:3.1.0' //github.com/hdodenhof/CircleImageView
+    implementation 'com.google.android.material:material:1.2.0-alpha06' //github.com/material-components/material-components-android
+
 
 }

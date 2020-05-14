@@ -6,18 +6,18 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
         tools:context=".PlaylistFragment" android:id="@+id/frameLayout">
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
             android:text="@string/playlist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/textView3"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
             android:text="TopStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/textView4"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"/>
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
             android:text="BottomEnd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/textView5"
