@@ -32,6 +32,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navDrawer: NavigationView
+    private var lastNavSlideOffset: Float = 0f
+    private lateinit var decorView: View
+
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
@@ -42,20 +45,27 @@ class MainActivity : AppCompatActivity() {
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
+            decorView = window.decorView
             drawerLayout.addDrawerListener(
                 object : DrawerLayout.DrawerListener {
                     override fun onDrawerStateChanged(newState: Int) {
                     }
 
                     override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                        if (lastNavSlideOffset <= 0.2f && slideOffset >= 0.2f) {
+                            setLightStatusBar(decorView, false)
+                        } else if (lastNavSlideOffset >= 0.2f && slideOffset <= 0.2f) {
+                            setLightStatusBar(decorView, true)
+                        }
+                        lastNavSlideOffset = slideOffset
                     }
 
                     override fun onDrawerClosed(drawerView: View) {
-                        setLightStatusBar(true)
+                        setLightStatusBar(decorView, true)
                     }
 
                     override fun onDrawerOpened(drawerView: View) {
-                        setLightStatusBar(false)
+                        setLightStatusBar(decorView, false)
                     }
                 }
 
@@ -189,12 +199,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLightStatusBar(on: Boolean) {
+    private fun setLightStatusBar(view: View, on: Boolean) {
         if (on) {
-            val view = window.decorView
             view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         } else {
-            val view = window.decorView
             view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         }
     }

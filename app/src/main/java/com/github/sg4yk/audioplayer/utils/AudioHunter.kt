@@ -12,7 +12,7 @@ object AudioHunter {
 
     val audioList = mutableListOf<Audio>()
 
-    private val projection = arrayOf(
+    private val audioProjection = arrayOf(
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.TITLE,
         MediaStore.Audio.Media.ARTIST,
@@ -23,7 +23,7 @@ object AudioHunter {
     fun getAllAudio(ctx: Context): MutableList<Audio> {
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            projection, null, null, null
+            audioProjection, null, null, null
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
@@ -43,7 +43,7 @@ object AudioHunter {
                         it
                     )
                 }
-                audioList += Audio(contentUri, title, artist, album, year)
+                audioList += Audio(contentUri, id, title, artist, album, year)
             }
         }
         return audioList
