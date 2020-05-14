@@ -1,18 +1,16 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Intent
-import android.graphics.Bitmap
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.get
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -24,7 +22,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
-import kotlinx.android.synthetic.main.activity_now_playing.*
 import kotlinx.android.synthetic.main.content_main.*
 
 
@@ -33,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navDrawer: NavigationView
+    private val permissions = arrayOf(
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,10 +123,44 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+        if (checkPermissionStatus()) {
+            scanAllAudio()
+        } else {
+            this.grantPermissions()
+        }
+    }
+
+    private fun checkPermissionStatus(): Boolean {
+        permissions.forEach {
+            if (checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun grantPermissions() {
+        requestPermissions(permissions, 1)
+    }
+
+    private fun scanAllAudio() {
         val audioList = AudioHunter.getAllAudios(this)
         audioList.forEach { audio ->
-            Log.d("scanaudio", audio.title)
+            Log.d("AudioHunter", audio.toString())
         }
-        Log.d("scanaudio", "scancomplete")
+        Log.d("AudioHunter", "Scan Complete")
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            1 -> {
+                if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    scanAllAudio()
+                } else {
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }
