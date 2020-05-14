@@ -13,11 +13,22 @@
     </style>
 
     <style name="AppThemeNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">#FFFFFF</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">#FFFFFF</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
+    <style name="AppThemeNoActionBarDark" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">#FFFFFF</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowFullscreen">false</item>
@@ -45,8 +56,10 @@
     </style>
 
 
-    <style name="TransparentToolBar" parent="Widget.MaterialComponents.Toolbar">
+    <style name="TransparentToolBarLight" parent="Widget.MaterialComponents.Toolbar.Primary">
         <item  name="android:background">@color/transparent</item>
-        <item  name="titleTextColor">?android:attr/textColorSecondary</item>
+        <item  name="titleTextColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

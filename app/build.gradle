@@ -52,4 +52,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha02'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha02'
 
+//    Open source projects
+    implementation 'jp.wasabeef:blurry:3.0.0'   //https://github.com/wasabeef/Blurry
 }
