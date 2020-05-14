@@ -54,4 +54,6 @@ dependencies {
 
 //    Open source projects
     implementation 'jp.wasabeef:blurry:3.0.0'   //https://github.com/wasabeef/Blurry
+    implementation 'com.google.oboe:oboe:1.3.0' //https://github.com/google/oboe
+
 }

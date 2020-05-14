@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +17,7 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+//import androidx.test.espresso.core.internal.deps.guava.base.Joiner.on
 import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -37,6 +39,29 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
+        drawerLayout.post {
+            drawerLayout.addDrawerListener(
+                object : DrawerLayout.DrawerListener {
+                    override fun onDrawerStateChanged(newState: Int) {
+                    }
+
+                    override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                    }
+
+                    override fun onDrawerClosed(drawerView: View) {
+                        setLightStatusBar(true)
+                    }
+
+                    override fun onDrawerOpened(drawerView: View) {
+                        setLightStatusBar(false)
+                    }
+                }
+
+            )
+        }
+
 
         val appBarLayout: AppBarLayout = findViewById(R.id.app_bar_layout_light)
         appBarLayout.post {
@@ -144,7 +169,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scanAllAudio() {
-        val audioList = AudioHunter.getAllAudios(this)
+        val audioList = AudioHunter.getAllAudio(this)
         audioList.forEach { audio ->
             Log.d("AudioHunter", audio.toString())
         }
@@ -161,6 +186,16 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    private fun setLightStatusBar(on: Boolean) {
+        if (on) {
+            val view = window.decorView
+            view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        } else {
+            val view = window.decorView
+            view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         }
     }
 }

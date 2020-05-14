@@ -1,12 +1,9 @@
 package com.github.sg4yk.audioplayer.utils
 
-import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
-import androidx.core.database.getBlobOrNull
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.entities.Audio
@@ -23,7 +20,7 @@ object AudioHunter {
         MediaStore.Audio.Media.YEAR
     )
 
-    fun getAllAudios(ctx: Context): MutableList<Audio> {
+    fun getAllAudio(ctx: Context): MutableList<Audio> {
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             projection, null, null, null
@@ -33,6 +30,7 @@ object AudioHunter {
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+
             while (cursor.moveToNext()) {
                 val id = idColumn.let { cursor.getLong(it) }
                 val title = titleColumn.let { cursor.getStringOrNull(it) }
@@ -45,9 +43,7 @@ object AudioHunter {
                         it
                     )
                 }
-                val audio = Audio(contentUri, title, artist, album, year)
-                audioList += audio
-//                Log.d("AudioHunter", "Audio scanned: $audio")
+                audioList += Audio(contentUri, title, artist, album, year)
             }
         }
         return audioList

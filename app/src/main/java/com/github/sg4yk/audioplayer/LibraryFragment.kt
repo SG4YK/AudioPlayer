@@ -28,5 +28,4 @@ class LibraryFragment : Fragment() {
         viewModel = ViewModelProvider(this).get(LibraryViewModel::class.java)
         // TODO: Use the ViewModel
     }
-
 }
