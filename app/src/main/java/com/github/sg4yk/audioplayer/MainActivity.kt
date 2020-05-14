@@ -1,10 +1,17 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.get
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
@@ -16,6 +23,8 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
+import jp.wasabeef.blurry.Blurry
+import kotlinx.android.synthetic.main.activity_now_playing.*
 import kotlinx.android.synthetic.main.content_main.*
 
 
@@ -23,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navControl: NavController
     private lateinit var toolbar: MaterialToolbar
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var navDrawer : NavigationView
+    private lateinit var navDrawer: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +53,19 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 navDrawer = findViewById(R.id.nav_drawer)
+                navDrawer.post {
+                    val navHeaderBg: ImageView = findViewById(R.id.nav_header_bg)
+                    navHeaderBg.post {
+                        val drawable: Drawable? = getDrawable(R.drawable.lucas_benjamin_unsplash)
+                        if (drawable != null) {
+                            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
+                                .from(drawable.toBitmap()).into(navHeaderBg)
+                        } else {
+                            navHeaderBg.setBackgroundColor(R.color.colorAccent)
+                        }
+                    }
+                }
+
                 toolbar.setupWithNavController(navControl, appBarConfiguration)
 
                 findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
@@ -66,7 +88,7 @@ class MainActivity : AppCompatActivity() {
             toolbar.inflateMenu(R.menu.app_bar_menu_main)
             toolbar.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_search->{
+                    R.id.menu_search -> {
                         true
                     }
                     R.id.menu_settings -> {
@@ -100,10 +122,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
         val audioList = AudioHunter.getAllAudios(this)
         audioList.forEach { audio ->
-            Log.d("scanaudio",audio.title)
+            Log.d("scanaudio", audio.title)
         }
-        Log.d("scanaudio","scancomplete")
+        Log.d("scanaudio", "scancomplete")
     }
 }
