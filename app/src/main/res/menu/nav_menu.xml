@@ -4,14 +4,14 @@
       tools:showIn="navigation_view">
     <group android:checkableBehavior="single">
         <item
-                android:id="@+id/nav_playlist"
-                android:icon="@drawable/ic_playlist_play_white_24dp"
-                android:title="@string/playlist"
-        />
-        <item
                 android:id="@+id/nav_library"
                 android:icon="@drawable/ic_library_music_white_24dp"
                 android:title="@string/library"
+        />
+        <item
+                android:id="@+id/nav_playlist"
+                android:icon="@drawable/ic_playlist_play_white_24dp"
+                android:title="@string/playlist"
         />
         <item
                 android:id="@+id/nav_artist"
@@ -23,11 +23,11 @@
                 android:icon="@drawable/ic_album_white_24dp"
                 android:title="@string/album"
         />
-        <item
-                android:id="@+id/nav_folder"
-                android:icon="@drawable/ic_folder_white_24dp"
-                android:title="@string/folder"
-        />
+<!--        <item-->
+<!--                android:id="@+id/nav_folder"-->
+<!--                android:icon="@drawable/ic_folder_white_24dp"-->
+<!--                android:title="@string/folder"-->
+<!--        />-->
         <!--    <item-->
         <!--            android:id="@+id/nav_settings"-->
         <!--            android:icon="@drawable/ic_settings_white_24dp"-->
