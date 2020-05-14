@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
@@ -42,7 +41,7 @@ class NowPlayingActivity : AppCompatActivity() {
         backgroundImg.post {
             val drawable: Drawable = albumArt.drawable
             val bitmap = drawable.toBitmap()
-            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0)).from(bitmap)
+            Blurry.with(this).radius(1).sampling(2).color(Color.argb(76, 0, 0, 0)).from(bitmap)
                 .into(backgroundImg)
         }
 
@@ -69,7 +68,7 @@ class NowPlayingActivity : AppCompatActivity() {
         val endRadius = Math.hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
         val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
         anim.duration = 1000
-        anim.interpolator = DecelerateInterpolator(2.0f)
+        anim.interpolator = DecelerateInterpolator(2.4f)
         rootLayout.visibility = View.VISIBLE
         anim.start()
     }
