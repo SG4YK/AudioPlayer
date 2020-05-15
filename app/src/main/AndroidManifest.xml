@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.github.sg4yk.audioplayer">
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-                     android:maxSdkVersion="28"/>
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            android:maxSdkVersion="28"/>
+
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -12,12 +15,17 @@
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
         <activity
+                android:name=".LegalInfoActivity"
+                android:label="@string/title_activity_licenses">
+        </activity>
+        <activity
                 android:name=".SettingsActivity"
                 android:label="@string/title_activity_settings"
                 android:theme="@style/AppThemeNoActionBar">
         </activity>
-        <activity android:name=".NowPlayingActivity"
-                  android:theme="@style/AppThemeNoActionBarDark">
+        <activity
+                android:name=".NowPlayingActivity"
+                android:theme="@style/AppThemeNoActionBarDark">
         </activity>
         <activity android:name=".MainActivity">
             <intent-filter>

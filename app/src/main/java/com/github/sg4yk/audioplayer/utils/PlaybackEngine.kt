@@ -8,6 +8,9 @@ import com.github.sg4yk.audioplayer.entities.Audio
 object PlaybackEngine {
     const val STATUS_STOPPED = 0;
     const val STATUS_PLAYING = 1;
+    const val STATUS_PAUSED = 2;
+
+    private var curStatus = STATUS_STOPPED;
 
     private var mediaPlayer: MediaPlayer? = null
 
@@ -22,28 +25,28 @@ object PlaybackEngine {
             mediaPlayer?.prepare()
             mediaPlayer?.start()
         }).start()
-
+        curStatus = STATUS_PLAYING
     }
 
     fun stop() {
         mediaPlayer?.stop()
+        curStatus = STATUS_STOPPED
     }
 
     fun pause() {
         mediaPlayer?.pause()
+        curStatus = STATUS_PAUSED
     }
 
 
     fun resume() {
+        mediaPlayer?.currentPosition?.let { mediaPlayer?.seekTo(it) }
         mediaPlayer?.start()
+        curStatus = STATUS_PLAYING
     }
 
     fun status(): Int {
-        return if (mediaPlayer != null && mediaPlayer!!.isPlaying) {
-            STATUS_PLAYING
-        } else {
-            STATUS_STOPPED
-        }
+        return curStatus
     }
 
     fun seekTo(percentage: Int) {
@@ -55,7 +58,10 @@ object PlaybackEngine {
         val msec = duration * percentage / 100
         Log.d("PlaybackEngine", "Seekto " + msec.toString())
         mediaPlayer?.seekTo(msec)
-        mediaPlayer?.start()
+        if (mediaPlayer?.isPlaying!!) {
+            mediaPlayer?.start()
+        }
+
     }
 
     fun getDuration(): Int {

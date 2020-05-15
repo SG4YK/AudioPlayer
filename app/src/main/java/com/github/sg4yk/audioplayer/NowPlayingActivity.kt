@@ -9,6 +9,7 @@ import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
@@ -36,6 +37,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: View
     private lateinit var backgroundImg: ImageView
+    private lateinit var bgLayout: LinearLayout
     private lateinit var albumArt: ImageView
     private lateinit var seekBar: AppCompatSeekBar
     private lateinit var seekbarJob: Job
@@ -59,6 +61,12 @@ class NowPlayingActivity : AppCompatActivity() {
         // set album art and background
         backgroundImg = findViewById(R.id.background)
         albumArt = findViewById(R.id.album_art)
+        bgLayout = findViewById(R.id.layout_bg)
+//        bgLayout.post {
+//            val drawable: Drawable = albumArt.drawable
+//            val bitmap = drawable.toBitmap()
+////            Blurry.with(this).radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).onto(bgLayout)
+//        }
         backgroundImg.post {
             val drawable: Drawable = albumArt.drawable
             val bitmap = drawable.toBitmap()
@@ -119,20 +127,24 @@ class NowPlayingActivity : AppCompatActivity() {
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
         playButton.post {
             playButton.setOnClickListener { v ->
-                val audioList = AudioHunter.audioList
-                audioList.forEach {
-                    val audioList = AudioHunter.audioList
-                    audioList.forEach {
-                        Log.d("AudioHunter", it.toString())
+                when (PlaybackEngine.status()) {
+                    PlaybackEngine.STATUS_STOPPED -> {
+                        // load queue and play
+                        val audioList = AudioHunter.audioList
+                        audioList.forEach {
+                            Log.d("AudioHunter", it.toString())
+                        }
+                        updateInfo(audioList[0])
+                        PlaybackEngine.play(this, audioList[0])
+                    }
+                    PlaybackEngine.STATUS_PLAYING -> {
+                        PlaybackEngine.pause()
+                    }
+                    PlaybackEngine.STATUS_PAUSED -> {
+                        PlaybackEngine.resume()
                     }
                 }
-
-
-                updateInfo(audioList[0])
-                PlaybackEngine.play(this, audioList[0])
                 updateProgress()
-
-
             }
         }
 
@@ -202,13 +214,13 @@ class NowPlayingActivity : AppCompatActivity() {
             toolbar.title = audio.title
             toolbar.subtitle = audio.artist + " - " + audio.album
         }
+        val bitmap = AudioHunter.getAlbumArt(this, audio)
         albumArt.post {
-            val bitmap = AudioHunter.getAlbumArt(this, audio)
             albumArt.setImageBitmap(bitmap)
-            backgroundImg.post {
-                Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
-                    .into(backgroundImg)
-            }
+        }
+        backgroundImg.post {
+            Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
+                .into(backgroundImg)
         }
     }
 }

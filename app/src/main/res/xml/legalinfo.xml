@@ -1,0 +1,31 @@
+<PreferenceScreen
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+            app:title="Open source licenses">
+        <Preference
+                app:key="AOSP"
+                app:summary="@string/license_apache"
+                app:title="Android Open Source Project"
+        />
+        <Preference
+                app:key="audioPlayer"
+                app:summary="@string/license_apache"
+                app:title="AudioPlayer"
+        />
+        <Preference
+                app:key="blurry"
+                app:summary="@string/license_apache"
+                app:title="Blurry"
+        />
+        <Preference
+                app:key="circleImgView"
+                app:summary="@string/license_apache"
+                app:title="CircleImageView"
+        />
+        <Preference
+                app:key="mdcAndroid"
+                app:summary="@string/license_apache"
+                app:title="Material Components for Android"
+        />
+    </PreferenceCategory>
+</PreferenceScreen>

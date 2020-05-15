@@ -5,48 +5,51 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.google.android.material.appbar.MaterialToolbar
 
-class SettingsActivity : AppCompatActivity() {
+class LegalInfoActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
-
-        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
-        toolbar.post {
-            setSupportActionBar(toolbar)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            supportActionBar?.setDisplayShowHomeEnabled(true)
-        }
-
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        toolbar.title = "Legal Information"
+        setSupportActionBar(toolbar)
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())
             .commit()
-
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.preferences, rootKey)
+            setPreferencesFromResource(R.xml.legalinfo, rootKey)
         }
 
         override fun onPreferenceTreeClick(preference: Preference?): Boolean {
             when (preference?.key) {
-                "version" -> {
-                    context?.let { openWebSite(it, "https://github.com/SG4YK/AudioPlayer/releases") }
+                "AOSP" -> {
+                    context?.let { SettingsActivity.openWebSite(it, "https://source.android.com/license") }
                 }
-                "developer" -> {
-                    context?.let { openWebSite(it, "https://sg4yk.com") }
+                "audioPlayer" -> {
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/SG4YK/AudioPlayer") }
                 }
-                "sourceCode" -> {
-                    context?.let { openWebSite(it, "https://github.com/SG4YK/AudioPlayer") }
+                "blurry" -> {
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/wasabeef/Blurry") }
                 }
-                "legalInfo" -> {
-                    val intent = Intent(context, LegalInfoActivity::class.java)
-                    context?.startActivity(intent)
+                "circleImgView" -> {
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/hdodenhof/CircleImageView") }
+                }
+                "mdcAndroid" -> {
+                    context?.let {
+                        SettingsActivity.openWebSite(
+                            it,
+                            "https://github.com/material-components/material-components-android"
+                        )
+                    }
                 }
             }
             return super.onPreferenceTreeClick(preference)
