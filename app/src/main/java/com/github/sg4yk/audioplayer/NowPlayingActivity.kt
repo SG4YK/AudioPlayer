@@ -201,7 +201,14 @@ class NowPlayingActivity : AppCompatActivity() {
         toolbar.post {
             toolbar.title = audio.title
             toolbar.subtitle = audio.artist + " - " + audio.album
-
+        }
+        albumArt.post {
+            val bitmap = AudioHunter.getAlbumArt(this, audio)
+            albumArt.setImageBitmap(bitmap)
+            backgroundImg.post {
+                Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
+                    .into(backgroundImg)
+            }
         }
     }
 }

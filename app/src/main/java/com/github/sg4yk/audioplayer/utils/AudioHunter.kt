@@ -2,8 +2,12 @@ package com.github.sg4yk.audioplayer.utils
 
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import android.util.Size
+import androidx.annotation.RequiresApi
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.entities.Album
@@ -136,5 +140,23 @@ object AudioHunter {
         } else {
             null
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun getAlbumArt(ctx: Context, audio: Audio?): Bitmap? {
+        return if (audio?.album == null) {
+            null
+        } else {
+            getAlbumArt(ctx, getAlbumOfAudio(ctx, audio))
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun getAlbumArt(ctx: Context, album: Album?): Bitmap? {
+        if (album?.uri == null) {
+            return null
+        }
+        var bitmap: Bitmap? = null
+        return ctx.contentResolver.loadThumbnail(album.uri, Size(300, 300), null)
     }
 }
