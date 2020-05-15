@@ -5,12 +5,13 @@ import android.media.MediaPlayer
 import android.util.Log
 import com.github.sg4yk.audioplayer.entities.Audio
 
+// Do not use this class out of PlaybackManager
 object PlaybackEngine {
     const val STATUS_STOPPED = 0;
     const val STATUS_PLAYING = 1;
     const val STATUS_PAUSED = 2;
 
-    private var curStatus = STATUS_STOPPED;
+    private var status = STATUS_STOPPED;
 
     private var mediaPlayer: MediaPlayer? = null
 
@@ -25,28 +26,28 @@ object PlaybackEngine {
             mediaPlayer?.prepare()
             mediaPlayer?.start()
         }).start()
-        curStatus = STATUS_PLAYING
+        status = STATUS_PLAYING
     }
 
     fun stop() {
         mediaPlayer?.stop()
-        curStatus = STATUS_STOPPED
+        status = STATUS_STOPPED
     }
 
     fun pause() {
         mediaPlayer?.pause()
-        curStatus = STATUS_PAUSED
+        status = STATUS_PAUSED
     }
 
 
     fun resume() {
         mediaPlayer?.currentPosition?.let { mediaPlayer?.seekTo(it) }
         mediaPlayer?.start()
-        curStatus = STATUS_PLAYING
+        status = STATUS_PLAYING
     }
 
     fun status(): Int {
-        return curStatus
+        return status
     }
 
     fun seekTo(percentage: Int) {
@@ -61,7 +62,6 @@ object PlaybackEngine {
         if (mediaPlayer?.isPlaying!!) {
             mediaPlayer?.start()
         }
-
     }
 
     fun getDuration(): Int {

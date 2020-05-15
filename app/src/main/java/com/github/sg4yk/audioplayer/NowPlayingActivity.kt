@@ -20,6 +20,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.github.sg4yk.audioplayer.entities.Audio
 import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
@@ -130,12 +131,12 @@ class NowPlayingActivity : AppCompatActivity() {
                 when (PlaybackEngine.status()) {
                     PlaybackEngine.STATUS_STOPPED -> {
                         // load queue and play
-                        val audioList = AudioHunter.audioList
+                        val audioList = PlaybackManager.audioList
                         audioList.forEach {
-                            Log.d("AudioHunter", it.toString())
+                            Log.d("AudioHunter NowPlaying", it.toString())
                         }
-                        updateInfo(audioList[0])
-                        PlaybackEngine.play(this, audioList[0])
+//                        updateInfo(audioList[0])
+                        PlaybackEngine.play(this, audioList.get(0))
                     }
                     PlaybackEngine.STATUS_PLAYING -> {
                         PlaybackEngine.pause()
@@ -210,17 +211,17 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun updateInfo(audio: Audio) {
-        toolbar.post {
-            toolbar.title = audio.title
-            toolbar.subtitle = audio.artist + " - " + audio.album
-        }
-        val bitmap = AudioHunter.getAlbumArt(this, audio)
-        albumArt.post {
-            albumArt.setImageBitmap(bitmap)
-        }
-        backgroundImg.post {
-            Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
-                .into(backgroundImg)
-        }
+//        toolbar.post {
+//            toolbar.title = audio.title
+//            toolbar.subtitle = audio.artist + " - " + audio.album
+//        }
+//        val bitmap = AudioHunter.getAlbumArt(this, audio)
+//        albumArt.post {
+//            albumArt.setImageBitmap(bitmap)
+//        }
+//        backgroundImg.post {
+//            Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
+//                .into(backgroundImg)
+//        }
     }
 }

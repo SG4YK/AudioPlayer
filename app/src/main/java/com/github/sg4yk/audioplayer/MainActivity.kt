@@ -10,10 +10,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -21,6 +22,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -37,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private var lastNavSlideOffset: Float = 0f
     private lateinit var decorView: View
     private lateinit var navHeaderBg: ImageView
+    private lateinit var navHeaderTitle: TextView
+    private lateinit var navHeaderArtistAlbum: TextView
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -112,21 +116,22 @@ class MainActivity : AppCompatActivity() {
                     navHeaderBg.post {
                         setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
                     }
+                    navHeaderTitle = findViewById(R.id.nav_header_title)
+                    navHeaderArtistAlbum = findViewById(R.id.nav_header_artistalbum)
                 }
 
-                // setup nav header
+                // setup nav header button
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
                 playButton.post {
                     playButton.setOnClickListener { v ->
-                        val audioList = AudioHunter.audioList
-                        Log.d("AudioHunter", "clicked")
-                        audioList.forEach {
-                            val audioList = AudioHunter.audioList
-                            audioList.forEach {
-                                Log.d("AudioHunter", it.toString())
+                        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
+                            if (PlaybackManager.play()) {
+                                updateMetadata()
                             }
+                        } else {
+                            PlaybackManager.playOrPause()
                         }
-                        PlaybackEngine.play(this, audioList[0])
+
                     }
                 }
             }
@@ -162,6 +167,7 @@ class MainActivity : AppCompatActivity() {
                 val location = IntArray(2)
                 v.getLocationInWindow(location)
 //                val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(v, v.width / 2, v.height / 2, 0, 0)
+//                val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(v, v.width / 2, v.height / 2, 0, 0)
                 val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
                 val intent = Intent(this, NowPlayingActivity::class.java)
                 intent.putExtra("fabX", location[0] + fab.width / 2)
@@ -172,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (checkPermissionStatus()) {
-            scanAllAudio()
+            PlaybackManager.init(applicationContext)
         } else {
             grantPermissions()
         }
@@ -213,7 +219,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    scanAllAudio()
+                    PlaybackManager.init(applicationContext)
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -230,21 +236,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setDrawerBg(drawable: Drawable?) {
-        if (drawable != null) {
-            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
-                .from(drawable.toBitmap()).into(navHeaderBg)
-        } else {
-            navHeaderBg.setBackgroundColor(R.color.colorAccent)
-        }
-
+//        if (drawable != null) {
+//            Blurry.with(this).radius(1).sampling(4).
+//                .from(drawable.toBitmap()).into(navHeaderBg)
+//        } else {
+//            navHeaderBg.setBackgroundColor(R.color.colorAccent)
+//        }
     }
 
     private fun setDrawerBg(bitmap: Bitmap?) {
         if (bitmap != null) {
-            Blurry.with(this).radius(1).sampling(4).color(Color.argb(76, 0, 0, 0))
+            Blurry.with(this).radius(1).sampling(4).color(Color.argb(128, 0, 0, 0))
                 .from(bitmap).into(navHeaderBg)
         } else {
             navHeaderBg.setBackgroundColor(R.color.colorAccent)
         }
+    }
+
+    @WorkerThread
+    private fun updateMetadata() {
+        val meta = PlaybackManager.currentMetadata ?: return
+        navHeaderTitle.post { navHeaderTitle.text = meta.title }
+        navHeaderArtistAlbum.post { navHeaderArtistAlbum.text = "${meta.artist} - ${meta.album}" }
+        navHeaderBg.post { setDrawerBg(meta.albumArt) }
+    }
+
+    private fun showToast(msg: String) {
+        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
     }
 }

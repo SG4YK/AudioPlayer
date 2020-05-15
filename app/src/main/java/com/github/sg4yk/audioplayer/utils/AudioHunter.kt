@@ -15,7 +15,7 @@ import com.github.sg4yk.audioplayer.entities.Audio
 
 object AudioHunter {
 
-    val audioList = mutableListOf<Audio>()
+
 
     private val audioProjection = arrayOf(
         MediaStore.Audio.Media._ID,
@@ -26,6 +26,7 @@ object AudioHunter {
     )
 
     fun getAllAudio(ctx: Context): MutableList<Audio> {
+        val audioList = mutableListOf<Audio>()
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             audioProjection, null, null, null
@@ -54,7 +55,7 @@ object AudioHunter {
     }
 
 
-    val albumList = mutableListOf<Album>()
+
 
     private val albumProjection = arrayOf(
         MediaStore.Audio.Albums._ID,
@@ -67,6 +68,7 @@ object AudioHunter {
 
 
     fun getAllAlbums(ctx: Context): MutableList<Album> {
+        val albumList = mutableListOf<Album>()
         ctx.contentResolver.query(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
             albumProjection, null, null, null
@@ -103,7 +105,7 @@ object AudioHunter {
             return null
         }
 
-        var albumList: List<Album> = mutableListOf()
+        val albumList = mutableListOf<Album>()
         val selection = "${MediaStore.Audio.Albums.ALBUM}  = ?"
         val args = arrayOf(audio.album)
 
