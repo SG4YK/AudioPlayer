@@ -12,13 +12,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
-import com.github.sg4yk.audioplayer.entities.Audio
-import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.MaterialToolbar
@@ -90,8 +89,8 @@ class NowPlayingActivity : AppCompatActivity() {
             // set coroutine job for seekbar
             seekbarJob = GlobalScope.launch {
                 while (isActive) {
-                    delay(100L)
-                    if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
+                    delay(500L)
+                    if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
                         updateProgress()
                     }
                 }
@@ -111,14 +110,14 @@ class NowPlayingActivity : AppCompatActivity() {
                     // start a new job
                     seekbarJob = GlobalScope.launch {
                         while (isActive) {
-                            delay(100L)
-                            if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
+                            delay(500L)
+                            if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
                                 updateProgress()
                             }
                         }
                     }
                     seekbarJob.start()
-                    PlaybackEngine.seekTo(seekbar.progress)
+                    PlaybackManager.seekTo(seekbar.progress)
                     updateProgress()
                 }
             })
@@ -128,24 +127,13 @@ class NowPlayingActivity : AppCompatActivity() {
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
         playButton.post {
             playButton.setOnClickListener { v ->
-                when (PlaybackEngine.status()) {
-                    PlaybackEngine.STATUS_STOPPED -> {
-                        // load queue and play
-                        val audioList = PlaybackManager.audioList
-                        audioList.forEach {
-                            Log.d("AudioHunter NowPlaying", it.toString())
-                        }
-//                        updateInfo(audioList[0])
-                        PlaybackEngine.play(this, audioList.get(0))
+                if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
+                    if (PlaybackManager.play()) {
+                        updateMetadata()
                     }
-                    PlaybackEngine.STATUS_PLAYING -> {
-                        PlaybackEngine.pause()
-                    }
-                    PlaybackEngine.STATUS_PAUSED -> {
-                        PlaybackEngine.resume()
-                    }
+                } else {
+                    PlaybackManager.playOrPause()
                 }
-                updateProgress()
             }
         }
 
@@ -154,6 +142,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // update progress before enter
         updateProgress()
+        updateMetadata()
 
         rootLayout.post {
             startRevealAnim(fabX, fabY)
@@ -204,24 +193,31 @@ class NowPlayingActivity : AppCompatActivity() {
         backPressed = false
     }
 
+    @WorkerThread
     private fun updateProgress() {
-        seekBar.post { seekbar.progress = PlaybackEngine.getPosition() }
-        position.post { position.text = PlaybackEngine.getPosistionString() }
-        duration.post { duration.text = PlaybackEngine.getDurationString() }
+        seekBar.post { seekbar.progress = PlaybackManager.percentage() }
+        position.post { position.text = PlaybackManager.positionAsString() }
+        duration.post { duration.text = PlaybackManager.durationAsString() }
     }
 
-    private fun updateInfo(audio: Audio) {
-//        toolbar.post {
-//            toolbar.title = audio.title
-//            toolbar.subtitle = audio.artist + " - " + audio.album
-//        }
-//        val bitmap = AudioHunter.getAlbumArt(this, audio)
-//        albumArt.post {
-//            albumArt.setImageBitmap(bitmap)
-//        }
-//        backgroundImg.post {
-//            Blurry.with(this).async().radius(1).sampling(4).color(Color.argb(128, 0, 0, 0)).from(bitmap)
-//                .into(backgroundImg)
-//        }
+    @WorkerThread
+    private fun updateMetadata() {
+        val metadata = PlaybackManager.currentMetadata ?: return
+        toolbar.post {
+            toolbar.title = metadata.title
+            toolbar.subtitle = "${metadata.artist} - ${metadata.album}"
+        }
+        if (metadata.albumArt != null) {
+            albumArt.post { albumArt.setImageBitmap(metadata.albumArt) }
+            backgroundImg.post {
+                Blurry.with(this)
+                    .async()
+                    .radius(1)
+                    .sampling(4)
+                    .color(Color.argb(128, 0, 0, 0))
+                    .from(metadata.albumArt)
+                    .into(backgroundImg)
+            }
+        }
     }
 }

@@ -85,6 +85,10 @@ object PlaybackManager {
         }
     }
 
+    fun stop() {
+        PlaybackEngine.stop()
+    }
+
     fun seekTo(percentage: Int) {
         if (percentage < 0 || percentage > 100) {
             return
@@ -92,8 +96,28 @@ object PlaybackManager {
         PlaybackEngine.seekTo(percentage)
     }
 
-    fun status() : Int {
+    fun status(): Int {
         return PlaybackEngine.status()
+    }
+
+    fun percentage(): Int {
+        return PlaybackEngine.getPercentage()
+    }
+
+    fun position(): Int {
+        return PlaybackEngine.getPosition()
+    }
+
+    fun positionAsString(): String {
+        return PlaybackEngine.getPositionStr()
+    }
+
+    fun duration(): Int {
+        return PlaybackEngine.getDuration()
+    }
+
+    fun durationAsString(): String {
+        return PlaybackEngine.getDurationStr()
     }
 
     class Metadata constructor(context: Context, audio: Audio) {

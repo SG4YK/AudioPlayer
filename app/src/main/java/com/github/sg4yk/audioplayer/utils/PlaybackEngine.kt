@@ -72,11 +72,11 @@ object PlaybackEngine {
         }
     }
 
-    fun getDurationString(): String {
+    fun getDurationStr(): String {
         return msecToStr(getDuration())
     }
 
-    fun getPosition(): Int {
+    fun getPercentage(): Int {
         return if (mediaPlayer != null) {
             mediaPlayer!!.currentPosition * 100 / mediaPlayer!!.duration
         } else {
@@ -84,7 +84,14 @@ object PlaybackEngine {
         }
     }
 
-    fun getPosistionString(): String {
+    fun getPosition(): Int {
+        if (mediaPlayer == null) {
+            return 0
+        }
+        return mediaPlayer!!.currentPosition
+    }
+
+    fun getPositionStr(): String {
         if (mediaPlayer == null) {
             return "00:00"
         }

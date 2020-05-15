@@ -131,7 +131,6 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             PlaybackManager.playOrPause()
                         }
-
                     }
                 }
             }
@@ -151,7 +150,7 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.menu_exit -> {
-                        PlaybackEngine.stop()
+                        PlaybackManager.stop()
                         finish()
                         true
                     }
@@ -263,5 +262,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(msg: String) {
         Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateMetadata()
     }
 }
