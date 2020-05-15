@@ -3,15 +3,18 @@ package com.github.sg4yk.audioplayer.utils
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.entities.Audio
 import com.github.sg4yk.audioplayer.utils.Generic.msecToStr
 
 // Do not use this class out of PlaybackManager
+@WorkerThread
 object PlaybackEngine {
     const val STATUS_STOPPED = 0
     const val STATUS_PLAYING = 1
     const val STATUS_PAUSED = 2
 
+    private lateinit var currentAudio: Audio
     private var status = STATUS_STOPPED
 
     private var mediaPlayer: MediaPlayer? = null
@@ -27,7 +30,12 @@ object PlaybackEngine {
             mediaPlayer?.prepare()
             mediaPlayer?.start()
         }).start()
+        currentAudio = audio
         status = STATUS_PLAYING
+    }
+
+    fun getCurrentAudio():Audio{
+        return currentAudio
     }
 
     fun stop() {

@@ -169,8 +169,7 @@ class NowPlayingActivity : AppCompatActivity() {
         }
         seekbarJob.cancel()
         backPressed = true
-
-        if (PrefManager.revealAnimationEnabled(this)) {
+        if(PrefManager.revealAnimationEnabled(this)){
             val endRadius = 100.0f
             val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
             anim.duration = 500
@@ -180,7 +179,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 finishAfterTransition()
             }
             anim.start()
-        } else {
+        }else{
             super.onBackPressed()
         }
 

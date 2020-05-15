@@ -9,6 +9,7 @@
                 app:enabled="false"
                 android:defaultValue="false"
                 app:summary="Pause on headphones disconnect"
+                app:icon="@drawable/ic_pause_white_24dp"
         />
     </PreferenceCategory>
 
