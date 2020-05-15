@@ -18,7 +18,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:title="@string/library"
-                app:navigationIcon="@drawable/ic_menu_gray_24dp"/>
+                app:navigationIcon="@drawable/ic_menu_dark_24dp"/>
 
         <include layout="@layout/content_main"/>
 

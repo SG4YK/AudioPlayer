@@ -27,6 +27,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.content_main.*
+import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {

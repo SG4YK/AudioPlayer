@@ -20,6 +20,8 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowFullscreen">false</item>
+        <item name="android:tint">@color/gray</item>
+<!--        <item name="tint">@color/gray</item>-->
     </style>
 
     <style name="AppThemeNoActionBarDark" parent="Theme.MaterialComponents.Light.NoActionBar">

@@ -9,7 +9,10 @@ import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
+import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import com.github.sg4yk.audioplayer.utils.AudioHunter
@@ -17,17 +20,26 @@ import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
+import kotlinx.android.synthetic.main.activity_now_playing.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
 class NowPlayingActivity : AppCompatActivity() {
 
-    private var fabX: Int = 0
-    private var fabY: Int = 0
-    private var fabD: Int = 0
-    private var radius: Float = 0f
+    private var fabX = 0
+    private var fabY = 0
+    private var fabD = 0
+    private var radius = 0f
+    private var backPressed = false
+
     private lateinit var rootLayout: View
     private lateinit var backgroundImg: ImageView
     private lateinit var albumArt: ImageView
+    private lateinit var seekBar: AppCompatSeekBar
+    private lateinit var seekbarJob: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +49,13 @@ class NowPlayingActivity : AppCompatActivity() {
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
+
+            // set title info
+            // TODO
         }
 
+
+        // set album art and background
         backgroundImg = findViewById(R.id.background)
         albumArt = findViewById(R.id.album_art)
         backgroundImg.post {
@@ -48,18 +65,32 @@ class NowPlayingActivity : AppCompatActivity() {
                 .into(backgroundImg)
         }
 
+
+        // set enter animation
         fabX = intent.getIntExtra("fabX", 0)
         fabY = intent.getIntExtra("fabY", 0)
         fabD = intent.getIntExtra("fabD", 0)
-
         radius = hypot(fabX.toDouble(), fabY.toDouble()).toFloat()
-
         rootLayout = findViewById(R.id.rootLayout)
         rootLayout.visibility = View.INVISIBLE
         rootLayout.post {
             startRevealAnim(fabX, fabY)
         }
 
+
+        // set seekbar behavior
+        seekBar = findViewById(R.id.seekbar)
+        seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                Log.d("seekbar", seekBar?.progress.toString())
+                PlaybackEngine.seekTo(seekbar.progress)
+                Log.d("Position", PlaybackEngine.getPosition().toString())
+            }
+        })
+
+        // set buttons behavior
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
         playButton.post {
             playButton.setOnClickListener { v ->
@@ -75,6 +106,16 @@ class NowPlayingActivity : AppCompatActivity() {
             }
         }
 
+        seekbarJob = GlobalScope.launch {
+            while (true) {
+                delay(500L)
+                if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
+                    seekBar.progress = PlaybackEngine.getPosition()
+                }
+            }
+        }
+        seekbarJob.start()
+        Log.d("Job","Seekbar job start")
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -93,6 +134,14 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        if (backPressed) {
+            return
+        }
+        seekbarJob.cancel()
+        if (seekbarJob.isCancelled){
+            Log.d("Job","Seekbar job canceled")
+        }
+        backPressed = true
         val endRadius = 100.0f
         val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
         anim.duration = 500
@@ -102,5 +151,14 @@ class NowPlayingActivity : AppCompatActivity() {
             finishAfterTransition()
         }
         anim.start()
+    }
+
+    private fun setBG() {
+        // TODO
+    }
+
+    override fun onResume() {
+        super.onResume()
+        backPressed = false
     }
 }

@@ -2,6 +2,7 @@ package com.github.sg4yk.audioplayer.utils
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Log
 import com.github.sg4yk.audioplayer.entities.Audio
 
 object PlaybackEngine {
@@ -44,13 +45,29 @@ object PlaybackEngine {
         }
     }
 
-    fun seekTo(msec: Int) {
+    fun seekTo(percentage: Int) {
+        if (mediaPlayer == null) {
+            return
+        }
+        val duration = mediaPlayer!!.duration
+
+        val msec = duration * percentage / 100
+        Log.d("PlaybackEngine", "Seekto " + msec.toString())
         mediaPlayer?.seekTo(msec)
+        mediaPlayer?.start()
     }
 
     fun getDuration(): Int {
         return if (mediaPlayer != null) {
             mediaPlayer!!.duration
+        } else {
+            0
+        }
+    }
+
+    fun getPosition(): Int {
+        return if (mediaPlayer != null) {
+            mediaPlayer!!.currentPosition * 100 / mediaPlayer!!.duration
         } else {
             0
         }
