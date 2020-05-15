@@ -27,5 +27,10 @@
                 app:summary="@string/license_apache"
                 app:title="Material Components for Android"
         />
+        <Preference
+            app:key="mdFont"
+            app:summary="SIL Open Font License Version 1.1"
+            app:title="Material Design"
+        />
     </PreferenceCategory>
 </PreferenceScreen>

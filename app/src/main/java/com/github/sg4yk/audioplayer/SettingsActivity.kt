@@ -2,11 +2,13 @@ package com.github.sg4yk.audioplayer
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
 
 class SettingsActivity : AppCompatActivity() {
@@ -21,11 +23,11 @@ class SettingsActivity : AppCompatActivity() {
             supportActionBar?.setDisplayShowHomeEnabled(true)
         }
 
+        val frag = SettingsFragment()
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.settings, SettingsFragment())
+            .replace(R.id.settings, frag)
             .commit()
-
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
@@ -51,6 +53,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             return super.onPreferenceTreeClick(preference)
         }
+
+
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -67,4 +71,5 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
     }
+
 }

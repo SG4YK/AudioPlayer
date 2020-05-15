@@ -1,12 +1,32 @@
 <PreferenceScreen
-        xmlns:app="http://schemas.android.com/apk/res-auto">
-
-<!--    <PreferenceCategory-->
-<!--            app:title="Playback">-->
-<!--    </PreferenceCategory>-->
+        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-            app:title="@string/about_header">
+            app:title="PLAYBACK">
+        <SwitchPreferenceCompat
+                app:key="autoPause"
+                app:title="Auto Pause (TODO)"
+                app:enabled="false"
+                android:defaultValue="false"
+                app:summary="Pause on headphones disconnect"
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            app:title="INTERFACE">
+        <SwitchPreferenceCompat
+                app:key="@string/reveal_ani_key"
+                app:title="Circular Reveal Animation"
+                app:icon="@drawable/ic_play_circle_filled_white_24dp"
+                android:defaultValue="true"
+                app:summaryOn="Disable for better performance"
+                app:summaryOff="Disabled"
+
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            app:title="ABOUT">
 
         <Preference
                 app:key="version"
@@ -18,20 +38,19 @@
         <Preference
                 app:key="developer"
                 app:summary="SG4YK"
-                app:icon="@drawable/ic_local_hotel_white_24dp"
+                app:icon="@drawable/cat"
                 app:title="Developer"/>
 
         <Preference
                 app:key="sourceCode"
-                app:summary="Click to visit GitHub"
+                app:summary="Feel free to give a star!"
                 app:icon="@drawable/ic_code_white_24dp"
                 app:title="Source Code"/>
 
         <Preference
                 app:key="legalInfo"
-                app:icon="@drawable/ic_gavel_white_24dp"
+                app:icon="@drawable/ic_account_balance_white_24dp"
                 app:title="Legal Information"/>
-
     </PreferenceCategory>
 
 </PreferenceScreen>

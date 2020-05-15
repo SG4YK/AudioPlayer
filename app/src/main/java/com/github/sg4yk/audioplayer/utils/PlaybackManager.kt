@@ -2,7 +2,6 @@ package com.github.sg4yk.audioplayer.utils
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.media.MediaPlayer
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi

@@ -22,6 +22,7 @@ import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -163,16 +164,19 @@ class MainActivity : AppCompatActivity() {
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.post {
             fab.setOnClickListener { v ->
-                val location = IntArray(2)
-                v.getLocationInWindow(location)
-//                val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(v, v.width / 2, v.height / 2, 0, 0)
-//                val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(v, v.width / 2, v.height / 2, 0, 0)
-                val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
                 val intent = Intent(this, NowPlayingActivity::class.java)
-                intent.putExtra("fabX", location[0] + fab.width / 2)
-                intent.putExtra("fabY", location[1] + fab.height / 2)
-                intent.putExtra("fabD", fab.width)
-                startActivity(intent, activityOptions.toBundle())
+
+                if(PrefManager.revealAnimationEnabled(this)){
+                    val location = IntArray(2)
+                    v.getLocationInWindow(location)
+                    val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
+                    intent.putExtra("fabX", location[0] + fab.width / 2)
+                    intent.putExtra("fabY", location[1] + fab.height / 2)
+                    intent.putExtra("fabD", fab.width)
+                    startActivity(intent, activityOptions.toBundle())
+                }else{
+                    startActivity(intent)
+                }
             }
         }
 

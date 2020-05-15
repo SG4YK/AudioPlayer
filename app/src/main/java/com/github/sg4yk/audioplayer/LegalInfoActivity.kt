@@ -50,6 +50,15 @@ class LegalInfoActivity : AppCompatActivity() {
                             "https://github.com/material-components/material-components-android"
                         )
                     }
+
+                }
+                "mdFont" -> {
+                    context?.let {
+                        SettingsActivity.openWebSite(
+                            it,
+                            "https://github.com/templarian/MaterialDesign"
+                        )
+                    }
                 }
             }
             return super.onPreferenceTreeClick(preference)

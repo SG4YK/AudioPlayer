@@ -13,6 +13,19 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:srcCompat="@color/gray"
+            android:id="@+id/background2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:scaleType="centerCrop"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintVertical_bias="0.0"
+            android:visibility="gone"/>
+    <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:srcCompat="@color/gray"
             android:id="@+id/background"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -21,16 +34,7 @@
             android:scaleType="centerCrop"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintVertical_bias="0.0"
-            android:visibility="visible"
-            android:tintMode="screen"/>
-    <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
-            android:background="@color/white" android:id="@+id/layout_bg" android:visibility="gone">
-    </LinearLayout>
+            android:visibility="visible"/>
     <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -121,11 +125,11 @@
                 android:layout_marginEnd="32dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <com.github.sg4yk.audioplayer.utils.SquareImageView
-            android:id="@+id/album_art"
+            android:id="@+id/album_art2"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            app:srcCompat="@drawable/lucas_benjamin_unsplash"
-            android:elevation="16dp"
+            app:srcCompat="@color/grayLighter"
+            android:elevation="8dp"
             android:padding="0dp"
             android:outlineProvider="bounds"
             android:scaleType="centerCrop"
@@ -133,5 +137,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="40dp" android:layout_marginEnd="40dp"
-            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/constraintLayout"/>
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            android:visibility="gone"/>
+    <com.github.sg4yk.audioplayer.utils.SquareImageView
+            android:id="@+id/album_art"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            app:srcCompat="@color/grayLighter"
+            android:elevation="8dp"
+            android:padding="0dp"
+            android:outlineProvider="bounds"
+            android:scaleType="centerCrop"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="40dp" android:layout_marginEnd="40dp"
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            android:visibility="visible"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
