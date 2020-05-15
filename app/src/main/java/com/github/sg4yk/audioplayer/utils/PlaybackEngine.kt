@@ -22,6 +22,7 @@ object PlaybackEngine {
             mediaPlayer?.prepare()
             mediaPlayer?.start()
         }).start()
+
     }
 
     fun stop() {
@@ -65,11 +66,28 @@ object PlaybackEngine {
         }
     }
 
+    fun getDurationString(): String {
+        return msecToStr(getDuration())
+    }
+
     fun getPosition(): Int {
         return if (mediaPlayer != null) {
             mediaPlayer!!.currentPosition * 100 / mediaPlayer!!.duration
         } else {
             0
         }
+    }
+
+    fun getPosistionString(): String {
+        if (mediaPlayer == null) {
+            return "00:00"
+        }
+        return msecToStr(mediaPlayer!!.currentPosition)
+    }
+
+    private fun msecToStr(msec: Int): String {
+        val seconds = msec / 1000
+        val minutes = seconds / 60
+        return "%02d:%02d".format(minutes, seconds % 60)
     }
 }

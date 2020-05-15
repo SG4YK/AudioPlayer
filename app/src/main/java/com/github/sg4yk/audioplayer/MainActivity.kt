@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                                 Log.d("AudioHunter", it.toString())
                             }
                         }
-                PlaybackEngine.play(this, audioList[0])
+                        PlaybackEngine.play(this, audioList[0])
                     }
                 }
             }

@@ -13,6 +13,7 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSeekBar
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import com.github.sg4yk.audioplayer.utils.AudioHunter
@@ -37,6 +38,8 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var albumArt: ImageView
     private lateinit var seekBar: AppCompatSeekBar
     private lateinit var seekbarJob: Job
+    private lateinit var duration: AppCompatTextView
+    private lateinit var position: AppCompatTextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,47 +73,46 @@ class NowPlayingActivity : AppCompatActivity() {
         radius = hypot(fabX.toDouble(), fabY.toDouble()).toFloat()
         rootLayout = findViewById(R.id.rootLayout)
         rootLayout.visibility = View.INVISIBLE
-        rootLayout.post {
-            startRevealAnim(fabX, fabY)
-        }
-
 
         // set seekbar behavior
         seekBar = findViewById(R.id.seekbar)
         seekbar.post {
-            if(PlaybackEngine.status()==PlaybackEngine.STATUS_PLAYING){
-                seekbar.progress = PlaybackEngine.getPosition()
-            }
+            // set coroutine job for seekbar
             seekbarJob = GlobalScope.launch {
                 while (isActive) {
-                    delay(500L)
+                    delay(100L)
                     if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
-                        seekBar.progress = PlaybackEngine.getPosition()
+                        updateProgress()
                     }
                 }
             }
             seekbarJob.start()
-            Log.d("Job","Seekbar job started")
+            Log.d("Job", "Seekbar job started")
+
+            // on slide behavior
             seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    // stop updating progress
                     seekbarJob.cancel()
                 }
+
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    // start a new job
                     seekbarJob = GlobalScope.launch {
                         while (isActive) {
-                            delay(500L)
+                            delay(100L)
                             if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
-                                seekBar?.progress = PlaybackEngine.getPosition()
+                                updateProgress()
                             }
                         }
                     }
                     seekbarJob.start()
                     PlaybackEngine.seekTo(seekbar.progress)
+                    updateProgress()
                 }
             })
         }
-
 
         // set buttons behavior
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
@@ -125,7 +127,18 @@ class NowPlayingActivity : AppCompatActivity() {
                     }
                 }
                 PlaybackEngine.play(this, audioList[0])
+                updateProgress()
             }
+        }
+
+        duration = findViewById(R.id.duration)
+        position = findViewById(R.id.position)
+
+        // update progress before enter
+        updateProgress()
+
+        rootLayout.post {
+            startRevealAnim(fabX, fabY)
         }
     }
 
@@ -149,8 +162,8 @@ class NowPlayingActivity : AppCompatActivity() {
             return
         }
         seekbarJob.cancel()
-        if (seekbarJob.isCancelled){
-            Log.d("Job","Seekbar job canceled")
+        if (seekbarJob.isCancelled) {
+            Log.d("Job", "Seekbar job canceled")
         }
         backPressed = true
         val endRadius = 100.0f
@@ -171,5 +184,11 @@ class NowPlayingActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         backPressed = false
+    }
+
+    private fun updateProgress() {
+        seekBar.post { seekbar.progress = PlaybackEngine.getPosition() }
+        position.post { position.text = PlaybackEngine.getPosistionString() }
+        duration.post { duration.text = PlaybackEngine.getDurationString() }
     }
 }
