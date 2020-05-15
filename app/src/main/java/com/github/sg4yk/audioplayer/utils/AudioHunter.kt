@@ -30,7 +30,6 @@ object AudioHunter {
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-
             while (cursor.moveToNext()) {
                 val id = idColumn.let { cursor.getLong(it) }
                 val title = titleColumn.let { cursor.getStringOrNull(it) }
@@ -39,7 +38,7 @@ object AudioHunter {
                 val year = yearColumn.let { cursor.getIntOrNull(it) }
                 val contentUri: Uri? = id.let {
                     ContentUris.withAppendedId(
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         it
                     )
                 }

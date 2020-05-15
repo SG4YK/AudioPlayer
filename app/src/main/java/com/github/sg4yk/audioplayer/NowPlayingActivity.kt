@@ -3,6 +3,7 @@ package com.github.sg4yk.audioplayer
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
@@ -11,7 +12,10 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
+import com.github.sg4yk.audioplayer.utils.AudioHunter
+import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
 import kotlin.math.hypot
 
@@ -55,6 +59,22 @@ class NowPlayingActivity : AppCompatActivity() {
         rootLayout.post {
             startRevealAnim(fabX, fabY)
         }
+
+        val playButton: FloatingActionButton = findViewById(R.id.button_play)
+        playButton.post {
+            playButton.setOnClickListener { v ->
+                val audioList = AudioHunter.audioList
+                Log.d("AudioHunter", "clicked")
+                audioList.forEach {
+                    val audioList = AudioHunter.audioList
+                    audioList.forEach {
+                        Log.d("AudioHunter", it.toString())
+                    }
+                }
+                PlaybackEngine.play(this, audioList[0])
+            }
+        }
+
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -20,6 +20,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 //import androidx.test.espresso.core.internal.deps.guava.base.Joiner.on
 import com.github.sg4yk.audioplayer.utils.AudioHunter
+import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -131,6 +132,7 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.menu_exit -> {
+                        PlaybackEngine.stop()
                         finish()
                         true
                     }
@@ -154,11 +156,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         if (checkPermissionStatus()) {
             scanAllAudio()
         } else {
-            this.grantPermissions()
+            grantPermissions()
         }
     }
 
@@ -178,9 +179,9 @@ class MainActivity : AppCompatActivity() {
     private fun scanAllAudio() {
         Thread(Runnable {
             val audioList = AudioHunter.getAllAudio(this)
-            audioList.forEach { audio ->
-                Log.d("AudioHunter", audio.toString())
-            }
+//            audioList.forEach { audio ->
+//                Log.d("AudioHunter", audio.toString())
+//            }
             Log.d("AudioHunter", "Scan Complete")
         }).start()
     }
