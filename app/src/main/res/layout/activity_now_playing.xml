@@ -86,7 +86,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                app:srcCompat="@drawable/ic_skip_next_black_24dp"
+                app:srcCompat="@drawable/ic_skip_next_white_24dp"
                 android:id="@+id/button_next"
                 android:focusable="true"
                 app:layout_constraintStart_toEndOf="@+id/button_play" android:layout_marginStart="32dp"

@@ -1,5 +1,6 @@
 package com.github.sg4yk.audioplayer
 
+//import androidx.test.espresso.core.internal.deps.guava.base.Joiner.on
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -18,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-//import androidx.test.espresso.core.internal.deps.guava.base.Joiner.on
 import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.google.android.material.appbar.AppBarLayout
@@ -27,7 +27,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.content_main.*
-import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,15 +46,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
             decorView = window.decorView
             drawerLayout.addDrawerListener(
-                object : DrawerLayout.DrawerListener {
-                    override fun onDrawerStateChanged(newState: Int) {
-                    }
 
+                object : DrawerLayout.DrawerListener {
+                    override fun onDrawerStateChanged(newState: Int) {}
                     override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                         if (lastNavSlideOffset <= 0.2f && slideOffset >= 0.2f) {
                             setLightStatusBar(decorView, false)
@@ -82,8 +80,9 @@ class MainActivity : AppCompatActivity() {
         appBarLayout.post {
             toolbar = findViewById(R.id.toolbar)
             nav_host.post {
-                navControl = findNavController(R.id.nav_host)
 
+                // setup navigation
+                navControl = findNavController(R.id.nav_host)
                 appBarConfiguration = AppBarConfiguration(
                     setOf(
                         // top level fragments
@@ -92,16 +91,7 @@ class MainActivity : AppCompatActivity() {
                     findViewById<DrawerLayout>(R.id.drawer_layout)
                 )
 
-                navDrawer = findViewById(R.id.nav_drawer)
-                navDrawer.post {
-                    navHeaderBg = findViewById(R.id.nav_header_bg)
-                    navHeaderBg.post {
-                        setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
-                    }
-                }
-
                 toolbar.setupWithNavController(navControl, appBarConfiguration)
-
                 findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
                 navControl.addOnDestinationChangedListener { controller, destination, arguments ->
 
@@ -114,11 +104,34 @@ class MainActivity : AppCompatActivity() {
                         R.id.nav_artist -> getString(R.string.artist)
                         else -> getString(R.string.app_name)
                     }
+                }
 
-//                    navDrawer.menu.getItem(0).actionView.get
+                navDrawer = findViewById(R.id.nav_drawer)
+                navDrawer.post {
+                    navHeaderBg = findViewById(R.id.nav_header_bg)
+                    navHeaderBg.post {
+                        setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
+                    }
+                }
+
+                // setup nav header
+                val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
+                playButton.post {
+                    playButton.setOnClickListener { v ->
+                        val audioList = AudioHunter.audioList
+                        Log.d("AudioHunter", "clicked")
+                        audioList.forEach {
+                            val audioList = AudioHunter.audioList
+                            audioList.forEach {
+                                Log.d("AudioHunter", it.toString())
+                            }
+                        }
+                PlaybackEngine.play(this, audioList[0])
+                    }
                 }
             }
 
+            // setup menu
             toolbar.inflateMenu(R.menu.app_bar_menu_main)
             toolbar.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -142,6 +155,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // setup fab
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.post {
             fab.setOnClickListener { v ->

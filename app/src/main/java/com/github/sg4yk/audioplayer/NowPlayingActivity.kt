@@ -21,10 +21,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_now_playing.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.math.hypot
 
 class NowPlayingActivity : AppCompatActivity() {
@@ -80,15 +77,40 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // set seekbar behavior
         seekBar = findViewById(R.id.seekbar)
-        seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                Log.d("seekbar", seekBar?.progress.toString())
-                PlaybackEngine.seekTo(seekbar.progress)
-                Log.d("Position", PlaybackEngine.getPosition().toString())
+        seekbar.post {
+            if(PlaybackEngine.status()==PlaybackEngine.STATUS_PLAYING){
+                seekbar.progress = PlaybackEngine.getPosition()
             }
-        })
+            seekbarJob = GlobalScope.launch {
+                while (isActive) {
+                    delay(500L)
+                    if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
+                        seekBar.progress = PlaybackEngine.getPosition()
+                    }
+                }
+            }
+            seekbarJob.start()
+            Log.d("Job","Seekbar job started")
+            seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    seekbarJob.cancel()
+                }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    seekbarJob = GlobalScope.launch {
+                        while (isActive) {
+                            delay(500L)
+                            if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
+                                seekBar?.progress = PlaybackEngine.getPosition()
+                            }
+                        }
+                    }
+                    seekbarJob.start()
+                    PlaybackEngine.seekTo(seekbar.progress)
+                }
+            })
+        }
+
 
         // set buttons behavior
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
@@ -105,17 +127,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 PlaybackEngine.play(this, audioList[0])
             }
         }
-
-        seekbarJob = GlobalScope.launch {
-            while (true) {
-                delay(500L)
-                if (PlaybackEngine.status() == PlaybackEngine.STATUS_PLAYING) {
-                    seekBar.progress = PlaybackEngine.getPosition()
-                }
-            }
-        }
-        seekbarJob.start()
-        Log.d("Job","Seekbar job start")
     }
 
     override fun onSupportNavigateUp(): Boolean {
