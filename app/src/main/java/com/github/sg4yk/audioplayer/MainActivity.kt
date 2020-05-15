@@ -194,9 +194,16 @@ class MainActivity : AppCompatActivity() {
     private fun scanAllAudio() {
         Thread(Runnable {
             val audioList = AudioHunter.getAllAudio(this)
-//            audioList.forEach { audio ->
-//                Log.d("AudioHunter", audio.toString())
-//            }
+            audioList.forEach { audio ->
+                Log.d("AudioHunter", audio.toString())
+            }
+
+
+            val albumList = AudioHunter.getAllAlbums(this)
+            albumList.forEach { album ->
+                Log.d("AudioHunter", album.toString())
+            }
+
             Log.d("AudioHunter", "Scan Complete")
         }).start()
     }

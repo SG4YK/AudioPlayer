@@ -16,6 +16,7 @@ import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
+import com.github.sg4yk.audioplayer.entities.Audio
 import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.google.android.material.appbar.MaterialToolbar
@@ -119,15 +120,19 @@ class NowPlayingActivity : AppCompatActivity() {
         playButton.post {
             playButton.setOnClickListener { v ->
                 val audioList = AudioHunter.audioList
-                Log.d("AudioHunter", "clicked")
                 audioList.forEach {
                     val audioList = AudioHunter.audioList
                     audioList.forEach {
                         Log.d("AudioHunter", it.toString())
                     }
                 }
+
+
+                updateInfo(audioList[0])
                 PlaybackEngine.play(this, audioList[0])
                 updateProgress()
+
+
             }
         }
 
@@ -190,5 +195,13 @@ class NowPlayingActivity : AppCompatActivity() {
         seekBar.post { seekbar.progress = PlaybackEngine.getPosition() }
         position.post { position.text = PlaybackEngine.getPosistionString() }
         duration.post { duration.text = PlaybackEngine.getDurationString() }
+    }
+
+    private fun updateInfo(audio: Audio) {
+        toolbar.post {
+            toolbar.title = audio.title
+            toolbar.subtitle = audio.artist + " - " + audio.album
+
+        }
     }
 }
