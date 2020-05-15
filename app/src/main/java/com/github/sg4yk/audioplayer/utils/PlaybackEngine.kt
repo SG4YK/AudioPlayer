@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
 import com.github.sg4yk.audioplayer.entities.Audio
+import com.github.sg4yk.audioplayer.utils.Generic.msecToStr
 
 // Do not use this class out of PlaybackManager
 object PlaybackEngine {
@@ -96,11 +97,5 @@ object PlaybackEngine {
             return "00:00"
         }
         return msecToStr(mediaPlayer!!.currentPosition)
-    }
-
-    private fun msecToStr(msec: Int): String {
-        val seconds = msec / 1000
-        val minutes = seconds / 60
-        return "%02d:%02d".format(minutes, seconds % 60)
     }
 }

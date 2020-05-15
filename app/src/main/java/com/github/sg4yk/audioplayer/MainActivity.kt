@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -20,6 +19,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.AudioHunter
+import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.AppBarLayout
@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private var lastNavSlideOffset: Float = 0f
     private lateinit var decorView: View
     private lateinit var navHeaderBg: ImageView
+    private lateinit var navHeaderBg2: ImageView
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
@@ -113,9 +114,7 @@ class MainActivity : AppCompatActivity() {
                 navDrawer = findViewById(R.id.nav_drawer)
                 navDrawer.post {
                     navHeaderBg = findViewById(R.id.nav_header_bg)
-                    navHeaderBg.post {
-                        setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
-                    }
+                    navHeaderBg2 = findViewById(R.id.nav_header_bg2)
                     navHeaderTitle = findViewById(R.id.nav_header_title)
                     navHeaderArtist = findViewById(R.id.nav_header_artist)
                     navHeaderAlbum = findViewById(R.id.nav_header_album)
@@ -124,7 +123,7 @@ class MainActivity : AppCompatActivity() {
                 // setup nav header button
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
                 playButton.post {
-                    playButton.setOnClickListener { v ->
+                    playButton.setOnClickListener {
                         if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
                             if (PlaybackManager.play()) {
                                 updateMetadata()
@@ -235,19 +234,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setDrawerBg(drawable: Drawable?) {
-//        if (drawable != null) {
-//            Blurry.with(this).radius(1).sampling(4).
-//                .from(drawable.toBitmap()).into(navHeaderBg)
-//        } else {
-//            navHeaderBg.setBackgroundColor(R.color.colorAccent)
-//        }
-    }
-
     private fun setDrawerBg(bitmap: Bitmap?) {
         if (bitmap != null) {
+            val targetBg = if (navHeaderBg.visibility == View.GONE) {
+                navHeaderBg
+            } else {
+                navHeaderBg2
+            }
             Blurry.with(this).async().radius(4).sampling(4).color(Color.argb(128, 0, 0, 0))
-                .from(bitmap).into(navHeaderBg)
+                .from(bitmap).into(targetBg)
+            crossFade(navHeaderBg, navHeaderBg2, 300)
         } else {
             navHeaderBg.setBackgroundColor(R.color.colorAccent)
         }

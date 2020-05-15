@@ -15,8 +15,6 @@ import com.github.sg4yk.audioplayer.entities.Audio
 
 object AudioHunter {
 
-
-
     private val audioProjection = arrayOf(
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.TITLE,

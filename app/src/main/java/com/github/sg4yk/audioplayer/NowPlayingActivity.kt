@@ -126,7 +126,7 @@ class NowPlayingActivity : AppCompatActivity() {
         // set buttons behavior
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
         playButton.post {
-            playButton.setOnClickListener { v ->
+            playButton.setOnClickListener {
                 if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
                     if (PlaybackManager.play()) {
                         updateMetadata()
@@ -200,7 +200,7 @@ class NowPlayingActivity : AppCompatActivity() {
         duration.post { duration.text = PlaybackManager.durationAsString() }
     }
 
-    @WorkerThread
+//    @WorkerThread
     private fun updateMetadata() {
         val metadata = PlaybackManager.currentMetadata ?: return
         toolbar.post {
