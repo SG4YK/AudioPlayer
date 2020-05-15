@@ -1,6 +1,5 @@
 package com.github.sg4yk.audioplayer
 
-//import androidx.test.espresso.core.internal.deps.guava.base.Joiner.on
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -40,7 +39,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var decorView: View
     private lateinit var navHeaderBg: ImageView
     private lateinit var navHeaderTitle: TextView
-    private lateinit var navHeaderArtistAlbum: TextView
+    private lateinit var navHeaderArtist: TextView
+    private lateinit var navHeaderAlbum: TextView
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -117,7 +117,8 @@ class MainActivity : AppCompatActivity() {
                         setDrawerBg(getDrawable(R.drawable.lucas_benjamin_unsplash))
                     }
                     navHeaderTitle = findViewById(R.id.nav_header_title)
-                    navHeaderArtistAlbum = findViewById(R.id.nav_header_artistalbum)
+                    navHeaderArtist = findViewById(R.id.nav_header_artist)
+                    navHeaderAlbum = findViewById(R.id.nav_header_album)
                 }
 
                 // setup nav header button
@@ -245,7 +246,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setDrawerBg(bitmap: Bitmap?) {
         if (bitmap != null) {
-            Blurry.with(this).radius(1).sampling(4).color(Color.argb(128, 0, 0, 0))
+            Blurry.with(this).async().radius(4).sampling(4).color(Color.argb(128, 0, 0, 0))
                 .from(bitmap).into(navHeaderBg)
         } else {
             navHeaderBg.setBackgroundColor(R.color.colorAccent)
@@ -255,9 +256,10 @@ class MainActivity : AppCompatActivity() {
     @WorkerThread
     private fun updateMetadata() {
         val meta = PlaybackManager.currentMetadata ?: return
-        navHeaderTitle.post { navHeaderTitle.text = meta.title }
-        navHeaderArtistAlbum.post { navHeaderArtistAlbum.text = "${meta.artist} - ${meta.album}" }
         navHeaderBg.post { setDrawerBg(meta.albumArt) }
+        navHeaderTitle.post { navHeaderTitle.text = meta.title }
+        navHeaderArtist.post { navHeaderArtist.text = meta.artist }
+        navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
     }
 
     private fun showToast(msg: String) {

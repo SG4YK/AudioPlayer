@@ -26,30 +26,40 @@
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="40dp" android:layout_marginStart="16dp"
             android:singleLine="true"
-            android:ellipsize="end" android:textColor="#B3FFFFFF"/>
+            android:ellipsize="end" android:textColor="#B3FFFFFF" android:textSize="18sp"
+            android:drawableStart="@drawable/ic_play_arrow_white_24dp"
+            android:drawablePadding="2dp"/>
     <androidx.appcompat.widget.AppCompatTextView
             android:text="Title"
             android:layout_width="0dp"
             android:layout_height="wrap_content" android:id="@+id/nav_header_title"
             app:layout_constraintTop_toBottomOf="@+id/textView2" android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="16dp"
+            app:layout_constraintStart_toStartOf="@+id/textView2"
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginEnd="16dp" android:ellipsize="marquee" android:singleLine="true"
             android:theme="@style/secondaryTextLight"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1" android:textColor="#CCFFFFFF"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1" android:textColor="#CCFFFFFF"
+            android:textSize="24sp"/>
     <androidx.appcompat.widget.AppCompatTextView
-            android:text="Artist - Album"
+            android:text="@string/artist"
             android:layout_width="0dp"
-            android:layout_height="wrap_content" android:id="@+id/nav_header_artistalbum"
+            android:layout_height="wrap_content" android:id="@+id/nav_header_artist"
             app:layout_constraintTop_toBottomOf="@+id/nav_header_title"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toStartOf="@+id/nav_header_title"
             android:singleLine="true"
             android:ellipsize="end"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:theme="@style/secondaryTextLight"
-            android:layout_marginTop="8dp" android:textColor="#B3FFFFFF"/>
+            android:textColor="#B3FFFFFF" android:textSize="14sp"/>
+    <androidx.appcompat.widget.AppCompatTextView
+            android:text="@string/album"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/nav_header_album"
+            app:layout_constraintTop_toBottomOf="@+id/nav_header_artist"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" android:textColor="#B3FFFFFF"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@+id/nav_header_artist"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/nav_button_play"
             android:layout_width="wrap_content"
@@ -62,7 +72,7 @@
             app:backgroundTint="#4D000000"
             app:srcCompat="@drawable/ic_play_arrow_white_24dp"
             app:tint="@color/white"
-            app:layout_constraintTop_toBottomOf="@+id/nav_header_artistalbum"
+            app:layout_constraintTop_toBottomOf="@+id/nav_header_album"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="16dp"
             app:layout_constraintStart_toStartOf="parent"

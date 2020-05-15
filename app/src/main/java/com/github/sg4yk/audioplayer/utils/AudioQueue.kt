@@ -4,18 +4,18 @@ import com.github.sg4yk.audioplayer.entities.Audio
 
 
 object AudioQueue {
-    const val AUDIO_ALREADY_EXSIT = 1;
+    const val AUDIO_ALREADY_EXSIT = 1
 
-    const val MODE_DEFAULT = 0;
-    const val MODE_SHUFFLE = 1;
-    const val MODE_REPEAT_TRACK = 2;
-    const val MODE_REPEAT_ALL = 3;
-    const val MODE_RANDOM = 4;
+    const val MODE_DEFAULT = 0
+    const val MODE_SHUFFLE = 1
+    const val MODE_REPEAT_TRACK = 2
+    const val MODE_REPEAT_ALL = 3
+    const val MODE_RANDOM = 4
 
     private var audioList: MutableList<Audio>? = null
     private var played: MutableList<Boolean>? = null
     private var playedCache: MutableList<Int>? = null
-    private var playing: Int = -1;
+    private var playing: Int = -1
     private var mode = MODE_DEFAULT
 
     fun getQueue(): MutableList<Audio>? {

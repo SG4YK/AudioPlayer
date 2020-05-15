@@ -15,9 +15,8 @@ object PlaybackManager {
     var context: Context? = null
     var audioList = mutableListOf<Audio>()
     var albumList = mutableListOf<Album>()
-    var currentTrack: Audio? = null
-    var currentAlbum: Album? = null
-    var mediaPlayer = MediaPlayer()
+    var currentTrack: Audio? = null // TODO
+    var currentAlbum: Album? = null // TODO
     var currentMetadata: PlaybackManager.Metadata? = null
 
     fun init(ctx: Context) {

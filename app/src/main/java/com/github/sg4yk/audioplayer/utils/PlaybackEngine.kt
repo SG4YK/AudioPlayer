@@ -7,11 +7,11 @@ import com.github.sg4yk.audioplayer.entities.Audio
 
 // Do not use this class out of PlaybackManager
 object PlaybackEngine {
-    const val STATUS_STOPPED = 0;
-    const val STATUS_PLAYING = 1;
-    const val STATUS_PAUSED = 2;
+    const val STATUS_STOPPED = 0
+    const val STATUS_PLAYING = 1
+    const val STATUS_PAUSED = 2
 
-    private var status = STATUS_STOPPED;
+    private var status = STATUS_STOPPED
 
     private var mediaPlayer: MediaPlayer? = null
 
