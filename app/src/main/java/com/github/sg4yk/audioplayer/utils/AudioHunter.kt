@@ -3,16 +3,22 @@ package com.github.sg4yk.audioplayer.utils
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.support.v4.media.MediaMetadataCompat
 import android.util.Size
 import androidx.annotation.RequiresApi
+import androidx.annotation.WorkerThread
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
-import com.github.sg4yk.audioplayer.entities.Album
-import com.github.sg4yk.audioplayer.entities.Audio
+import com.github.sg4yk.audioplayer.media.Album
+import com.github.sg4yk.audioplayer.media.Audio
+import com.github.sg4yk.audioplayer.utils.PlaybackManager.audioList
 
+
+@WorkerThread
 object AudioHunter {
 
     private val audioProjection = arrayOf(
@@ -23,7 +29,7 @@ object AudioHunter {
         MediaStore.Audio.Media.YEAR
     )
 
-    fun getAllAudio(ctx: Context): MutableList<Audio> {
+    fun getAllAudio(ctx: Context): List<Audio> {
         val audioList = mutableListOf<Audio>()
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -52,7 +58,48 @@ object AudioHunter {
         return audioList
     }
 
+    private val metadataProjection = arrayOf(
+        MediaStore.Audio.Media._ID,
+        MediaStore.Audio.Media.ALBUM_ID
+    )
 
+    @WorkerThread
+    fun getAllMetadata(ctx: Context): List<MediaMetadataCompat> {
+        val metaList = mutableListOf<MediaMetadataCompat>()
+        ctx.contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            audioProjection, null, null, null
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+            while (cursor.moveToNext()) {
+                val id = idColumn.let { cursor.getLong(it) }
+                val title = titleColumn.let { cursor.getStringOrNull(it) }
+                val artist = artistColumn.let { cursor.getStringOrNull(it) }
+                val album = albumColumn.let { cursor.getStringOrNull(it) }
+                val year = yearColumn.let { cursor.getIntOrNull(it) }
+                val contentUri: Uri? = id.let {
+                    ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        it
+                    )
+                }
+                val metadata = MediaMetadataCompat.Builder().also {builder ->
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE,title)
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST,artist)
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM,album)
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_YEAR,year.toString())
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,id.toString())
+                }.build()
+                metaList += metadata
+
+            }
+        }
+        return metaList
+    }
 
 
     private val albumProjection = arrayOf(
@@ -65,7 +112,7 @@ object AudioHunter {
     )
 
 
-    fun getAllAlbums(ctx: Context): MutableList<Album> {
+    fun getAllAlbums(ctx: Context): List<Album> {
         val albumList = mutableListOf<Album>()
         ctx.contentResolver.query(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
