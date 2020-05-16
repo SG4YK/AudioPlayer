@@ -15,11 +15,10 @@
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
         <service
-                android:name=".PlaybackService"
+                android:name=".utils.PlaybackService"
                 android:enabled="true"
-                android:exported="false">
+                android:exported="true">
         </service>
-
         <activity
                 android:name=".LegalInfoActivity"
                 android:label="@string/title_activity_licenses">

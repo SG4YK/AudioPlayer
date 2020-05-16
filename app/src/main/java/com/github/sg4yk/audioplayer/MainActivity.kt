@@ -1,10 +1,14 @@
 package com.github.sg4yk.audioplayer
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -20,6 +24,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.utils.PlaybackService
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -40,7 +45,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
+    private lateinit var playbackBinder: PlaybackService.PlaybackBinder
 
+    private var serviceConnection = object : ServiceConnection {
+        override fun onBindingDied(name: ComponentName?) {
+            super.onBindingDied(name)
+        }
+
+        override fun onNullBinding(name: ComponentName?) {
+            super.onNullBinding(name)
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+        }
+
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            playbackBinder = service as PlaybackService.PlaybackBinder
+        }
+    }
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
@@ -168,7 +190,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (checkPermissionStatus()) {
-            startService(Intent(this, PlaybackService::class.java))
+            launchService()
         } else {
             grantPermissions()
         }
@@ -207,7 +229,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startService(Intent(this, PlaybackService::class.java))
+                    launchService()
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -261,5 +283,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateMetadata()
+    }
+
+    private fun launchService() {
+        val intent = Intent(this, PlaybackService::class.java)
+        startService(intent)
+        bindService(
+            intent, serviceConnection, Context.BIND_AUTO_CREATE
+        )
     }
 }
