@@ -14,6 +14,12 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
+        <service
+                android:name=".PlaybackService"
+                android:enabled="true"
+                android:exported="false">
+        </service>
+
         <activity
                 android:name=".LegalInfoActivity"
                 android:label="@string/title_activity_licenses">

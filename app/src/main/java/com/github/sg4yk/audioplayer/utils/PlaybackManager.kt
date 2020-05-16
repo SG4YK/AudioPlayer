@@ -85,6 +85,9 @@ object PlaybackManager {
 
     fun stop() {
         PlaybackEngine.stop()
+        currentMetadata = null
+        currentTrack = null
+        currentAlbum = null
     }
 
     fun seekTo(percentage: Int) {

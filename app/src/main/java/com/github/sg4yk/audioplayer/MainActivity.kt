@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -18,7 +17,6 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.PlaybackEngine
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
@@ -29,7 +27,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.content_main.*
-
 
 class MainActivity : AppCompatActivity() {
     private lateinit var navControl: NavController
@@ -57,7 +54,6 @@ class MainActivity : AppCompatActivity() {
         drawerLayout.post {
             decorView = window.decorView
             drawerLayout.addDrawerListener(
-
                 object : DrawerLayout.DrawerListener {
                     override fun onDrawerStateChanged(newState: Int) {}
                     override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
@@ -80,7 +76,6 @@ class MainActivity : AppCompatActivity() {
 
             )
         }
-
 
         val appBarLayout: AppBarLayout = findViewById(R.id.app_bar_layout_light)
         appBarLayout.post {
@@ -112,14 +107,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                navDrawer = findViewById(R.id.nav_drawer)
-                navDrawer.post {
-                    navHeaderBg = findViewById(R.id.nav_header_bg)
-                    navHeaderBg2 = findViewById(R.id.nav_header_bg2)
-                    navHeaderTitle = findViewById(R.id.nav_header_title)
-                    navHeaderArtist = findViewById(R.id.nav_header_artist)
-                    navHeaderAlbum = findViewById(R.id.nav_header_album)
-                }
 
                 // setup nav header button
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
@@ -166,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             fab.setOnClickListener { v ->
                 val intent = Intent(this, NowPlayingActivity::class.java)
 
-                if(PrefManager.revealAnimationEnabled(this)){
+                if (PrefManager.revealAnimationEnabled(this)) {
                     val location = IntArray(2)
                     v.getLocationInWindow(location)
                     val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
@@ -174,16 +161,30 @@ class MainActivity : AppCompatActivity() {
                     intent.putExtra("fabY", location[1] + fab.height / 2)
                     intent.putExtra("fabD", fab.width)
                     startActivity(intent, activityOptions.toBundle())
-                }else{
+                } else {
                     startActivity(intent)
                 }
             }
         }
 
         if (checkPermissionStatus()) {
-            PlaybackManager.init(applicationContext)
+            startService(Intent(this, PlaybackService::class.java))
         } else {
             grantPermissions()
+        }
+    }
+    // end of onCreate()
+
+
+    override fun onStart() {
+        super.onStart()
+        navDrawer = findViewById(R.id.nav_drawer)
+        navDrawer.post {
+            navHeaderBg = findViewById(R.id.nav_header_bg)
+            navHeaderBg2 = findViewById(R.id.nav_header_bg2)
+            navHeaderTitle = findViewById(R.id.nav_header_title)
+            navHeaderArtist = findViewById(R.id.nav_header_artist)
+            navHeaderAlbum = findViewById(R.id.nav_header_album)
         }
     }
 
@@ -196,25 +197,9 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    @WorkerThread
     private fun grantPermissions() {
         requestPermissions(permissions, 1)
-    }
-
-    private fun scanAllAudio() {
-        Thread(Runnable {
-            val audioList = AudioHunter.getAllAudio(this)
-            audioList.forEach { audio ->
-                Log.d("AudioHunter", audio.toString())
-            }
-
-
-            val albumList = AudioHunter.getAllAlbums(this)
-            albumList.forEach { album ->
-                Log.d("AudioHunter", album.toString())
-            }
-
-            Log.d("AudioHunter", "Scan Complete")
-        }).start()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -222,7 +207,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    PlaybackManager.init(applicationContext)
+                    startService(Intent(this, PlaybackService::class.java))
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -256,10 +241,17 @@ class MainActivity : AppCompatActivity() {
     @WorkerThread
     private fun updateMetadata() {
         val meta = PlaybackManager.currentMetadata ?: return
-        navHeaderBg.post { setDrawerBg(meta.albumArt) }
-        navHeaderTitle.post { navHeaderTitle.text = meta.title }
-        navHeaderArtist.post { navHeaderArtist.text = meta.artist }
-        navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
+        val drawerLayout: View = findViewById(R.id.drawer_layout)
+        drawerLayout.post {
+            val navDrawer: NavigationView = findViewById(R.id.nav_drawer)
+            navDrawer.post {
+                navHeaderBg.post { setDrawerBg(meta.albumArt) }
+                navHeaderBg2.post { setDrawerBg(meta.albumArt) }
+                navHeaderTitle.post { navHeaderTitle.text = meta.title }
+                navHeaderArtist.post { navHeaderArtist.text = meta.artist }
+                navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
+            }
+        }
     }
 
     private fun showToast(msg: String) {
