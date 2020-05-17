@@ -1,6 +1,6 @@
 package com.github.sg4yk.audioplayer.utils
 
-import com.github.sg4yk.audioplayer.entities.Audio
+import com.github.sg4yk.audioplayer.media.Audio
 
 
 object AudioQueue {

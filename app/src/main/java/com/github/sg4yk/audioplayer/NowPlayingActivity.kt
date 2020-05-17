@@ -20,8 +20,6 @@ import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import androidx.preference.PreferenceManager
 import com.github.sg4yk.audioplayer.utils.Generic
-import com.github.sg4yk.audioplayer.utils.PlaybackEngine
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -77,9 +75,9 @@ class NowPlayingActivity : AppCompatActivity() {
             seekbarJob = GlobalScope.launch {
                 while (isActive) {
                     delay(500L)
-                    if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
-                        updateProgress()
-                    }
+//                    if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
+//                        updateProgress()
+//                    }
                 }
             }
             seekbarJob.start()
@@ -97,13 +95,13 @@ class NowPlayingActivity : AppCompatActivity() {
                     seekbarJob = GlobalScope.launch {
                         while (isActive) {
                             delay(500L)
-                            if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
-                                updateProgress()
-                            }
+//                            if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
+//                                updateProgress()
+//                            }
                         }
                     }
                     seekbarJob.start()
-                    PlaybackManager.seekTo(seekbar.progress)
+//                    PlaybackManager.seekTo(seekbar.progress)
                     updateProgress()
                 }
             })
@@ -113,13 +111,13 @@ class NowPlayingActivity : AppCompatActivity() {
         val playButton: FloatingActionButton = findViewById(R.id.button_play)
         playButton.post {
             playButton.setOnClickListener {
-                if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-                    if (PlaybackManager.play()) {
-                        updateMetadata()
-                    }
-                } else {
-                    PlaybackManager.playOrPause()
-                }
+//                if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
+//                    if (PlaybackManager.play()) {
+//                        updateMetadata()
+//                    }
+//                } else {
+//                    PlaybackManager.playOrPause()
+//                }
             }
         }
 
@@ -127,12 +125,12 @@ class NowPlayingActivity : AppCompatActivity() {
         position = findViewById(R.id.position)
 
         // update date before enter
-        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-            setAlbumAndBg(null, 0, 0)
-        } else {
-            updateProgress()
-            updateMetadata(0, 0)
-        }
+//        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
+//            setAlbumAndBg(null, 0, 0)
+//        } else {
+//            updateProgress()
+//            updateMetadata(0, 0)
+//        }
 
 
         // set enter animation
@@ -192,19 +190,19 @@ class NowPlayingActivity : AppCompatActivity() {
 
     @WorkerThread
     private fun updateProgress() {
-        seekBar.post { seekbar.progress = PlaybackManager.percentage() }
-        position.post { position.text = PlaybackManager.positionAsString() }
-        duration.post { duration.text = PlaybackManager.durationAsString() }
+//        seekBar.post { seekbar.progress = PlaybackManager.percentage() }
+//        position.post { position.text = PlaybackManager.positionAsString() }
+//        duration.post { duration.text = PlaybackManager.durationAsString() }
     }
 
     //    @WorkerThread
     private fun updateMetadata(duration: Long = 300, bgDelay: Long = 500) {
-        val metadata = PlaybackManager.currentMetadata ?: return
-        toolbar.post {
-            toolbar.title = metadata.title
-            toolbar.subtitle = "${metadata.artist} - ${metadata.album}"
-        }
-        setAlbumAndBg(metadata.albumArt, duration, bgDelay)
+//        val metadata = PlaybackManager.currentMetadata ?: return
+//        toolbar.post {
+//            toolbar.title = metadata.title
+//            toolbar.subtitle = "${metadata.artist} - ${metadata.album}"
+//        }
+//        setAlbumAndBg(metadata.albumArt, duration, bgDelay)
     }
 
     private fun setAlbumAndBg(bitmap: Bitmap?, duration: Long, bgDelay: Long = 0) {

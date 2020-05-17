@@ -18,6 +18,9 @@
                 android:name=".utils.PlaybackService"
                 android:enabled="true"
                 android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
         </service>
         <activity
                 android:name=".LegalInfoActivity"
@@ -35,7 +38,6 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

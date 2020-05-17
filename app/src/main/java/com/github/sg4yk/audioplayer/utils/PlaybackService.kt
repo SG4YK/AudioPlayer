@@ -15,16 +15,14 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.*
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.Timeline
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
@@ -36,7 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 
-//@WorkerThread
+@WorkerThread
 class PlaybackService : MediaBrowserServiceCompat() {
     companion object {
         private const val SESSION_TAG = "com.sg4yk.AudioPlayer.MEDIA_SESSION"
@@ -71,7 +69,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    private val exoPlayer: SimpleExoPlayer by lazy {
+    private val exoPlayer: ExoPlayer by lazy {
         SimpleExoPlayer.Builder(applicationContext).build().apply {
             setAudioAttributes(audioAttributes, true)
         }
@@ -118,6 +116,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
             // Create the PlaybackPreparer of the media session connector.
 
+            // TODO: fix issue
             val playbackPreparer = PlaybackPreparer(
                 applicationContext,
                 mediaSource,
@@ -139,6 +138,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        Log.d("PlaybackService", "Stopping service")
         super.onDestroy()
         mediaSession.run {
             isActive = false
@@ -147,6 +147,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
         // Cancel coroutines when the service is going away.
         serviceJob.cancel()
+        Log.d("PlaybackService", "Service stopped")
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {

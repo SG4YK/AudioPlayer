@@ -43,6 +43,9 @@ class LegalInfoActivity : AppCompatActivity() {
                 "circleImgView" -> {
                     context?.let { SettingsActivity.openWebSite(it, "https://github.com/hdodenhof/CircleImageView") }
                 }
+                "exoPlayer" ->{
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/google/ExoPlayer") }
+                }
                 "mdcAndroid" -> {
                     context?.let {
                         SettingsActivity.openWebSite(
@@ -59,6 +62,9 @@ class LegalInfoActivity : AppCompatActivity() {
                             "https://github.com/templarian/MaterialDesign"
                         )
                     }
+                }
+                "uamp" ->{
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/android/uamp") }
                 }
             }
             return super.onPreferenceTreeClick(preference)

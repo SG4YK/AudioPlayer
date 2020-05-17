@@ -5,26 +5,34 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import com.github.sg4yk.audioplayer.media.MusicSource
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.MediaSourceFactory
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 
 // Filter items to play from music source
-class PlaybackPreparer(
-    private val musicSource: MusicSource,
-    private val exoPlayer: ExoPlayer,
-    private val dataSourceFactory: DataSource.Factory,
+class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
+
+
     private val context: Context
-) : MediaSessionConnector.PlaybackPreparer {
+    private val musicSource: MusicSource
+    private val exoPlayer: ExoPlayer
+    private val dataSourceFactory: DataSource.Factory
+
+    constructor(ctx: Context, source: MusicSource, player: ExoPlayer, factory: DefaultDataSourceFactory) {
+        context = ctx
+        musicSource = source
+        exoPlayer = player
+        dataSourceFactory = factory
+    }
 
     override fun getSupportedPrepareActions(): Long =
         PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
@@ -52,12 +60,13 @@ class PlaybackPreparer(
 
     override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle) {
         musicSource.whenReady {
+            // TODO: Rewrite with AudioHunter
             val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
                 item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI) == uri.toString()
             }
 
             if (itemToPlay == null) {
-                Log.w(TAG, "Content not found: MediaID=$uri")
+                Log.w(TAG, "Content not found: MediaURI=$uri")
             } else {
                 val metadataList = AudioHunter.getAllMetadata(context)
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
@@ -79,7 +88,7 @@ class PlaybackPreparer(
         extras: Bundle?,
         cb: ResultReceiver?
     ): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 
     override fun onPrepare(playWhenReady: Boolean) {

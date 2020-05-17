@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer.entities
+package com.github.sg4yk.audioplayer.media
 
 import android.net.Uri
 

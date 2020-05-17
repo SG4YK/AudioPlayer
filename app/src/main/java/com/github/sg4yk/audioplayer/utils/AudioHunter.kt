@@ -3,11 +3,11 @@ package com.github.sg4yk.audioplayer.utils
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
@@ -15,7 +15,6 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Audio
-import com.github.sg4yk.audioplayer.utils.PlaybackManager.audioList
 
 
 @WorkerThread
@@ -65,6 +64,7 @@ object AudioHunter {
 
     @WorkerThread
     fun getAllMetadata(ctx: Context): List<MediaMetadataCompat> {
+        Log.d("AudioHunter","Getting metadata")
         val metaList = mutableListOf<MediaMetadataCompat>()
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -87,12 +87,14 @@ object AudioHunter {
                         it
                     )
                 }
-                val metadata = MediaMetadataCompat.Builder().also {builder ->
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE,title)
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST,artist)
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM,album)
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_YEAR,year.toString())
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,id.toString())
+                Log.d("AudioHunter",title)
+                val metadata = MediaMetadataCompat.Builder().also { builder ->
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                    year?.toLong()?.let { builder.putLong(MediaMetadataCompat.METADATA_KEY_YEAR, it) }
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, contentUri.toString())
                 }.build()
                 metaList += metadata
 
@@ -206,4 +208,6 @@ object AudioHunter {
         var bitmap: Bitmap? = null
         return ctx.contentResolver.loadThumbnail(album.uri, Size(300, 300), null)
     }
+
+
 }

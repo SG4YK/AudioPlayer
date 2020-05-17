@@ -30,4 +30,10 @@
     <string name="sync_header">Sync</string>
     <string name="license_apache">Apache License Version 2.0</string>
     <string name="reveal_ani_key">revealAnimationEnabled</string>
+    <string name="skip_to_previous">Skip to previous track</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="skip_to_next">Skip to next track</string>
+
+
 </resources>

@@ -1,7 +1,6 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -22,8 +21,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
-import com.github.sg4yk.audioplayer.utils.PlaybackEngine
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PlaybackService
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.AppBarLayout
@@ -45,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
-    private lateinit var playbackBinder: PlaybackService.PlaybackBinder
+//    private lateinit var playbackBinder: PlaybackService.PlaybackBinder
 
     private var serviceConnection = object : ServiceConnection {
         override fun onBindingDied(name: ComponentName?) {
@@ -60,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            playbackBinder = service as PlaybackService.PlaybackBinder
+//            playbackBinder = service as PlaybackService.PlaybackBinder
         }
     }
     private val permissions = arrayOf(
@@ -134,13 +131,13 @@ class MainActivity : AppCompatActivity() {
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
                 playButton.post {
                     playButton.setOnClickListener {
-                        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-                            if (PlaybackManager.play()) {
-                                updateMetadata()
-                            }
-                        } else {
-                            PlaybackManager.playOrPause()
-                        }
+//                        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
+//                            if (PlaybackManager.play()) {
+//                                updateMetadata()
+//                            }
+//                        } else {
+//                            PlaybackManager.playOrPause()
+//                        }
                     }
                 }
             }
@@ -160,7 +157,7 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.menu_exit -> {
-                        PlaybackManager.stop()
+                        stopService(Intent(this, PlaybackService::class.java))
                         finish()
                         true
                     }
@@ -262,18 +259,18 @@ class MainActivity : AppCompatActivity() {
 
     @WorkerThread
     private fun updateMetadata() {
-        val meta = PlaybackManager.currentMetadata ?: return
-        val drawerLayout: View = findViewById(R.id.drawer_layout)
-        drawerLayout.post {
-            val navDrawer: NavigationView = findViewById(R.id.nav_drawer)
-            navDrawer.post {
-                navHeaderBg.post { setDrawerBg(meta.albumArt) }
-                navHeaderBg2.post { setDrawerBg(meta.albumArt) }
-                navHeaderTitle.post { navHeaderTitle.text = meta.title }
-                navHeaderArtist.post { navHeaderArtist.text = meta.artist }
-                navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
-            }
-        }
+//        val meta = PlaybackManager.currentMetadata ?: return
+//        val drawerLayout: View = findViewById(R.id.drawer_layout)
+//        drawerLayout.post {
+//            val navDrawer: NavigationView = findViewById(R.id.nav_drawer)
+//            navDrawer.post {
+//                navHeaderBg.post { setDrawerBg(meta.albumArt) }
+//                navHeaderBg2.post { setDrawerBg(meta.albumArt) }
+//                navHeaderTitle.post { navHeaderTitle.text = meta.title }
+//                navHeaderArtist.post { navHeaderArtist.text = meta.artist }
+//                navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
+//            }
+//        }
     }
 
     private fun showToast(msg: String) {
@@ -288,8 +285,8 @@ class MainActivity : AppCompatActivity() {
     private fun launchService() {
         val intent = Intent(this, PlaybackService::class.java)
         startService(intent)
-        bindService(
-            intent, serviceConnection, Context.BIND_AUTO_CREATE
-        )
+//        bindService(
+//            intent, serviceConnection, Context.BIND_AUTO_CREATE
+//        )
     }
 }
