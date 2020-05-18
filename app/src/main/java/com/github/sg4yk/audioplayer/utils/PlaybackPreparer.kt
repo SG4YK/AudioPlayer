@@ -53,7 +53,8 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
                 exoPlayer.prepare(mediaSource)
-                exoPlayer.seekTo(initialWindowIndex, 0)
+//                exoPlayer.seekTo(initialWindowIndex, 0)
+                exoPlayer.seekTo(0L)
             }
         }
     }
@@ -72,7 +73,8 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
                 exoPlayer.prepare(mediaSource)
-                exoPlayer.seekTo(initialWindowIndex, 0)
+//                exoPlayer.seekTo(initialWindowIndex, 0)
+                exoPlayer.seekTo(0)
             }
         }
     }

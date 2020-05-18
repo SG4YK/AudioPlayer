@@ -15,7 +15,7 @@
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
         <service
-                android:name=".utils.PlaybackService"
+                android:name="com.github.sg4yk.audioplayer.utils.PlaybackService"
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>

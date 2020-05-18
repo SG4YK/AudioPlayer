@@ -299,8 +299,13 @@ class PlaybackService : MediaBrowserServiceCompat() {
         mediaSession: MediaSessionCompat
     ) : TimelineQueueNavigator(mediaSession) {
         private val window = Timeline.Window()
-        override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
-            player.currentTimeline
-                .getWindow(windowIndex, window, true).tag as MediaDescriptionCompat
+        override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
+//            return player.currentTimeline
+//                .getWindow(windowIndex, window).tag as MediaDescriptionCompat
+            return MediaDescriptionCompat.Builder().setDescription("Description").build()
+        }
+//        override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
+//            player.currentTimeline
+//                .getWindow(windowIndex, window, true).tag as MediaDescriptionCompat
     }
 }

@@ -1,13 +1,16 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.media.AudioManager
 import android.os.Bundle
-import android.os.IBinder
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -20,9 +23,14 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
+import com.github.sg4yk.audioplayer.extensions.isPlaying
+import com.github.sg4yk.audioplayer.extensions.isPrepared
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.PlaybackService
+import com.github.sg4yk.audioplayer.utils.PlaybackServiceConnection
 import com.github.sg4yk.audioplayer.utils.PrefManager
+import com.github.sg4yk.audioplayer.utils.ServiceInjector
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -42,24 +50,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
-//    private lateinit var playbackBinder: PlaybackService.PlaybackBinder
+    private lateinit var connection: PlaybackServiceConnection
 
-    private var serviceConnection = object : ServiceConnection {
-        override fun onBindingDied(name: ComponentName?) {
-            super.onBindingDied(name)
-        }
-
-        override fun onNullBinding(name: ComponentName?) {
-            super.onNullBinding(name)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-        }
-
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-//            playbackBinder = service as PlaybackService.PlaybackBinder
-        }
-    }
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
@@ -67,6 +59,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        volumeControlStream = AudioManager.STREAM_MUSIC
 
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
@@ -138,6 +131,7 @@ class MainActivity : AppCompatActivity() {
 //                        } else {
 //                            PlaybackManager.playOrPause()
 //                        }
+                        playMedia("26")
                     }
                 }
             }
@@ -285,8 +279,34 @@ class MainActivity : AppCompatActivity() {
     private fun launchService() {
         val intent = Intent(this, PlaybackService::class.java)
         startService(intent)
+        connection = ServiceInjector.getPlaybackServiceConnection(this)
+        Log.d("PlaybackService", "Launching")
 //        bindService(
 //            intent, serviceConnection, Context.BIND_AUTO_CREATE
 //        )
+    }
+
+    fun playMedia(mediaId: String, pauseAllowed: Boolean = true) {
+        val nowPlaying = connection.nowPlaying.value
+        val transportControls = connection.transportControls
+
+        val isPrepared = connection.playbackState.value?.isPrepared ?: false
+        if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
+            connection.playbackState.value?.let { playbackState ->
+                when {
+                    playbackState.isPlaying ->
+                        if (pauseAllowed) transportControls.pause() else Unit
+                    playbackState.isPlayEnabled -> transportControls.play()
+                    else -> {
+                        Log.w(
+                            "PlayMedia", "Playable item clicked but neither play nor pause are enabled!" +
+                                    " (mediaId=$mediaId)"
+                        )
+                    }
+                }
+            }
+        } else {
+            transportControls.playFromMediaId(mediaId, null)
+        }
     }
 }
