@@ -1,8 +1,9 @@
 package com.github.sg4yk.audioplayer.utils
 
+import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.media.Audio
 
-
+@WorkerThread
 object AudioQueue {
     const val AUDIO_ALREADY_EXSIT = 1
 

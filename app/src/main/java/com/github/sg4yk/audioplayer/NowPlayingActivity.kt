@@ -1,10 +1,9 @@
 package com.github.sg4yk.audioplayer
 
-import android.content.SharedPreferences
+import android.animation.Animator
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
@@ -16,11 +15,12 @@ import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
-import androidx.preference.PreferenceManager
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.PrefManager
+import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
@@ -35,7 +35,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private var fabY = 0
     private var fabD = 0
     private var radius = 0f
-    private var backPressed = false
+    private var backPressLock = false
 
     private lateinit var rootLayout: View
     private lateinit var backgroundImg: ImageView
@@ -46,6 +46,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var seekbarJob: Job
     private lateinit var duration: AppCompatTextView
     private lateinit var position: AppCompatTextView
+    private lateinit var timebar: DefaultTimeBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,6 +106,8 @@ class NowPlayingActivity : AppCompatActivity() {
                     updateProgress()
                 }
             })
+
+            timebar = findViewById(R.id.timebar)
         }
 
         // set buttons behavior
@@ -153,21 +156,32 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun startRevealAnim(centerX: Int, centerY: Int) {
+        backPressLock = true
         val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
         val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
         anim.duration = 1000
         anim.interpolator = DecelerateInterpolator(2.4f)
+        anim.addListener(object : Animator.AnimatorListener{
+            override fun onAnimationRepeat(animation: Animator?) {}
+            override fun onAnimationCancel(animation: Animator?) {}
+            override fun onAnimationStart(animation: Animator?) {}
+
+            override fun onAnimationEnd(animation: Animator?) {
+                backPressLock = false
+            }
+
+        })
         rootLayout.visibility = View.VISIBLE
         anim.start()
     }
 
     override fun onBackPressed() {
-        if (backPressed) {
+        if (backPressLock) {
             return
         }
         seekbarJob.cancel()
-        backPressed = true
-        if(PrefManager.revealAnimationEnabled(this)){
+        backPressLock = true
+        if (PrefManager.revealAnimationEnabled(this)) {
             val endRadius = 100.0f
             val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
             anim.duration = 500
@@ -177,15 +191,14 @@ class NowPlayingActivity : AppCompatActivity() {
                 finishAfterTransition()
             }
             anim.start()
-        }else{
+        } else {
             super.onBackPressed()
         }
-
     }
 
     override fun onResume() {
         super.onResume()
-        backPressed = false
+        backPressLock = false
     }
 
     @WorkerThread

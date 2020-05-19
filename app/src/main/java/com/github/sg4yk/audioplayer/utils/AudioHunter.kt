@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.support.v4.media.MediaMetadataCompat
-import android.util.Log
 import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
@@ -15,7 +14,6 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Audio
-
 
 @WorkerThread
 object AudioHunter {
@@ -39,6 +37,7 @@ object AudioHunter {
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+
             while (cursor.moveToNext()) {
                 val id = idColumn.let { cursor.getLong(it) }
                 val title = titleColumn.let { cursor.getStringOrNull(it) }
@@ -64,7 +63,8 @@ object AudioHunter {
 
     @WorkerThread
     fun getAllMetadata(ctx: Context): List<MediaMetadataCompat> {
-        Log.d("AudioHunter","Getting metadata")
+        // Not loading album art for performance
+
         val metaList = mutableListOf<MediaMetadataCompat>()
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -76,28 +76,29 @@ object AudioHunter {
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
             while (cursor.moveToNext()) {
+
                 val id = idColumn.let { cursor.getLong(it) }
                 val title = titleColumn.let { cursor.getStringOrNull(it) }
                 val artist = artistColumn.let { cursor.getStringOrNull(it) }
                 val album = albumColumn.let { cursor.getStringOrNull(it) }
                 val year = yearColumn.let { cursor.getIntOrNull(it) }
-                val contentUri: Uri? = id.let {
+                val audioUri: Uri? = id.let {
                     ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         it
                     )
                 }
-                Log.d("AudioHunter",title)
+
                 val metadata = MediaMetadataCompat.Builder().also { builder ->
                     builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                     builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                     builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
                     year?.toLong()?.let { builder.putLong(MediaMetadataCompat.METADATA_KEY_YEAR, it) }
                     builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
-                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, contentUri.toString())
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, audioUri.toString())
+                    builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "$artist - $album")
                 }.build()
                 metaList += metadata
-
             }
         }
         return metaList
@@ -166,6 +167,7 @@ object AudioHunter {
             val firstYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.FIRST_YEAR)
             val lastYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.LAST_YEAR)
             val songsColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.NUMBER_OF_SONGS)
+
             while (cursor.moveToNext()) {
                 val id = idColumn.let { cursor.getLong(it) }
                 val album = albumColumn.let { cursor.getStringOrNull(it) }
@@ -183,7 +185,6 @@ object AudioHunter {
                 albumList += Album(contentUri, id, album, artist, firstYear, lastYear, songs)
             }
         }
-
         return if (albumList.isNotEmpty()) {
             albumList[0]
         } else {
@@ -191,23 +192,16 @@ object AudioHunter {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun getAlbumArt(ctx: Context, audio: Audio?): Bitmap? {
-        return if (audio?.album == null) {
-            null
-        } else {
-            getAlbumArt(ctx, getAlbumOfAudio(ctx, audio))
-        }
-    }
+    private val albumArtProjection = arrayOf(
+        MediaStore.Audio.Albums._ID
+    )
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    fun getAlbumArt(ctx: Context, album: Album?): Bitmap? {
-        if (album?.uri == null) {
-            return null
-        }
-        var bitmap: Bitmap? = null
-        return ctx.contentResolver.loadThumbnail(album.uri, Size(300, 300), null)
+    fun getAlbumArt(ctx: Context, audioId: String, size: Int): Bitmap? {
+        val uri = ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            audioId.toLong()
+        )
+        return ctx.contentResolver.loadThumbnail(uri, Size(size, size), null)
     }
-
-
 }

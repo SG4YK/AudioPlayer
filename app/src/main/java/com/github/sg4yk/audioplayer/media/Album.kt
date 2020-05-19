@@ -9,5 +9,4 @@ data class Album(
     val artist: String?,
     val firstYear: Int?,
     val lastYear: Int?,
-    val songs: Int?
-)
+    val songs: Int?)

@@ -8,10 +8,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
@@ -59,7 +59,7 @@ class NotificationBuilder(private val context: Context) {
     private val stopPendingIntent =
         MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP)
 
-    suspend fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
+    fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
         if (shouldCreateNowPlayingChannel()) {
             createNowPlayingChannel()
         }
@@ -91,15 +91,21 @@ class NotificationBuilder(private val context: Context) {
             .setShowActionsInCompactView(playPauseIndex)
             .setShowCancelButton(true)
 
-        val largeIconBitmap = description.iconUri?.let {
-            resolveUriAsBitmap(it)
-        }
+
+//        val largeIconBitmap = description.iconUri?.let {
+//            resolveUriAsBitmap(it)
+//        }
+//
+        val albumArt = context.contentResolver.loadThumbnail(
+            description.mediaUri!!,
+            Size(300, 300), null
+        )
 
         return builder.setContentIntent(controller.sessionActivity)
             .setContentText(description.subtitle)
             .setContentTitle(description.title)
             .setDeleteIntent(stopPendingIntent)
-            .setLargeIcon(largeIconBitmap)
+            .setLargeIcon(albumArt)
             .setOnlyAlertOnce(true)
             .setSmallIcon(R.drawable.ic_play_circle_filled_white_24dp)
             .setStyle(mediaStyle)

@@ -4,17 +4,19 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
+import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.R
 import java.net.URLEncoder
 import java.nio.charset.Charset
 
+@WorkerThread
 class BrowseTree(context: Context, musicSource: MusicSource) {
     private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaMetadataCompat>>()
 
-//    val searchableByUnknownCaller = true
-
     init {
         val rootList = mediaIdToChildren[BROWSABLE_ROOT] ?: mutableListOf()
+        val libraryList = mediaIdToChildren[BROWSABLE_ROOT] ?: mutableListOf()
+
         val recommendedMetadata = MediaMetadataCompat.Builder().apply {
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, RECOMMENDED_ROOT)
             putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Recommended")
@@ -114,6 +116,7 @@ const val BROWSABLE_ROOT = "/"
 const val EMPTY_ROOT = "@empty@"
 const val RECOMMENDED_ROOT = "__RECOMMENDED__"
 const val ALBUMS_ROOT = "__ALBUMS__"
+const val LIBRARY_ROOT = "__LIBRARY__"
 
 const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
 

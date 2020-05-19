@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -50,13 +51,13 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var mediaSource: MusicSource
     private lateinit var mediaSession: MediaSessionCompat
-    protected lateinit var mediaController: MediaControllerCompat
-    protected lateinit var mediaSessionConnector: MediaSessionConnector
+    private lateinit var mediaController: MediaControllerCompat
+    private lateinit var mediaSessionConnector: MediaSessionConnector
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
-    private var isForegroundService = true
+    private var isForegroundService = false
 
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, mediaSource)
@@ -153,6 +154,8 @@ class PlaybackService : MediaBrowserServiceCompat() {
     override fun onTaskRemoved(rootIntent: Intent) {
         super.onTaskRemoved(rootIntent)
         exoPlayer.stop(true)
+//        exoPlayer.release()
+        stopSelf()
     }
 
     override fun onDestroy() {
@@ -163,10 +166,11 @@ class PlaybackService : MediaBrowserServiceCompat() {
             release()
         }
         exoPlayer.run {
-            stop()
-            release()
+            stop(true)
+//            release()
         }
         serviceJob.cancel()
+        stopSelf()
         Log.d("PlaybackService", "Service stopped")
     }
 
@@ -181,7 +185,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
                     result.sendResult(null)
                 }
             } else {
-//                mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
                 result.sendResult(null)
             }
         }
@@ -202,7 +205,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
             putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_LIST)
         }
 
-        // The caller is allowed to browse, so return the root.
         return BrowserRoot(BROWSABLE_ROOT, rootExtras)
     }
 
@@ -318,13 +320,13 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private inner class QueueNavigator(
         mediaSession: MediaSessionCompat
     ) : TimelineQueueNavigator(mediaSession) {
-        private val window = Timeline.Window()
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-            val tag = player.currentTag as MediaMetadataCompat
-            val title = tag.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-            val subtitle = tag.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) + " - " +
-                    tag.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
-            return MediaDescriptionCompat.Builder().setTitle(title).setSubtitle(subtitle).build()
+            val metadata = player.currentTag as MediaMetadataCompat
+            val description = metadata.description
+            val title = description.title
+            val subtitle = "${description.subtitle} - ${description.description}"
+            val uri = Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
+            return MediaDescriptionCompat.Builder().setTitle(title).setSubtitle(subtitle).setMediaUri(uri).build()
         }
 
     }

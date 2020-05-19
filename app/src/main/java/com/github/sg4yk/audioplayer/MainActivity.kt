@@ -26,11 +26,8 @@ import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
 import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.extensions.isPrepared
+import com.github.sg4yk.audioplayer.utils.*
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
-import com.github.sg4yk.audioplayer.utils.PlaybackService
-import com.github.sg4yk.audioplayer.utils.PlaybackServiceConnection
-import com.github.sg4yk.audioplayer.utils.PrefManager
-import com.github.sg4yk.audioplayer.utils.ServiceInjector
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -57,7 +54,13 @@ class MainActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("MainActivity","Oncreate")
         super.onCreate(savedInstanceState)
+        if (checkPermissionStatus()) {
+            PlaybackManager.startPlaybackService(this)
+        } else {
+            grantPermissions()
+        }
         setContentView(R.layout.activity_main)
         volumeControlStream = AudioManager.STREAM_MUSIC
 
@@ -131,7 +134,7 @@ class MainActivity : AppCompatActivity() {
 //                        } else {
 //                            PlaybackManager.playOrPause()
 //                        }
-                        playMedia("26")
+                        PlaybackManager.playAudioFromId("26")
                     }
                 }
             }
@@ -152,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.menu_exit -> {
                         stopService(Intent(this, PlaybackService::class.java))
+                        connection.close()
                         finish()
                         true
                     }
@@ -179,12 +183,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        if (checkPermissionStatus()) {
-            launchService()
-        } else {
-            grantPermissions()
-        }
     }
     // end of onCreate()
 
@@ -201,6 +199,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+
     private fun checkPermissionStatus(): Boolean {
         permissions.forEach {
             if (checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED) {
@@ -210,7 +210,6 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    @WorkerThread
     private fun grantPermissions() {
         requestPermissions(permissions, 1)
     }
@@ -220,7 +219,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    launchService()
+                    PlaybackManager.startPlaybackService(this)
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -253,18 +252,7 @@ class MainActivity : AppCompatActivity() {
 
     @WorkerThread
     private fun updateMetadata() {
-//        val meta = PlaybackManager.currentMetadata ?: return
-//        val drawerLayout: View = findViewById(R.id.drawer_layout)
-//        drawerLayout.post {
-//            val navDrawer: NavigationView = findViewById(R.id.nav_drawer)
-//            navDrawer.post {
-//                navHeaderBg.post { setDrawerBg(meta.albumArt) }
-//                navHeaderBg2.post { setDrawerBg(meta.albumArt) }
-//                navHeaderTitle.post { navHeaderTitle.text = meta.title }
-//                navHeaderArtist.post { navHeaderArtist.text = meta.artist }
-//                navHeaderAlbum.post { navHeaderAlbum.text = meta.album }
-//            }
-//        }
+
     }
 
     private fun showToast(msg: String) {
@@ -273,41 +261,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateMetadata()
     }
 
-    private fun launchService() {
-        val intent = Intent(this, PlaybackService::class.java)
-        startService(intent)
-        connection = ServiceInjector.getPlaybackServiceConnection(this)
-        Log.d("PlaybackService", "Launching")
-//        bindService(
-//            intent, serviceConnection, Context.BIND_AUTO_CREATE
-//        )
+    override fun onDestroy() {
+        super.onDestroy()
+        connection.close()
     }
 
-    private fun playMedia(mediaId: String, pauseAllowed: Boolean = true) {
-        val nowPlaying = connection.nowPlaying.value
-        val transportControls = connection.transportControls
-
-        val isPrepared = connection.playbackState.value?.isPrepared ?: false
-        if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
-            connection.playbackState.value?.let { playbackState ->
-                when {
-                    playbackState.isPlaying ->
-                        if (pauseAllowed) transportControls.pause() else Unit
-                    playbackState.isPlayEnabled -> transportControls.play()
-                    else -> {
-                        Log.w(
-                            "PlayMedia", "Playable item clicked but neither play nor pause are enabled!" +
-                                    " (mediaId=$mediaId)"
-                        )
-                    }
-                }
-            }
-        } else {
-            transportControls.playFromMediaId(mediaId, null)
-            transportControls.play()
-        }
-    }
 }

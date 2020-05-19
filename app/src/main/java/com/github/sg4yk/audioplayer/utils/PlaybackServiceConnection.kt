@@ -146,6 +146,10 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
                     .also { instance = it }
             }
     }
+
+    fun close(){
+        mediaBrowser.disconnect()
+    }
 }
 
 @Suppress("PropertyName")
