@@ -6,10 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.sg4yk.audioplayer.utils.AudioHunter
+import com.github.sg4yk.audioplayer.media.MetadataSource
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class LibraryFragment : Fragment() {
@@ -44,9 +45,13 @@ class LibraryFragment : Fragment() {
 //        recyclerView.addItemDecoration(dividerItemDecoration)
 
         if (context != null) {
-            Thread {
-                adapter.setAudioList(AudioHunter.getAllMetadata(context!!))
-            }.start()
+            val mediaSource = MetadataSource(context!!)
+            GlobalScope.launch {
+                mediaSource.load()
+                mediaSource.whenReady {
+                    adapter.setAudioList(mediaSource.toList())
+                }
+            }
         }
     }
 }

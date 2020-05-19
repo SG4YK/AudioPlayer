@@ -91,11 +91,6 @@ class NotificationBuilder(private val context: Context) {
             .setShowActionsInCompactView(playPauseIndex)
             .setShowCancelButton(true)
 
-
-//        val largeIconBitmap = description.iconUri?.let {
-//            resolveUriAsBitmap(it)
-//        }
-//
         val albumArt = context.contentResolver.loadThumbnail(
             description.mediaUri!!,
             Size(300, 300), null

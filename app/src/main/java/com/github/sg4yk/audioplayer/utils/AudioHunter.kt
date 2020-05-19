@@ -61,7 +61,6 @@ object AudioHunter {
         MediaStore.Audio.Media.ALBUM_ID
     )
 
-    @WorkerThread
     fun getAllMetadata(ctx: Context): List<MediaMetadataCompat> {
         // Not loading album art for performance
 

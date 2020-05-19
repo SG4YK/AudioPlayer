@@ -19,7 +19,7 @@
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>
         </service>
         <activity
@@ -33,9 +33,11 @@
         </activity>
         <activity
                 android:name=".NowPlayingActivity"
-                android:theme="@style/AppThemeNoActionBarDark">
+                android:theme="@style/AppThemeNoActionBarDark"
+                android:launchMode="singleTask">
         </activity>
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+                  android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

@@ -1,33 +1,32 @@
 package com.github.sg4yk.audioplayer
 
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
 import android.util.Log
+import android.util.Size
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
-import com.github.sg4yk.audioplayer.extensions.isPlaying
-import com.github.sg4yk.audioplayer.extensions.isPrepared
-import com.github.sg4yk.audioplayer.utils.*
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
+import com.github.sg4yk.audioplayer.utils.MEDIA_ID_PLAY_ALL
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.utils.PlaybackService
+import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -47,23 +46,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
-    private lateinit var connection: PlaybackServiceConnection
+    private var controller: MediaControllerCompat? = null
+    private lateinit var serviceIntent: Intent
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("MainActivity","Oncreate")
+        Log.d("MainActivity", "Oncreate")
         super.onCreate(savedInstanceState)
-        if (checkPermissionStatus()) {
-            PlaybackManager.startPlaybackService(this)
-        } else {
-            grantPermissions()
-        }
+
         setContentView(R.layout.activity_main)
         volumeControlStream = AudioManager.STREAM_MUSIC
 
+        serviceIntent = Intent(this, PlaybackService::class.java)
+        startService(serviceIntent)
+        if (checkPermissionStatus()) {
+            PlaybackManager.connectPlaybackService(this)
+
+        } else {
+            grantPermissions()
+        }
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -88,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                         setLightStatusBar(decorView, false)
                     }
                 }
-
             )
         }
 
@@ -127,14 +130,7 @@ class MainActivity : AppCompatActivity() {
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
                 playButton.post {
                     playButton.setOnClickListener {
-//                        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-//                            if (PlaybackManager.play()) {
-//                                updateMetadata()
-//                            }
-//                        } else {
-//                            PlaybackManager.playOrPause()
-//                        }
-                        PlaybackManager.playAudioFromId("26")
+                        PlaybackManager.playAudioFromId(MEDIA_ID_PLAY_ALL)
                     }
                 }
             }
@@ -147,15 +143,14 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.menu_settings -> {
-                        val intent = Intent(this, SettingsActivity::class.java)
-//                        val activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(toolbar,0,0,
-//                            toolbar.width,toolbar.height)
-                        startActivity(intent)
+                        Thread {
+                            val intent = Intent(this, SettingsActivity::class.java)
+                            startActivity(intent)
+                        }.start()
                         true
                     }
                     R.id.menu_exit -> {
-                        stopService(Intent(this, PlaybackService::class.java))
-                        connection.close()
+                        PlaybackManager.stopPlaybackService(this)
                         finish()
                         true
                     }
@@ -183,12 +178,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-    // end of onCreate()
 
-
-    override fun onStart() {
-        super.onStart()
         navDrawer = findViewById(R.id.nav_drawer)
         navDrawer.post {
             navHeaderBg = findViewById(R.id.nav_header_bg)
@@ -196,10 +186,29 @@ class MainActivity : AppCompatActivity() {
             navHeaderTitle = findViewById(R.id.nav_header_title)
             navHeaderArtist = findViewById(R.id.nav_header_artist)
             navHeaderAlbum = findViewById(R.id.nav_header_album)
+            // set controller when connected
+            val observer = Observer<Boolean> {
+                if (it && controller == null) {
+                    controller = MediaControllerCompat(this, PlaybackManager.sessionToken()).apply {
+                        registerCallback(object : MediaControllerCompat.Callback() {
+                            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                                updateUI(metadata)
+                            }
+                        })
+                    }
+                }
+            }
+            PlaybackManager.isConnected().observe(this, observer)
         }
+
+
     }
+    // end of onCreate()
 
 
+    override fun onStart() {
+        super.onStart()
+    }
 
     private fun checkPermissionStatus(): Boolean {
         permissions.forEach {
@@ -219,7 +228,10 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    PlaybackManager.startPlaybackService(this)
+                    Thread {
+                        PlaybackManager.connectPlaybackService(this)
+                        controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
+                    }.start()
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -242,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 navHeaderBg2
             }
-            Blurry.with(this).async().radius(4).sampling(4).color(Color.argb(128, 0, 0, 0))
+            Blurry.with(this).async().radius(2).color(Color.argb(100, 0, 0, 0))
                 .from(bitmap).into(targetBg)
             crossFade(navHeaderBg, navHeaderBg2, 300)
         } else {
@@ -250,9 +262,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @WorkerThread
-    private fun updateMetadata() {
-
+    private fun updateUI(metadata: MediaMetadataCompat?) {
+        val subtitle = metadata?.description?.subtitle
+        var artist = "Unknwon Artist"
+        var album = "Unknown Album"
+        if (subtitle != null) {
+            val splited = subtitle.split(" - ")
+            artist = splited[0]
+            album = splited[1]
+        }
+        navHeaderTitle.post {
+            navHeaderTitle.text = metadata?.description?.title ?: "Unknown Title"
+        }
+        navHeaderArtist.post {
+            navHeaderArtist.text = artist
+        }
+        navHeaderAlbum.post {
+            navHeaderAlbum.text = album
+        }
+        val bitmap = metadata?.description?.mediaUri?.let {
+            contentResolver.loadThumbnail(it, Size(64, 64), null)
+        }
+        navHeaderBg.post { setDrawerBg(bitmap) }
     }
 
     private fun showToast(msg: String) {
@@ -265,7 +296,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        connection.close()
+        stopService(serviceIntent)
     }
+
+    override fun onBackPressed() {
+        finish()
+    }
+
 
 }

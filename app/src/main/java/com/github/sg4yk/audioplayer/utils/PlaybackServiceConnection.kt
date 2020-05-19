@@ -14,6 +14,8 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 @WorkerThread
 class PlaybackServiceConnection(context: Context, serviceComponent: ComponentName) {
@@ -33,17 +35,18 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
-//    fun transportControls(): MediaControllerCompat.TransportControls {
-//        return mediaController.transportControls
-//    }
-
+    val sessionToken: MediaSessionCompat.Token
+        get() = mediaBrowser.sessionToken
 
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
     val mediaBrowser = MediaBrowserCompat(
         context,
         serviceComponent,
         mediaBrowserConnectionCallback, null
-    ).apply { connect() }
+    ).also {
+            it.connect()
+    }
+
     private lateinit var mediaController: MediaControllerCompat
 
     fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
@@ -80,10 +83,10 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
          */
         override fun onConnected() {
             // Get a MediaController for the MediaSession.
+            Log.d("MediaBrowser","Connected")
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
-            Log.d("MediaBrowser","Connected")
             isConnected.postValue(true)
         }
 

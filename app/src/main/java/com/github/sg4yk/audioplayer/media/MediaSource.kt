@@ -140,7 +140,7 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
         state = STATE_INITIALIZING
     }
 
-    override suspend fun load() {
+    override suspend fun load(){
         try {
             list = AudioHunter.getAllMetadata(context)
             state = STATE_INITIALIZED

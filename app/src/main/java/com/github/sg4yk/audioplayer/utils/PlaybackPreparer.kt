@@ -22,7 +22,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 // Filter items to play from music source
 class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
-
     private val context: Context
     private val musicSource: MusicSource
     private val exoPlayer: ExoPlayer
@@ -43,6 +42,11 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle) {
         musicSource.whenReady {
+            if (mediaId == MEDIA_ID_PLAY_ALL) {
+                val mediaSource = buildMediaSource(musicSource.toList(), dataSourceFactory)
+                exoPlayer.prepare(mediaSource)
+                return@whenReady
+            }
             val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
                 item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).equals(mediaId)
             }
@@ -50,7 +54,7 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
             if (itemToPlay == null) {
                 Log.w(TAG, "Content not found: MediaID=$mediaId")
             } else {
-                val metadataList = AudioHunter.getAllMetadata(context).filter {
+                val metadataList = musicSource.filter {
                     it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == mediaId
                 }
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
@@ -118,3 +122,5 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
     private val TAG = "PlaybackPreparer"
 }
+
+const val MEDIA_ID_PLAY_ALL = "PLAYALLMEDIA"

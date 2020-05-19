@@ -21,7 +21,9 @@ import androidx.media.MediaBrowserServiceCompat
 import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.*
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
@@ -57,7 +59,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private lateinit var mediaController: MediaControllerCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
-    private var isForegroundService = true
+    private var isForegroundService = false
 
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, mediaSource)
@@ -85,6 +87,8 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
         sessionToken = mediaSession.sessionToken
 
+        Log.d("PlaybackService", "SessionToken: " + sessionToken.toString())
+
         mediaController = MediaControllerCompat(applicationContext, mediaSession).also {
             it.registerCallback(MediaControllerCallback())
         }
@@ -96,13 +100,10 @@ class PlaybackService : MediaBrowserServiceCompat() {
         becomingNoisyReceiver = BecomingNoisyReceiver(applicationContext, mediaSession.sessionToken)
 
         mediaSource = MetadataSource(applicationContext)
+
         serviceScope.launch {
-            // Load all metadata using AudioHunter
             mediaSource.load()
         }
-//        Thread{
-//            mediaSource.load()
-//        }.start()
 
         mediaSessionConnector = MediaSessionConnector(mediaSession).also { connector ->
             // Produces DataSource instances through which media data is loaded.
@@ -131,9 +132,11 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
     override fun onTaskRemoved(rootIntent: Intent) {
         super.onTaskRemoved(rootIntent)
+        removeNowPlayingNotification()
         exoPlayer.stop(true)
 //        exoPlayer.release()
         stopSelf()
+
     }
 
     override fun onDestroy() {
@@ -219,18 +222,20 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             // only apply when start playing a new track
-            if(state!!.state!=PlaybackStateCompat.STATE_PLAYING){
-                return
-            }
-            val currentMediaUri = mediaController.metadata.description.mediaUri
-            if (currentMediaUri == cachedMediaUri || currentMediaUri == null) {
-                return
-            }
-
-            cachedMediaUri = currentMediaUri
-            state?.let { state ->
-                serviceScope.launch {
-                    updateNotification(state)
+            val s = state!!.state
+            when (s) {
+                PlaybackStateCompat.STATE_NONE -> {
+                    removeNowPlayingNotification()
+                }
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    val currentMediaUri = mediaController.metadata.description.mediaUri
+                    if (currentMediaUri == cachedMediaUri || currentMediaUri == null) {
+                        return
+                    }
+                    cachedMediaUri = currentMediaUri
+                    serviceScope.launch {
+                        updateNotification(state)
+                    }
                 }
             }
         }
