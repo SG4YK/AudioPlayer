@@ -1,7 +1,6 @@
 package com.github.sg4yk.audioplayer.utils
 
 import android.app.PendingIntent
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -16,7 +15,6 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
@@ -35,7 +33,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 
-@WorkerThread
 class PlaybackService : MediaBrowserServiceCompat() {
     companion object {
         private const val SESSION_TAG = "com.sg4yk.AudioPlayer.MEDIA_SESSION"
@@ -44,6 +41,12 @@ class PlaybackService : MediaBrowserServiceCompat() {
         private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
         private const val CONTENT_STYLE_LIST = 1
         private const val CONTENT_STYLE_GRID = 2
+        private val audioAttributes = AudioAttributes.Builder()
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+        private val serviceJob = SupervisorJob()
+        private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     }
 
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
@@ -54,43 +57,15 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private lateinit var mediaController: MediaControllerCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
-    private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-
-    private var isForegroundService = false
+    private var isForegroundService = true
 
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, mediaSource)
     }
 
-    private val audioAttributes = AudioAttributes.Builder()
-        .setContentType(C.CONTENT_TYPE_MUSIC)
-        .setUsage(C.USAGE_MEDIA)
-        .build()
-
     private val exoPlayer: SimpleExoPlayer by lazy {
         SimpleExoPlayer.Builder(applicationContext).build().also {
             it.setAudioAttributes(audioAttributes, true)
-
-            val listener = object : Player.EventListener {
-                override fun onPlayerError(error: ExoPlaybackException) {
-                    super.onPlayerError(error)
-                    Log.d("ExoPlayer", error.message)
-                }
-
-                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                    super.onPlayerStateChanged(playWhenReady, playbackState)
-                    val state = when (playbackState) {
-                        ExoPlayer.STATE_IDLE -> "IDLE"
-                        ExoPlayer.STATE_BUFFERING -> "BUFFERING"
-                        ExoPlayer.STATE_READY -> "READY"
-                        ExoPlayer.STATE_ENDED -> "ENDED"
-                        else -> "UNKNOWN"
-                    }
-                    Log.d("ExoPlayer", "Playstate: $state")
-                }
-            }
-            it.addListener(listener)
         }
     }
 
@@ -125,6 +100,9 @@ class PlaybackService : MediaBrowserServiceCompat() {
             // Load all metadata using AudioHunter
             mediaSource.load()
         }
+//        Thread{
+//            mediaSource.load()
+//        }.start()
 
         mediaSessionConnector = MediaSessionConnector(mediaSession).also { connector ->
             // Produces DataSource instances through which media data is loaded.
@@ -170,7 +148,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
 //            release()
         }
         serviceJob.cancel()
-        stopSelf()
         Log.d("PlaybackService", "Service stopped")
     }
 
@@ -191,7 +168,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
         if (!resultsSent) {
             result.detach()
         }
-
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
@@ -239,15 +215,19 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            mediaController.playbackState?.let { state ->
-                serviceScope.launch {
-                    updateNotification(state)
-                }
-            }
-        }
+        private var cachedMediaUri: Uri? = null
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            // only apply when start playing a new track
+            if(state!!.state!=PlaybackStateCompat.STATE_PLAYING){
+                return
+            }
+            val currentMediaUri = mediaController.metadata.description.mediaUri
+            if (currentMediaUri == cachedMediaUri || currentMediaUri == null) {
+                return
+            }
+
+            cachedMediaUri = currentMediaUri
             state?.let { state ->
                 serviceScope.launch {
                     updateNotification(state)
@@ -269,30 +249,24 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
             when (updatedState) {
                 PlaybackStateCompat.STATE_BUFFERING,
+
                 PlaybackStateCompat.STATE_PLAYING -> {
                     becomingNoisyReceiver.register()
-
-                    /**
-                     * This may look strange, but the documentation for [Service.startForeground]
-                     * notes that "calling this method does *not* put the service in the started
-                     * state itself, even though the name sounds like it."
-                     */
                     if (notification != null) {
                         notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
-
                         if (!isForegroundService) {
                             ContextCompat.startForegroundService(
                                 applicationContext,
-                                Intent(applicationContext, this@PlaybackService::class.java)
+                                Intent(applicationContext, PlaybackService::class.java)
                             )
                             startForeground(NOW_PLAYING_NOTIFICATION, notification)
                             isForegroundService = true
                         }
                     }
                 }
+
                 else -> {
                     becomingNoisyReceiver.unregister()
-
                     if (isForegroundService) {
                         stopForeground(false)
                         isForegroundService = false
@@ -328,6 +302,5 @@ class PlaybackService : MediaBrowserServiceCompat() {
             val uri = Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
             return MediaDescriptionCompat.Builder().setTitle(title).setSubtitle(subtitle).setMediaUri(uri).build()
         }
-
     }
 }

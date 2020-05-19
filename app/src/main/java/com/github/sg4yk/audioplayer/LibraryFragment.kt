@@ -33,15 +33,16 @@ class LibraryFragment : Fragment() {
 
         val recyclerView: RecyclerView = view!!.findViewById(R.id.recycler_library)
         val adapter = AudioItemAdapter()
-        val layoutManager = LinearLayoutManager(context)
+        val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 
-        val dividerItemDecoration = DividerItemDecoration(
-            recyclerView.context,
-            layoutManager.orientation
-        )
-        recyclerView.addItemDecoration(dividerItemDecoration)
+//        val dividerItemDecoration = DividerItemDecoration(
+//            recyclerView.context,
+//            layoutManager.orientation
+//        )
+//        recyclerView.addItemDecoration(dividerItemDecoration)
+
         if (context != null) {
             Thread {
                 adapter.setAudioList(AudioHunter.getAllMetadata(context!!))

@@ -68,7 +68,8 @@ object AudioHunter {
         val metaList = mutableListOf<MediaMetadataCompat>()
         ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            audioProjection, null, null, null
+            audioProjection, null, null,
+            "${MediaStore.Audio.Media.DATE_ADDED} DESC"
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)

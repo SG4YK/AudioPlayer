@@ -132,7 +132,6 @@ abstract class AbstractMusicSource : MusicSource {
 
 private const val TAG = "MediaSource"
 
-@WorkerThread
 class MetadataSource(private val context: Context) : AbstractMusicSource() {
 
     var list: List<MediaMetadataCompat> = listOf()
