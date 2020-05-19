@@ -7,17 +7,18 @@ import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.media.MusicSource
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 
+@WorkerThread
 // Filter items to play from music source
 class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
@@ -49,12 +50,14 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
             if (itemToPlay == null) {
                 Log.w(TAG, "Content not found: MediaID=$mediaId")
             } else {
-                val metadataList = AudioHunter.getAllMetadata(context)
+                val metadataList = AudioHunter.getAllMetadata(context).filter {
+                    it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == mediaId
+                }
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
                 exoPlayer.prepare(mediaSource)
 //                exoPlayer.seekTo(initialWindowIndex, 0)
-                exoPlayer.seekTo(0L)
+//                exoPlayer.seekTo(0L)
             }
         }
     }
@@ -72,6 +75,7 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
                 val metadataList = AudioHunter.getAllMetadata(context)
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
+                exoPlayer.playWhenReady = true
                 exoPlayer.prepare(mediaSource)
 //                exoPlayer.seekTo(initialWindowIndex, 0)
                 exoPlayer.seekTo(0)
@@ -105,6 +109,7 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
         val concatenatingMediaSource = ConcatenatingMediaSource()
         metadataList.forEach {
             val progressiveSource = ProgressiveMediaSource.Factory(factory)
+                .setTag(it)
                 .createMediaSource(Uri.parse(it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)))
             concatenatingMediaSource.addMediaSource(progressiveSource)
         }

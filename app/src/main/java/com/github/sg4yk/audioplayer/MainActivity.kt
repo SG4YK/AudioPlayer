@@ -286,7 +286,7 @@ class MainActivity : AppCompatActivity() {
 //        )
     }
 
-    fun playMedia(mediaId: String, pauseAllowed: Boolean = true) {
+    private fun playMedia(mediaId: String, pauseAllowed: Boolean = true) {
         val nowPlaying = connection.nowPlaying.value
         val transportControls = connection.transportControls
 
@@ -307,6 +307,7 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             transportControls.playFromMediaId(mediaId, null)
+            transportControls.play()
         }
     }
 }

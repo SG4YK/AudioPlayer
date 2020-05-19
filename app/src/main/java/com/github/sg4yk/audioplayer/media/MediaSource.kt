@@ -32,6 +32,7 @@ const val STATE_INITIALIZING = 2
 const val STATE_INITIALIZED = 3
 const val STATE_ERROR = 4
 
+@WorkerThread
 abstract class AbstractMusicSource : MusicSource {
     @State
     var state: Int = STATE_CREATED
@@ -50,7 +51,6 @@ abstract class AbstractMusicSource : MusicSource {
 
     private val onReadyListeners = mutableListOf<(Boolean) -> Unit>()
 
-    @WorkerThread
     override fun whenReady(performAction: (Boolean) -> Unit): Boolean =
         when (state) {
             STATE_CREATED, STATE_INITIALIZING -> {
@@ -110,11 +110,6 @@ abstract class AbstractMusicSource : MusicSource {
             }
         }
 
-        // If there weren't any results from the focused search (or if there wasn't a focus
-        // to begin with), try to find any matches given the 'query' provided, searching against
-        // a few of the fields.
-        // In this sample, we're just checking a few fields with the provided query, but in a
-        // more complex app, more logic could be used to find fuzzy matches, etc...
         if (focusSearchResult.isEmpty()) {
             return if (query.isNotBlank()) {
                 Log.d(TAG, "Unfocused search for '$query'")
@@ -135,8 +130,9 @@ abstract class AbstractMusicSource : MusicSource {
         get() = MediaStore.EXTRA_MEDIA_GENRE
 }
 
-private const val TAG = "MusicSource"
+private const val TAG = "MediaSource"
 
+@WorkerThread
 class MetadataSource(private val context: Context) : AbstractMusicSource() {
 
     var list: List<MediaMetadataCompat> = listOf()
@@ -148,10 +144,6 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
     override suspend fun load() {
         try {
             list = AudioHunter.getAllMetadata(context)
-            Log.d("MediaSource","Metadata loaded")
-            list.forEach {
-                Log.d("MediaSource",it.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
-            }
             state = STATE_INITIALIZED
         } catch (e: Exception) {
             Log.e("MetadataSource", e.message)
@@ -161,5 +153,4 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
     override fun iterator(): Iterator<MediaMetadataCompat> {
         return list.iterator()
     }
-
 }

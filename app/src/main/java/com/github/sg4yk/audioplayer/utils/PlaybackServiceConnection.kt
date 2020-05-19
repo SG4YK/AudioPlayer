@@ -11,9 +11,11 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
 
+@WorkerThread
 class PlaybackServiceConnection(context: Context, serviceComponent: ComponentName) {
 
     val isConnected = MutableLiveData<Boolean>()

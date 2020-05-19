@@ -49,16 +49,14 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var mediaSource: MusicSource
-//    private lateinit var packageValidator: PackageValidator
+    private lateinit var mediaSession: MediaSessionCompat
+    protected lateinit var mediaController: MediaControllerCompat
+    protected lateinit var mediaSessionConnector: MediaSessionConnector
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
-    protected lateinit var mediaSession: MediaSessionCompat
-    protected lateinit var mediaController: MediaControllerCompat
-    protected lateinit var mediaSessionConnector: MediaSessionConnector
-
-    private var isForegroundService = false
+    private var isForegroundService = true
 
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, mediaSource)
@@ -69,14 +67,33 @@ class PlaybackService : MediaBrowserServiceCompat() {
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    private val exoPlayer: ExoPlayer by lazy {
-        SimpleExoPlayer.Builder(applicationContext).build().apply {
-            setAudioAttributes(audioAttributes, true)
+    private val exoPlayer: SimpleExoPlayer by lazy {
+        SimpleExoPlayer.Builder(applicationContext).build().also {
+            it.setAudioAttributes(audioAttributes, true)
+
+            val listener = object : Player.EventListener {
+                override fun onPlayerError(error: ExoPlaybackException) {
+                    super.onPlayerError(error)
+                    Log.d("ExoPlayer", error.message)
+                }
+
+                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                    super.onPlayerStateChanged(playWhenReady, playbackState)
+                    val state = when (playbackState) {
+                        ExoPlayer.STATE_IDLE -> "IDLE"
+                        ExoPlayer.STATE_BUFFERING -> "BUFFERING"
+                        ExoPlayer.STATE_READY -> "READY"
+                        ExoPlayer.STATE_ENDED -> "ENDED"
+                        else -> "UNKNOWN"
+                    }
+                    Log.d("ExoPlayer", "Playstate: $state")
+                }
+            }
+            it.addListener(listener)
         }
     }
 
     override fun onCreate() {
-        Log.d("PlaybackService", "Starting service")
         super.onCreate()
 
         val pendingIntent = PendingIntent.getActivity(
@@ -97,6 +114,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         notificationBuilder = NotificationBuilder(applicationContext)
+
         notificationManager = NotificationManagerCompat.from(applicationContext)
 
         becomingNoisyReceiver = BecomingNoisyReceiver(applicationContext, mediaSession.sessionToken)
@@ -144,8 +162,10 @@ class PlaybackService : MediaBrowserServiceCompat() {
             isActive = false
             release()
         }
-
-        // Cancel coroutines when the service is going away.
+        exoPlayer.run {
+            stop()
+            release()
+        }
         serviceJob.cancel()
         Log.d("PlaybackService", "Service stopped")
     }
@@ -295,17 +315,17 @@ class PlaybackService : MediaBrowserServiceCompat() {
         stopForeground(true)
     }
 
-    private class QueueNavigator(
+    private inner class QueueNavigator(
         mediaSession: MediaSessionCompat
     ) : TimelineQueueNavigator(mediaSession) {
         private val window = Timeline.Window()
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
-//            return player.currentTimeline
-//                .getWindow(windowIndex, window).tag as MediaDescriptionCompat
-            return MediaDescriptionCompat.Builder().setDescription("Description").build()
+            val tag = player.currentTag as MediaMetadataCompat
+            val title = tag.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+            val subtitle = tag.getString(MediaMetadataCompat.METADATA_KEY_ARTIST) + " - " +
+                    tag.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
+            return MediaDescriptionCompat.Builder().setTitle(title).setSubtitle(subtitle).build()
         }
-//        override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
-//            player.currentTimeline
-//                .getWindow(windowIndex, window, true).tag as MediaDescriptionCompat
+
     }
 }

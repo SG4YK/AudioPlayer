@@ -8,10 +8,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.RequiresApi
+import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media.session.MediaButtonReceiver
@@ -26,6 +28,7 @@ import kotlinx.coroutines.withContext
 const val NOW_PLAYING_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.NOW_PLAYING"
 const val NOW_PLAYING_NOTIFICATION: Int = 128
 
+@WorkerThread
 class NotificationBuilder(private val context: Context) {
     private val notificationManager = NotificationManagerCompat.from(context)
 
@@ -63,6 +66,7 @@ class NotificationBuilder(private val context: Context) {
 
         val controller = MediaControllerCompat(context, sessionToken)
         val description = controller.metadata.description
+
         val playbackState = controller.playbackState
 
         val builder = NotificationCompat.Builder(context, NOW_PLAYING_CHANNEL)

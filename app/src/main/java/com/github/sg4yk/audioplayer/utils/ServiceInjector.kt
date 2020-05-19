@@ -2,7 +2,9 @@ package com.github.sg4yk.audioplayer.utils
 
 import android.content.ComponentName
 import android.content.Context
+import androidx.annotation.WorkerThread
 
+@WorkerThread
 object ServiceInjector {
     fun getPlaybackServiceConnection(context: Context): PlaybackServiceConnection {
         val connection =  PlaybackServiceConnection.getInstance(
