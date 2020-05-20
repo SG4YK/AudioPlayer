@@ -4,6 +4,9 @@ import android.animation.Animator
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
@@ -15,10 +18,11 @@ import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import com.github.sg4yk.audioplayer.utils.Generic
+import com.github.sg4yk.audioplayer.utils.MediaHunter
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.exoplayer2.ui.DefaultTimeBar
 import com.google.android.material.appbar.MaterialToolbar
@@ -47,6 +51,9 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var duration: AppCompatTextView
     private lateinit var position: AppCompatTextView
     private lateinit var timebar: DefaultTimeBar
+    private var controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
+    private var skipLock = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,32 +115,69 @@ class NowPlayingActivity : AppCompatActivity() {
             })
 
             timebar = findViewById(R.id.timebar)
+
         }
 
         // set buttons behavior
-        val playButton: FloatingActionButton = findViewById(R.id.button_play)
-        playButton.post {
-            playButton.setOnClickListener {
-//                if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-//                    if (PlaybackManager.play()) {
-//                        updateMetadata()
-//                    }
-//                } else {
-//                    PlaybackManager.playOrPause()
-//                }
+        val playButton = findViewById<FloatingActionButton>(R.id.button_play).apply {
+            setOnClickListener {
+                when (controller?.playbackState?.state) {
+                    PlaybackStateCompat.STATE_NONE -> {
+                        PlaybackManager.playAll()
+                    }
+                    PlaybackStateCompat.STATE_PLAYING -> {
+                        PlaybackManager.pause()
+                    }
+                    PlaybackStateCompat.STATE_PAUSED -> {
+                        PlaybackManager.play()
+                    }
+                }
+            }
+        }
+
+        val skipPreviousButton = findViewById<FloatingActionButton>(R.id.button_previous).apply {
+            setOnClickListener {
+                if (!skipLock) {
+                    PlaybackManager.skipPrevious()
+                }
+            }
+        }
+
+        val skipNextButton = findViewById<FloatingActionButton>(R.id.button_next).apply {
+            setOnClickListener {
+                if (!skipLock) {
+                    PlaybackManager.skipNext()
+                }
             }
         }
 
         duration = findViewById(R.id.duration)
         position = findViewById(R.id.position)
 
-        // update date before enter
-//        if (PlaybackManager.status() == PlaybackEngine.STATUS_STOPPED) {
-//            setAlbumAndBg(null, 0, 0)
-//        } else {
-//            updateProgress()
-//            updateMetadata(0, 0)
-//        }
+        controller.registerCallback(object : MediaControllerCompat.Callback() {
+            private var cachedMediaUri = ""
+            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                if (metadata != null && metadata.description.title != null
+                    && metadata.description.mediaUri.toString() != cachedMediaUri
+                ) {
+                    updateMetadata(metadata)
+                }
+
+            }
+        })
+
+        GlobalScope.launch(Dispatchers.Main) {
+            async {
+                val bitmap = MediaHunter.getThumbnail(
+                    this@NowPlayingActivity,
+                    controller.metadata.description.mediaUri!!, 320
+                )
+                setAlbumAndBg(bitmap, 0, 0)
+            }
+            toolbar.title = controller.metadata.description.title
+            toolbar.subtitle = controller.metadata.description.subtitle
+            duration.text = Generic.msecToStr(controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
+        }
 
 
         // set enter animation
@@ -155,13 +199,14 @@ class NowPlayingActivity : AppCompatActivity() {
         return super.onSupportNavigateUp()
     }
 
+
     private fun startRevealAnim(centerX: Int, centerY: Int) {
         backPressLock = true
         val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
         val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
         anim.duration = 1000
         anim.interpolator = DecelerateInterpolator(2.4f)
-        anim.addListener(object : Animator.AnimatorListener{
+        anim.addListener(object : Animator.AnimatorListener {
             override fun onAnimationRepeat(animation: Animator?) {}
             override fun onAnimationCancel(animation: Animator?) {}
             override fun onAnimationStart(animation: Animator?) {}
@@ -209,16 +254,26 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     //    @WorkerThread
-    private fun updateMetadata(duration: Long = 300, bgDelay: Long = 500) {
-//        val metadata = PlaybackManager.currentMetadata ?: return
-//        toolbar.post {
-//            toolbar.title = metadata.title
-//            toolbar.subtitle = "${metadata.artist} - ${metadata.album}"
-//        }
-//        setAlbumAndBg(metadata.albumArt, duration, bgDelay)
+    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 300, bgDelay: Long = 400) {
+        GlobalScope.launch(Dispatchers.Main) {
+            skipLock = true
+            async {
+                val bitmap = MediaHunter.getThumbnail(
+                    this@NowPlayingActivity,
+                    controller.metadata.description.mediaUri!!, 320
+                )
+                setAlbumAndBg(bitmap, duration, bgDelay)
+
+                // wait for animation to finish
+                delay(duration + bgDelay)
+                skipLock = false
+            }
+            toolbar.title = metadata?.description?.title ?: "Unknown title"
+            toolbar.subtitle = metadata?.description?.subtitle ?: "Unknown artist - Unknown album"
+        }
     }
 
-    private fun setAlbumAndBg(bitmap: Bitmap?, duration: Long, bgDelay: Long = 0) {
+    private suspend fun setAlbumAndBg(bitmap: Bitmap?, duration: Long, bgDelay: Long = 0) {
         if (bitmap != null) {
             val targetAlbumArt = if (albumArt.visibility == View.GONE) {
                 albumArt

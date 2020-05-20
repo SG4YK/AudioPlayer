@@ -18,7 +18,7 @@ object PlaybackManager {
 
 //    private lateinit var controls: MediaControllerCompat.TransportControls
 
-    fun connectPlaybackService(context: Context)  {
+    fun connectPlaybackService(context: Context) {
         context.startService(Intent(context, PlaybackService::class.java))
         connection = ServiceInjector.getPlaybackServiceConnection(context)
     }
@@ -29,8 +29,8 @@ object PlaybackManager {
         connection.close()
     }
 
-    fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true)  {
-        GlobalScope.launch{
+    fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true) {
+        GlobalScope.launch {
             val nowPlaying = connection.nowPlaying.value
             val controls = connection.transportControls
             val isPrepared = connection.playbackState.value?.isPrepared ?: false
@@ -56,7 +56,7 @@ object PlaybackManager {
 
     }
 
-    fun playAll(pauseAllowed: Boolean = true) {
+    fun playAll() {
         GlobalScope.launch {
             val controls = connection.transportControls
             controls.playFromMediaId(MEDIA_ID_PLAY_ALL, null)
@@ -64,9 +64,22 @@ object PlaybackManager {
         }
     }
 
+    fun loadAllAndSkipTo(id: Long) {
+        GlobalScope.launch {
+            val controls = connection.transportControls
+            controls.playFromMediaId(MEDIA_ID_PLAY_ALL, null)
+            controls.skipToQueueItem(id)
+        }
+    }
+
     fun pause() {
         connection.transportControls.pause()
     }
+
+    fun play() {
+        connection.transportControls.play()
+    }
+
 
     fun skipNext() {
         connection.transportControls.skipToNext()

@@ -8,7 +8,7 @@ import androidx.annotation.WorkerThread
 object Generic {
 
     @WorkerThread
-    fun msecToStr(msec: Int): String {
+    fun msecToStr(msec: Long): String {
         val seconds = msec / 1000
         val minutes = seconds / 60
         return "%02d:%02d".format(minutes, seconds % 60)
@@ -24,7 +24,6 @@ object Generic {
         } else if (v2.visibility == View.VISIBLE) {
             // from v2 to v1
             crossFader(v2, v1, duration, delay)
-
         }
     }
 

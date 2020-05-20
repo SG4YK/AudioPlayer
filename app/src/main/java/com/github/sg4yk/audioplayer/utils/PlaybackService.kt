@@ -113,8 +113,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
             )
 
             // Create the PlaybackPreparer of the media session connector.
-
-            // TODO: fix issue
             val playbackPreparer = PlaybackPreparer(
                 applicationContext,
                 mediaSource,

@@ -8,7 +8,7 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
-import android.text.Layout
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderAlbum: TextView
     private var controller: MediaControllerCompat? = null
     private lateinit var serviceIntent: Intent
-    private lateinit var observer: Observer<Boolean>
+    private lateinit var connectionObserver: Observer<Boolean>
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -129,10 +129,31 @@ class MainActivity : AppCompatActivity() {
 
 
                 // setup nav header button
-                val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
-                playButton.post {
-                    playButton.setOnClickListener {
-                        PlaybackManager.playAll()
+                val playButton = findViewById<FloatingActionButton>(R.id.nav_button_play).apply {
+                    setOnClickListener {
+                        when (controller?.playbackState?.state) {
+                            PlaybackStateCompat.STATE_NONE -> {
+                                PlaybackManager.playAll()
+                            }
+                            PlaybackStateCompat.STATE_PLAYING -> {
+                                PlaybackManager.pause()
+                            }
+                            PlaybackStateCompat.STATE_PAUSED -> {
+                                PlaybackManager.play()
+                            }
+                        }
+                    }
+                }
+
+                val skipPreviousButton = findViewById<FloatingActionButton>(R.id.nav_button_previous).apply {
+                    setOnClickListener {
+                        PlaybackManager.skipPrevious()
+                    }
+                }
+
+                val skipNextButton = findViewById<FloatingActionButton>(R.id.nav_button_next).apply {
+                    setOnClickListener {
+                        PlaybackManager.skipNext()
                     }
                 }
             }
@@ -190,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             navHeaderAlbum = findViewById(R.id.nav_header_album)
 
             // set controller when connected
-            observer = Observer<Boolean> {
+            connectionObserver = Observer<Boolean> {
                 if (it && controller == null) {
                     controller = MediaControllerCompat(this, PlaybackManager.sessionToken()).apply {
                         registerCallback(object : MediaControllerCompat.Callback() {
@@ -206,11 +227,11 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
                     // Stop observing when controller set
-                    PlaybackManager.isConnected().removeObserver(observer)
+                    PlaybackManager.isConnected().removeObserver(connectionObserver)
                 }
             }
 
-            PlaybackManager.isConnected().observe(this, observer)
+            PlaybackManager.isConnected().observe(this, connectionObserver)
         }
 
 
@@ -252,10 +273,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setLightStatusBar(view: View, on: Boolean) {
-        if (on) {
-            view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        } else {
-            view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        GlobalScope.launch(Dispatchers.Main) {
+            if (on) {
+                view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            }
         }
     }
 
@@ -297,6 +320,7 @@ class MainActivity : AppCompatActivity() {
                     navHeaderTitle.text = metadata?.description?.title ?: "Unknown Title"
                     navHeaderArtist.text = artist
                     navHeaderAlbum.text = album
+
                 }
             }
         }
