@@ -42,26 +42,26 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle) {
         mediaSource.whenReady {
+            val playlist = buildMediaSource(mediaSource.list, dataSourceFactory)
+
             if (mediaId == MEDIA_ID_PLAY_ALL) {
-                val mediaSource = buildMediaSource(mediaSource.toList(), dataSourceFactory)
-                exoPlayer.prepare(mediaSource)
+                exoPlayer.prepare(playlist)
                 return@whenReady
             }
 
-            val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
-                item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).equals(mediaId)
+            val itemToPlay: MediaMetadataCompat? = mediaSource.list.find { item ->
+                item.description.mediaId == mediaId
             }
 
             if (itemToPlay == null) {
                 Log.d(TAG, "Content not found: MediaID=$mediaId")
             } else {
-                val metadataList = mediaSource.list.filter {
-                    it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == mediaId
-                }
-                val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
-                val initialWindowIndex = metadataList.indexOf(itemToPlay)
-                exoPlayer.prepare(mediaSource)
-//                exoPlayer.seekTo(initialWindowIndex, 0)
+//                val metadataList = mediaSource.list.filter {
+//                    it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == mediaId
+//                }
+                val initialWindowIndex = mediaSource.list.indexOf(itemToPlay)
+                exoPlayer.prepare(playlist)
+                exoPlayer.seekTo(initialWindowIndex, 0)
 //                exoPlayer.seekTo(0L)
             }
         }
