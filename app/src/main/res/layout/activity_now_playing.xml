@@ -97,7 +97,7 @@
                                                          app:layout_constraintStart_toStartOf="@+id/position"
                                                          app:layout_constraintEnd_toEndOf="@+id/duration"
                                                          app:layout_constraintTop_toTopOf="parent"
-                                                         android:id="@+id/timebar"/>
+                                                         android:id="@+id/timebar" android:visibility="gone"/>
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:tint="@color/colorAccent"
                 app:backgroundTint="@color/white"

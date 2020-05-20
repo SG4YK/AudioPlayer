@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
@@ -14,7 +15,6 @@ import kotlinx.coroutines.launch
 
 object PlaybackManager {
     private lateinit var connection: PlaybackServiceConnection
-    private var connected = false
 
 //    private lateinit var controls: MediaControllerCompat.TransportControls
 
@@ -27,6 +27,7 @@ object PlaybackManager {
         val intent = Intent(context, PlaybackService::class.java)
         connection.transportControls.stop()
         connection.close()
+        context.stopService(Intent(context,PlaybackService::class.java))
     }
 
     fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true) {
@@ -49,7 +50,7 @@ object PlaybackManager {
                     }
                 }
             } else {
-                controls.playFromMediaId(mediaId, null)
+                controls.prepareFromMediaId(mediaId, null)
                 controls.play()
             }
         }
@@ -59,7 +60,7 @@ object PlaybackManager {
     fun playAll() {
         GlobalScope.launch {
             val controls = connection.transportControls
-            controls.playFromMediaId(MEDIA_ID_PLAY_ALL, null)
+            controls.prepareFromMediaId(MEDIA_ID_PLAY_ALL, null)
             controls.play()
         }
     }
@@ -97,7 +98,17 @@ object PlaybackManager {
         return connection.isConnected
     }
 
+    fun playbackState(): MutableLiveData<PlaybackStateCompat> {
+        return connection.playbackState
+    }
+
+    fun nowPlaying():MutableLiveData<MediaMetadataCompat>{
+        return connection.nowPlaying
+    }
+
     fun sessionToken(): MediaSessionCompat.Token {
         return connection.sessionToken
     }
+
+
 }

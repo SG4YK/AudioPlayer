@@ -29,6 +29,7 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
 
     val playbackState = MutableLiveData<PlaybackStateCompat>()
         .apply { postValue(EMPTY_PLAYBACK_STATE) }
+
     val nowPlaying = MutableLiveData<MediaMetadataCompat>()
         .apply { postValue(NOTHING_PLAYING) }
 
@@ -39,6 +40,7 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
         get() = mediaBrowser.sessionToken
 
     private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
+
     val mediaBrowser = MediaBrowserCompat(
         context,
         serviceComponent,

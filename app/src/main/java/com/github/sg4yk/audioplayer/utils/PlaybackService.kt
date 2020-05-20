@@ -119,7 +119,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 exoPlayer,
                 dataSourceFactory
             )
-
             connector.setPlayer(exoPlayer)
             connector.setPlaybackPreparer(playbackPreparer)
             connector.setQueueNavigator(QueueNavigator(mediaSession))
@@ -146,7 +145,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
         exoPlayer.run {
             stop(true)
-//            release()
+            release()
         }
         serviceJob.cancel()
         Log.d("PlaybackService", "Service stopped")

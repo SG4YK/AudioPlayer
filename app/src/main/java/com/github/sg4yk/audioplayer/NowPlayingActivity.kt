@@ -53,12 +53,11 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var timebar: DefaultTimeBar
     private var controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
     private var skipLock = false
-
+    private var setBgJob: Job = Job()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
-
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         toolbar.post {
             setSupportActionBar(toolbar)
@@ -254,7 +253,7 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     //    @WorkerThread
-    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 300, bgDelay: Long = 400) {
+    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 300, bgDelay: Long = 1000) {
         GlobalScope.launch(Dispatchers.Main) {
             skipLock = true
             async {
@@ -265,7 +264,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 setAlbumAndBg(bitmap, duration, bgDelay)
 
                 // wait for animation to finish
-                delay(duration + bgDelay)
+                delay(duration + 100)
                 skipLock = false
             }
             toolbar.title = metadata?.description?.title ?: "Unknown title"
@@ -289,10 +288,17 @@ class NowPlayingActivity : AppCompatActivity() {
                 .from(bitmap).into(targetBG)
             targetAlbumArt.setImageBitmap(bitmap)
             Generic.crossFade(albumArt, albumArt2, duration)
-            GlobalScope.launch {
+
+            // only the last one will apply
+            setBgJob.cancel()
+            setBgJob = GlobalScope.launch {
                 delay(bgDelay)
-                backgroundImg.post { Generic.crossFade(backgroundImg, backgroundImg2, duration) }
+                if (isActive) {
+                    backgroundImg.post { Generic.crossFade(backgroundImg, backgroundImg2, duration) }
+                }
             }
+
+
         } else {
             setAlbumAndBg(getDrawable(R.drawable.lucas_benjamin_unsplash)!!.toBitmap(300, 300), duration)
         }

@@ -45,7 +45,6 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
             holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
             holder.view.setOnClickListener {
                 PlaybackManager.playAudioFromId(mediaId)
-//                PlaybackManager.loadAllAndSkipTo(2)
             }
         }
     }

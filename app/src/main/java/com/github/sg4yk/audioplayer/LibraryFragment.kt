@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -19,10 +18,12 @@ class LibraryFragment : Fragment() {
 
     companion object {
         fun newInstance() = LibraryFragment()
+        private val adapter = AudioItemAdapter()
     }
 
     private lateinit var viewModel: AppViewModel
-
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var layoutManager: LinearLayoutManager
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -32,26 +33,27 @@ class LibraryFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
+//        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
 
-        val recyclerView: RecyclerView = view!!.findViewById(R.id.recycler_library)
-        val adapter = AudioItemAdapter()
-        val layoutManager = LinearLayoutManager(activity)
+        recyclerView = view!!.findViewById(R.id.recycler_library)
+        layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 
-//        val mediaList = viewModel.audioList
-//        val observer = Observer<List<MediaMetadataCompat>>{
-//            adapter.setAudioList(it)
-//        }
-//        mediaList.observe(viewLifecycleOwner,observer)
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
+        val mediaList = viewModel.audioItemsLiveData
+        val observer = Observer<List<AudioItem>> {
 
-        GlobalScope.launch(Dispatchers.Main) {
-            val mediaList = viewModel.audioItemsLiveData
-            val observer = Observer<List<AudioItem>>{
-                adapter.setAudioItemList(it)
-            }
-            mediaList.observe(viewLifecycleOwner,observer)
+//            GlobalScope.launch(Dispatchers.Main) {
+            adapter.setAudioItemList(it)
+//            }
         }
+        mediaList.observe(viewLifecycleOwner, observer)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+
     }
 }

@@ -4,12 +4,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -26,7 +25,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
-import com.github.sg4yk.audioplayer.utils.PlaybackService
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -47,29 +45,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderTitle: TextView
     private lateinit var navHeaderArtist: TextView
     private lateinit var navHeaderAlbum: TextView
+    private lateinit var playButton: FloatingActionButton
+    private lateinit var skipPreviousButton: FloatingActionButton
+    private lateinit var skipNextButton: FloatingActionButton
     private var controller: MediaControllerCompat? = null
-    private lateinit var serviceIntent: Intent
     private lateinit var connectionObserver: Observer<Boolean>
+    private lateinit var metadataObserver: Observer<MediaMetadataCompat>
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("MainActivity", "Oncreate")
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
-        volumeControlStream = AudioManager.STREAM_MUSIC
 
-        serviceIntent = Intent(this, PlaybackService::class.java)
-        startService(serviceIntent)
-        if (checkPermissionStatus()) {
-            PlaybackManager.connectPlaybackService(this)
-
-        } else {
-            grantPermissions()
-        }
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -128,34 +118,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
 
-                // setup nav header button
-                val playButton = findViewById<FloatingActionButton>(R.id.nav_button_play).apply {
-                    setOnClickListener {
-                        when (controller?.playbackState?.state) {
-                            PlaybackStateCompat.STATE_NONE -> {
-                                PlaybackManager.playAll()
-                            }
-                            PlaybackStateCompat.STATE_PLAYING -> {
-                                PlaybackManager.pause()
-                            }
-                            PlaybackStateCompat.STATE_PAUSED -> {
-                                PlaybackManager.play()
-                            }
-                        }
-                    }
-                }
-
-                val skipPreviousButton = findViewById<FloatingActionButton>(R.id.nav_button_previous).apply {
-                    setOnClickListener {
-                        PlaybackManager.skipPrevious()
-                    }
-                }
-
-                val skipNextButton = findViewById<FloatingActionButton>(R.id.nav_button_next).apply {
-                    setOnClickListener {
-                        PlaybackManager.skipNext()
-                    }
-                }
             }
 
             // setup menu
@@ -174,7 +136,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.menu_exit -> {
                         PlaybackManager.stopPlaybackService(this)
-                        finish()
+                        finishAffinity()
                         true
                     }
                     else -> true
@@ -209,31 +171,60 @@ class MainActivity : AppCompatActivity() {
             navHeaderTitle = findViewById(R.id.nav_header_title)
             navHeaderArtist = findViewById(R.id.nav_header_artist)
             navHeaderAlbum = findViewById(R.id.nav_header_album)
-
-            // set controller when connected
-            connectionObserver = Observer<Boolean> {
-                if (it && controller == null) {
-                    controller = MediaControllerCompat(this, PlaybackManager.sessionToken()).apply {
-                        registerCallback(object : MediaControllerCompat.Callback() {
-                            private var cachedMediaUri = ""
-                            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                                if (metadata != null && metadata.description.title != null
-                                    && metadata.description.mediaUri.toString() != cachedMediaUri
-                                ) {
-                                    cachedMediaUri = metadata.description.mediaUri.toString()
-                                    updateUI(metadata)
-                                }
-                            }
-                        })
-                    }
-                    // Stop observing when controller set
-                    PlaybackManager.isConnected().removeObserver(connectionObserver)
-                }
-            }
-
-            PlaybackManager.isConnected().observe(this, connectionObserver)
+            playButton = findViewById(R.id.nav_button_play)
+            skipPreviousButton = findViewById(R.id.nav_button_previous)
+            skipNextButton = findViewById(R.id.nav_button_next)
         }
 
+        if (checkPermissionStatus()) {
+            PlaybackManager.connectPlaybackService(applicationContext)
+        } else {
+            grantPermissions()
+        }
+
+        // setup control when connected
+        connectionObserver = Observer<Boolean> {
+            if (it && controller == null) {
+                // Stop observing connection
+                PlaybackManager.isConnected().removeObserver(connectionObserver)
+
+                playButton.setOnClickListener {
+                    when (PlaybackManager.playbackState().value?.state) {
+                        PlaybackStateCompat.STATE_NONE -> {
+                            PlaybackManager.playAll()
+                        }
+                        PlaybackStateCompat.STATE_PLAYING -> {
+                            PlaybackManager.pause()
+                        }
+                        PlaybackStateCompat.STATE_PAUSED -> {
+                            PlaybackManager.play()
+                        }
+                    }
+                }
+
+                skipNextButton.setOnClickListener { PlaybackManager.skipNext() }
+
+                skipPreviousButton.setOnClickListener { PlaybackManager.skipPrevious() }
+
+                // Start observing metadata
+                metadataObserver = object : Observer<MediaMetadataCompat> {
+                    private var cachedMediaUri: Uri? = Uri.EMPTY
+
+                    override fun onChanged(metadata: MediaMetadataCompat?) {
+                        if (metadata == null) {
+                            // TODO
+                            return
+                        }
+                        if (metadata.description.mediaUri != cachedMediaUri) {
+                            cachedMediaUri = metadata.description.mediaUri
+                            updateUI(metadata)
+                        }
+                    }
+                }
+                PlaybackManager.nowPlaying().observe(this, metadataObserver)
+            }
+        }
+        PlaybackManager.isConnected().observe(this, connectionObserver)
 
     }
     // end of onCreate()
@@ -292,7 +283,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 Blurry.with(applicationContext).async().radius(2).color(Color.argb(76, 0, 0, 0))
                     .from(bitmap).into(targetBg)
-                crossFade(navHeaderBg, navHeaderBg2, 300)
+                crossFade(navHeaderBg, navHeaderBg2, 250)
             } else {
                 navHeaderBg.setBackgroundColor(R.color.colorAccent)
             }
@@ -301,26 +292,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(metadata: MediaMetadataCompat?) {
         GlobalScope.launch {
-            val subtitle = metadata?.description?.subtitle
-            var artist = "Unknwon Artist"
-            var album = "Unknown Album"
-            if (subtitle != null) {
-                val splited = subtitle.split(" - ")
-                artist = splited[0]
-                album = splited[1]
-            }
-            async {
-                val bitmap = metadata?.description?.mediaUri?.let {
-                    MediaHunter.getThumbnail(applicationContext, it, 48)
+            if (metadata == null || metadata.description.mediaUri == null) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    navHeaderTitle.text = "Nothing playing"
+                    navHeaderArtist.text = null
+                    navHeaderAlbum.text = null
                 }
-                setDrawerBg(bitmap)
-            }
-            async {
-                withContext(Dispatchers.Main) {
-                    navHeaderTitle.text = metadata?.description?.title ?: "Unknown Title"
-                    navHeaderArtist.text = artist
-                    navHeaderAlbum.text = album
-
+            } else {
+                val subtitle = metadata.description?.subtitle
+                var artist = "Unknwon Artist"
+                var album = "Unknown Album"
+                if (subtitle != null) {
+                    val splited = subtitle.split(" - ")
+                    artist = splited[0]
+                    album = splited[1]
+                }
+                async {
+                    val bitmap = metadata.description?.mediaUri?.let {
+                        MediaHunter.getThumbnail(applicationContext, it, 48)
+                    }
+                    setDrawerBg(bitmap)
+                }
+                async {
+                    withContext(Dispatchers.Main) {
+                        navHeaderTitle.text = metadata.description?.title ?: "Unknown Title"
+                        navHeaderArtist.text = artist
+                        navHeaderAlbum.text = album
+                    }
                 }
             }
         }
@@ -334,14 +332,17 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
+    override fun onStop() {
+        PlaybackManager.nowPlaying().removeObservers(this)
+        super.onStop()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        stopService(serviceIntent)
+//        stopService(serviceIntent)
     }
 
     override fun onBackPressed() {
         finish()
     }
-
-
 }
