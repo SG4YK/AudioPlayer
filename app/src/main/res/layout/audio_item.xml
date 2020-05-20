@@ -22,8 +22,7 @@
             android:layout_marginStart="16dp"/>
 
     <androidx.appcompat.widget.AppCompatTextView
-            android:text="Title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/audio_item_title"
             app:layout_constraintStart_toEndOf="@+id/space"
@@ -32,9 +31,9 @@
             android:textAppearance="?attr/textAppearanceListItem"
             app:layout_constraintBottom_toBottomOf="@+id/space"
             app:layout_constraintVertical_bias="1.0"
-            android:textColor="@color/grayDarker" android:singleLine="true" android:ellipsize="end"/>
+            android:textColor="@color/grayDarker" android:singleLine="true" android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"/>
     <androidx.appcompat.widget.AppCompatTextView
-            android:text="Album - Artist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/audio_item_description"
@@ -42,7 +41,7 @@
             android:textAppearance="?attr/textAppearanceListItemSecondary"
             app:layout_constraintBottom_toBottomOf="@+id/space2"
             android:textColor="@color/gray" android:ellipsize="end" android:singleLine="true"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="@+id/audio_item_title"
             android:textAlignment="viewStart"/>
     <Space
             android:layout_width="16dp"

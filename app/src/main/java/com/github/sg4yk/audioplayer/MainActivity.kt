@@ -8,12 +8,14 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.text.Layout
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
@@ -26,7 +28,6 @@ import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PlaybackService
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
@@ -96,7 +97,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        val appBarLayout: AppBarLayout = findViewById(R.id.app_bar_layout_light)
+        val appBarLayout: ConstraintLayout = findViewById(R.id.app_bar_layout_light)
         appBarLayout.post {
             toolbar = findViewById(R.id.toolbar)
             nav_host.post {
@@ -266,7 +267,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     navHeaderBg2
                 }
-                Blurry.with(applicationContext).async().radius(2).color(Color.argb(100, 0, 0, 0))
+                Blurry.with(applicationContext).async().radius(2).color(Color.argb(76, 0, 0, 0))
                     .from(bitmap).into(targetBg)
                 crossFade(navHeaderBg, navHeaderBg2, 300)
             } else {
@@ -287,7 +288,7 @@ class MainActivity : AppCompatActivity() {
             }
             async {
                 val bitmap = metadata?.description?.mediaUri?.let {
-                    MediaHunter.getThumbnail(applicationContext, it, 64)
+                    MediaHunter.getThumbnail(applicationContext, it, 48)
                 }
                 setDrawerBg(bitmap)
             }
