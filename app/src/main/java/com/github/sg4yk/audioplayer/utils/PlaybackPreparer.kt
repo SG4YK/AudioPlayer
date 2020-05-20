@@ -76,7 +76,7 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
             if (itemToPlay == null) {
                 Log.w(TAG, "Content not found: MediaURI=$uri")
             } else {
-                val metadataList = AudioHunter.getAllMetadata(context)
+                val metadataList = MediaHunter.getAllMetadata(context)
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
                 exoPlayer.playWhenReady = true

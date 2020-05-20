@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.sg4yk.audioplayer.media.MetadataSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -19,7 +21,7 @@ class LibraryFragment : Fragment() {
         fun newInstance() = LibraryFragment()
     }
 
-    private lateinit var viewModel: LibraryViewModel
+    private lateinit var viewModel: AppViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,7 +32,7 @@ class LibraryFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(LibraryViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
 
         val recyclerView: RecyclerView = view!!.findViewById(R.id.recycler_library)
         val adapter = AudioItemAdapter()
@@ -38,20 +40,18 @@ class LibraryFragment : Fragment() {
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
 
-//        val dividerItemDecoration = DividerItemDecoration(
-//            recyclerView.context,
-//            layoutManager.orientation
-//        )
-//        recyclerView.addItemDecoration(dividerItemDecoration)
+//        val mediaList = viewModel.audioList
+//        val observer = Observer<List<MediaMetadataCompat>>{
+//            adapter.setAudioList(it)
+//        }
+//        mediaList.observe(viewLifecycleOwner,observer)
 
-        if (context != null) {
-            val mediaSource = MetadataSource(context!!)
-            GlobalScope.launch {
-                mediaSource.load()
-                mediaSource.whenReady {
-                    adapter.setAudioList(mediaSource.toList())
-                }
+        GlobalScope.launch(Dispatchers.Main) {
+            val mediaList = viewModel.audioItemsLiveData
+            val observer = Observer<List<AudioItem>>{
+                adapter.setAudioItemList(it)
             }
+            mediaList.observe(viewLifecycleOwner,observer)
         }
     }
 }

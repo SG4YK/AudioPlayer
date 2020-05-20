@@ -23,6 +23,8 @@ import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.extensions.isSkipToNextEnabled
 import com.github.sg4yk.audioplayer.extensions.isSkipToPreviousEnabled
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 const val NOW_PLAYING_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.NOW_PLAYING"
@@ -119,15 +121,17 @@ class NotificationBuilder(private val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNowPlayingChannel() {
-        val notificationChannel = NotificationChannel(
-            NOW_PLAYING_CHANNEL,
-            "NOW_PLAYING",
-            NotificationManager.IMPORTANCE_LOW
-        )
-            .apply {
-                description = "Empty description"
-            }
-        notificationManager.createNotificationChannel(notificationChannel)
+        GlobalScope.launch {
+            val notificationChannel = NotificationChannel(
+                NOW_PLAYING_CHANNEL,
+                "NOW_PLAYING",
+                NotificationManager.IMPORTANCE_LOW
+            )
+                .apply {
+                    description = "Empty description"
+                }
+            notificationManager.createNotificationChannel(notificationChannel)
+        }
     }
 
     private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {

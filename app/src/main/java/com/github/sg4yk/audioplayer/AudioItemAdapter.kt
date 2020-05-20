@@ -8,11 +8,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.github.sg4yk.audioplayer.utils.AudioHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
-    private var audioList: List<MediaMetadataCompat> = listOf()
+    private var audioItemList: List<AudioItem> = listOf()
     private lateinit var context: Context
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -30,30 +32,25 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
     }
 
     override fun getItemCount(): Int {
-        return audioList.size
+        return audioItemList.size
     }
 
     override fun onBindViewHolder(holder: AudioViewHolder, position: Int) {
-        val metadata = audioList[position]
-        val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
+        GlobalScope.launch(Dispatchers.Main) {
+            val metadata = audioItemList[position].metadata
+            val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
 
-        holder.albumArt.post {
-            holder.albumArt.setImageBitmap(AudioHunter.getAlbumArt(context, mediaId, 100))
+            holder.albumArt.setImageBitmap(audioItemList[position].thumbnail)
+            holder.title.text = metadata.description.title
+            holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
+            holder.view.setOnClickListener {
+                PlaybackManager.playAudioFromId(mediaId)
+            }
         }
-
-        holder.title.text = metadata.description.title
-
-        holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
-
-        holder.view.setOnClickListener {
-            PlaybackManager.playAudioFromId(mediaId)
-        }
-
-
     }
 
-    fun setAudioList(list: List<MediaMetadataCompat>) {
-        audioList = list
+    fun setAudioItemList(list: List<AudioItem>) {
+        audioItemList = list
         notifyDataSetChanged()
     }
 }

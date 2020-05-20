@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.util.Log
-import android.util.Size
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -23,7 +22,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
-import com.github.sg4yk.audioplayer.utils.MEDIA_ID_PLAY_ALL
+import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PlaybackService
 import com.github.sg4yk.audioplayer.utils.PrefManager
@@ -33,6 +32,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var navControl: NavController
@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHeaderAlbum: TextView
     private var controller: MediaControllerCompat? = null
     private lateinit var serviceIntent: Intent
+    private lateinit var observer: Observer<Boolean>
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -130,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                 val playButton: FloatingActionButton = findViewById(R.id.nav_button_play)
                 playButton.post {
                     playButton.setOnClickListener {
-                        PlaybackManager.playAudioFromId(MEDIA_ID_PLAY_ALL)
+                        PlaybackManager.playAll()
                     }
                 }
             }
@@ -186,18 +187,28 @@ class MainActivity : AppCompatActivity() {
             navHeaderTitle = findViewById(R.id.nav_header_title)
             navHeaderArtist = findViewById(R.id.nav_header_artist)
             navHeaderAlbum = findViewById(R.id.nav_header_album)
+
             // set controller when connected
-            val observer = Observer<Boolean> {
+            observer = Observer<Boolean> {
                 if (it && controller == null) {
                     controller = MediaControllerCompat(this, PlaybackManager.sessionToken()).apply {
                         registerCallback(object : MediaControllerCompat.Callback() {
+                            private var cachedMediaUri = ""
                             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                                updateUI(metadata)
+                                if (metadata != null && metadata.description.title != null
+                                    && metadata.description.mediaUri.toString() != cachedMediaUri
+                                ) {
+                                    cachedMediaUri = metadata.description.mediaUri.toString()
+                                    updateUI(metadata)
+                                }
                             }
                         })
                     }
+                    // Stop observing when controller set
+                    PlaybackManager.isConnected().removeObserver(observer)
                 }
             }
+
             PlaybackManager.isConnected().observe(this, observer)
         }
 
@@ -247,43 +258,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setDrawerBg(bitmap: Bitmap?) {
-        if (bitmap != null) {
-            val targetBg = if (navHeaderBg.visibility == View.GONE) {
-                navHeaderBg
+    private suspend fun setDrawerBg(bitmap: Bitmap?) {
+        withContext(Dispatchers.Main) {
+            if (bitmap != null) {
+                val targetBg = if (navHeaderBg.visibility == View.GONE) {
+                    navHeaderBg
+                } else {
+                    navHeaderBg2
+                }
+                Blurry.with(applicationContext).async().radius(2).color(Color.argb(100, 0, 0, 0))
+                    .from(bitmap).into(targetBg)
+                crossFade(navHeaderBg, navHeaderBg2, 300)
             } else {
-                navHeaderBg2
+                navHeaderBg.setBackgroundColor(R.color.colorAccent)
             }
-            Blurry.with(this).async().radius(2).color(Color.argb(100, 0, 0, 0))
-                .from(bitmap).into(targetBg)
-            crossFade(navHeaderBg, navHeaderBg2, 300)
-        } else {
-            navHeaderBg.setBackgroundColor(R.color.colorAccent)
         }
     }
 
     private fun updateUI(metadata: MediaMetadataCompat?) {
-        val subtitle = metadata?.description?.subtitle
-        var artist = "Unknwon Artist"
-        var album = "Unknown Album"
-        if (subtitle != null) {
-            val splited = subtitle.split(" - ")
-            artist = splited[0]
-            album = splited[1]
+        GlobalScope.launch {
+            val subtitle = metadata?.description?.subtitle
+            var artist = "Unknwon Artist"
+            var album = "Unknown Album"
+            if (subtitle != null) {
+                val splited = subtitle.split(" - ")
+                artist = splited[0]
+                album = splited[1]
+            }
+            async {
+                val bitmap = metadata?.description?.mediaUri?.let {
+                    MediaHunter.getThumbnail(applicationContext, it, 64)
+                }
+                setDrawerBg(bitmap)
+            }
+            async {
+                withContext(Dispatchers.Main) {
+                    navHeaderTitle.text = metadata?.description?.title ?: "Unknown Title"
+                    navHeaderArtist.text = artist
+                    navHeaderAlbum.text = album
+                }
+            }
         }
-        navHeaderTitle.post {
-            navHeaderTitle.text = metadata?.description?.title ?: "Unknown Title"
-        }
-        navHeaderArtist.post {
-            navHeaderArtist.text = artist
-        }
-        navHeaderAlbum.post {
-            navHeaderAlbum.text = album
-        }
-        val bitmap = metadata?.description?.mediaUri?.let {
-            contentResolver.loadThumbnail(it, Size(64, 64), null)
-        }
-        navHeaderBg.post { setDrawerBg(bitmap) }
     }
 
     private fun showToast(msg: String) {

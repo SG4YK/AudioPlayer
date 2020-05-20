@@ -14,7 +14,7 @@ class ArtistFragment : Fragment() {
         fun newInstance() = ArtistFragment()
     }
 
-    private lateinit var viewModel: ArtistViewModel
+    private lateinit var viewModel: AppViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,7 +25,7 @@ class ArtistFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(ArtistViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
         // TODO: Use the ViewModel
     }
 

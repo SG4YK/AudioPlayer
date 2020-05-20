@@ -5,11 +5,12 @@ import android.content.Intent
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
-import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
 import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.extensions.isPrepared
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 object PlaybackManager {
     private lateinit var connection: PlaybackServiceConnection
@@ -17,7 +18,7 @@ object PlaybackManager {
 
 //    private lateinit var controls: MediaControllerCompat.TransportControls
 
-    fun connectPlaybackService(context: Context) {
+    fun connectPlaybackService(context: Context)  {
         context.startService(Intent(context, PlaybackService::class.java))
         connection = ServiceInjector.getPlaybackServiceConnection(context)
     }
@@ -28,8 +29,8 @@ object PlaybackManager {
         connection.close()
     }
 
-    fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true) {
-        Thread {
+    fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true)  {
+        GlobalScope.launch{
             val nowPlaying = connection.nowPlaying.value
             val controls = connection.transportControls
             val isPrepared = connection.playbackState.value?.isPrepared ?: false
@@ -51,16 +52,16 @@ object PlaybackManager {
                 controls.playFromMediaId(mediaId, null)
                 controls.play()
             }
-        }.start()
+        }
+
     }
 
-    fun playAll(mediaId: String, pauseAllowed: Boolean = true) {
-        Thread {
+    fun playAll(pauseAllowed: Boolean = true) {
+        GlobalScope.launch {
             val controls = connection.transportControls
-            controls.pause()
-            controls.playFromMediaId(mediaId, null)
+            controls.playFromMediaId(MEDIA_ID_PLAY_ALL, null)
             controls.play()
-        }.start()
+        }
     }
 
     fun pause() {

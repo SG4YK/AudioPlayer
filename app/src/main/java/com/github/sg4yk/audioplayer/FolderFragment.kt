@@ -14,7 +14,7 @@ class FolderFragment : Fragment() {
         fun newInstance() = FolderFragment()
     }
 
-    private lateinit var viewModel: FolderViewModel
+    private lateinit var viewModel: AppViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,7 +25,7 @@ class FolderFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(FolderViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
         // TODO: Use the ViewModel
     }
 

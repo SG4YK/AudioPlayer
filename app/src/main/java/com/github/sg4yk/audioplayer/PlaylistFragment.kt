@@ -14,7 +14,7 @@ class PlaylistFragment : Fragment() {
         fun newInstance() = PlaylistFragment()
     }
 
-    private lateinit var viewModel: PlaylistViewModel
+    private lateinit var viewModel: AppViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,8 +25,7 @@ class PlaylistFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(PlaylistViewModel::class.java)
-        // TODO: Use the ViewModel
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
     }
 
 }

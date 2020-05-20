@@ -7,7 +7,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
 import androidx.annotation.IntDef
 import androidx.annotation.WorkerThread
-import com.github.sg4yk.audioplayer.utils.AudioHunter
+import com.github.sg4yk.audioplayer.utils.MediaHunter
 
 interface MusicSource : Iterable<MediaMetadataCompat> {
 
@@ -142,7 +142,7 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
 
     override suspend fun load(){
         try {
-            list = AudioHunter.getAllMetadata(context)
+            list = MediaHunter.getAllMetadata(context)
             state = STATE_INITIALIZED
         } catch (e: Exception) {
             Log.e("MetadataSource", e.message)

@@ -14,9 +14,11 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Audio
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @WorkerThread
-object AudioHunter {
+object MediaHunter {
 
     private val audioProjection = arrayOf(
         MediaStore.Audio.Media._ID,
@@ -203,5 +205,19 @@ object AudioHunter {
             audioId.toLong()
         )
         return ctx.contentResolver.loadThumbnail(uri, Size(size, size), null)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun getThumbnail(ctx: Context, uri: String, size: Int): Bitmap? {
+        return withContext(Dispatchers.IO){
+            ctx.contentResolver.loadThumbnail(Uri.parse(uri), Size(size, size), null)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun getThumbnail(ctx: Context, uri: Uri, size: Int): Bitmap? {
+        return withContext(Dispatchers.IO){
+            ctx.contentResolver.loadThumbnail(uri, Size(size, size), null)
+        }
     }
 }

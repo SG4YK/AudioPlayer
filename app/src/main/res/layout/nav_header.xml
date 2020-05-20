@@ -64,7 +64,7 @@
             app:layout_constraintEnd_toEndOf="@+id/nav_header_title"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:theme="@style/secondaryTextLight"
-            android:textColor="#B3FFFFFF" android:textSize="14sp"/>
+            android:textColor="#B3FFFFFF" android:textSize="14sp" android:layout_marginTop="8dp"/>
     <androidx.appcompat.widget.AppCompatTextView
             android:text="@string/album"
             android:layout_width="0dp"
