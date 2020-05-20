@@ -8,7 +8,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.github.sg4yk.audioplayer.media.MusicSource
+import com.github.sg4yk.audioplayer.media.MetadataSource
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -23,13 +23,13 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
     private val context: Context
-    private val musicSource: MusicSource
+    private val mediaSource: MetadataSource
     private val exoPlayer: ExoPlayer
     private val dataSourceFactory: DataSource.Factory
 
-    constructor(ctx: Context, source: MusicSource, player: ExoPlayer, factory: DefaultDataSourceFactory) {
+    constructor(ctx: Context, source: MetadataSource, player: ExoPlayer, factory: DefaultDataSourceFactory) {
         context = ctx
-        musicSource = source
+        mediaSource = source
         exoPlayer = player
         dataSourceFactory = factory
     }
@@ -41,20 +41,21 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
                 PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle) {
-        musicSource.whenReady {
+        mediaSource.whenReady {
             if (mediaId == MEDIA_ID_PLAY_ALL) {
-                val mediaSource = buildMediaSource(musicSource.toList(), dataSourceFactory)
+                val mediaSource = buildMediaSource(mediaSource.toList(), dataSourceFactory)
                 exoPlayer.prepare(mediaSource)
                 return@whenReady
             }
-            val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
+
+            val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
                 item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).equals(mediaId)
             }
 
             if (itemToPlay == null) {
-                Log.w(TAG, "Content not found: MediaID=$mediaId")
+                Log.d(TAG, "Content not found: MediaID=$mediaId")
             } else {
-                val metadataList = musicSource.filter {
+                val metadataList = mediaSource.list.filter {
                     it.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == mediaId
                 }
                 val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
@@ -67,9 +68,9 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
     }
 
     override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle) {
-        musicSource.whenReady {
+        mediaSource.whenReady {
             // TODO: Rewrite with AudioHunter
-            val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
+            val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
                 item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI) == uri.toString()
             }
 
@@ -102,7 +103,8 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
     }
 
     override fun onPrepare(playWhenReady: Boolean) {
-        TODO("Not yet implemented")
+        val mediaSource = buildMediaSource(mediaSource.toList(), dataSourceFactory)
+        exoPlayer.prepare(mediaSource)
     }
 
 

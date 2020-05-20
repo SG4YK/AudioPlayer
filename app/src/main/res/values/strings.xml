@@ -35,5 +35,5 @@
     <string name="pause">Pause</string>
     <string name="skip_to_next">Skip to next track</string>
 
-
+    <string name="playback_channel_name">AudioPlayer</string>
 </resources>

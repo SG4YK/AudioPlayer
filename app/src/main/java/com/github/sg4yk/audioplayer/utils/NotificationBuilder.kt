@@ -99,7 +99,7 @@ class NotificationBuilder(private val context: Context) {
         )
 
         return builder.setContentIntent(controller.sessionActivity)
-            .setContentText(description.subtitle)
+            .setContentText("${description.subtitle} - ${description.description}")
             .setContentTitle(description.title)
             .setDeleteIntent(stopPendingIntent)
             .setLargeIcon(albumArt)

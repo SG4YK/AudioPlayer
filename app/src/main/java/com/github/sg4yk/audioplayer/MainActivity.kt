@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -59,7 +60,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        Log.d("MainActivity","create")
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -177,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (checkPermissionStatus()) {
-            PlaybackManager.connectPlaybackService(applicationContext)
+            PlaybackManager.connectPlaybackService(this)
         } else {
             grantPermissions()
         }
@@ -227,8 +228,6 @@ class MainActivity : AppCompatActivity() {
         PlaybackManager.isConnected().observe(this, connectionObserver)
 
     }
-    // end of onCreate()
-
 
     override fun onStart() {
         super.onStart()
@@ -281,7 +280,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     navHeaderBg2
                 }
-                Blurry.with(applicationContext).async().radius(2).color(Color.argb(76, 0, 0, 0))
+                Blurry.with(this@MainActivity).async().radius(2).color(Color.argb(76, 0, 0, 0))
                     .from(bitmap).into(targetBg)
                 crossFade(navHeaderBg, navHeaderBg2, 250)
             } else {
@@ -299,17 +298,11 @@ class MainActivity : AppCompatActivity() {
                     navHeaderAlbum.text = null
                 }
             } else {
-                val subtitle = metadata.description?.subtitle
-                var artist = "Unknwon Artist"
-                var album = "Unknown Album"
-                if (subtitle != null) {
-                    val splited = subtitle.split(" - ")
-                    artist = splited[0]
-                    album = splited[1]
-                }
+                var artist =  metadata.description?.subtitle?:"Unknown artist"
+                var album =  metadata.description?.description?:"Unknown album"
                 async {
                     val bitmap = metadata.description?.mediaUri?.let {
-                        MediaHunter.getThumbnail(applicationContext, it, 48)
+                        MediaHunter.getThumbnail(this@MainActivity, it, 48)
                     }
                     setDrawerBg(bitmap)
                 }
@@ -325,7 +318,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showToast(msg: String) {
-        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
@@ -339,7 +332,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        stopService(serviceIntent)
+        PlaybackManager.closeConnection()
     }
 
     override fun onBackPressed() {

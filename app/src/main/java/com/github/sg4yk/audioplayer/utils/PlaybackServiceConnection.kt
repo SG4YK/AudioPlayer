@@ -14,16 +14,11 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 @WorkerThread
 class PlaybackServiceConnection(context: Context, serviceComponent: ComponentName) {
-
     val isConnected = MutableLiveData<Boolean>()
         .apply { postValue(false) }
-//    val networkFailure = MutableLiveData<Boolean>()
-//        .apply { postValue(false) }
 
     val rootMediaId: String get() = mediaBrowser.root
 
@@ -46,7 +41,7 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
         serviceComponent,
         mediaBrowserConnectionCallback, null
     ).also {
-            it.connect()
+        it.connect()
     }
 
     private lateinit var mediaController: MediaControllerCompat
@@ -85,7 +80,6 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
          */
         override fun onConnected() {
             // Get a MediaController for the MediaSession.
-            Log.d("MediaBrowser","Connected")
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
@@ -96,7 +90,7 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
          * Invoked when the client is disconnected from the media browser.
          */
         override fun onConnectionSuspended() {
-            Log.d("MediaBrowser","Connection suspended")
+            Log.d("MediaBrowser", "Connection suspended")
             isConnected.postValue(false)
         }
 
@@ -104,7 +98,7 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
          * Invoked when the connection to the media browser failed.
          */
         override fun onConnectionFailed() {
-            Log.d("MediaBrowser","Connection failed")
+            Log.d("MediaBrowser", "Connection failed")
             isConnected.postValue(false)
         }
     }
@@ -152,8 +146,9 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
             }
     }
 
-    fun close(){
+    fun close() {
         mediaBrowser.disconnect()
+        instance = null
     }
 }
 

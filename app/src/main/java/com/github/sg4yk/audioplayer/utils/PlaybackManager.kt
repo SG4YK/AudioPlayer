@@ -7,8 +7,6 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
-import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.extensions.isPrepared
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,7 +25,7 @@ object PlaybackManager {
         val intent = Intent(context, PlaybackService::class.java)
         connection.transportControls.stop()
         connection.close()
-        context.stopService(Intent(context,PlaybackService::class.java))
+        context.stopService(Intent(context, PlaybackService::class.java))
     }
 
     fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true) {
@@ -35,24 +33,25 @@ object PlaybackManager {
             val nowPlaying = connection.nowPlaying.value
             val controls = connection.transportControls
             val isPrepared = connection.playbackState.value?.isPrepared ?: false
-            if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
-                connection.playbackState.value?.let { playbackState ->
-                    when {
-                        playbackState.isPlaying ->
-                            if (pauseAllowed) controls.pause() else Unit
-                        playbackState.isPlayEnabled -> controls.play()
-                        else -> {
-                            Log.w(
-                                "PlayAudio", "Playable item clicked but neither play nor pause are enabled!" +
-                                        " (mediaId=$mediaId)"
-                            )
-                        }
-                    }
-                }
-            } else {
-                controls.prepareFromMediaId(mediaId, null)
-                controls.play()
-            }
+//            if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
+//                connection.playbackState.value?.let { playbackState ->
+//                    when {
+//                        playbackState.isPlaying ->
+//                            if (pauseAllowed) controls.pause() else Unit
+//                        playbackState.isPlayEnabled -> controls.play()
+//                        else -> {
+//                            Log.w(
+//                                "PlayAudio", "Playable item clicked but neither play nor pause are enabled!" +
+//                                        " (mediaId=$mediaId)"
+//                            )
+//                        }
+//                    }
+//                }
+//            } else {
+            controls.prepareFromMediaId(mediaId, null)
+            controls.play()
+            Log.d("TOKEN", connection.sessionToken.toString())
+//            }
         }
 
     }
@@ -102,7 +101,7 @@ object PlaybackManager {
         return connection.playbackState
     }
 
-    fun nowPlaying():MutableLiveData<MediaMetadataCompat>{
+    fun nowPlaying(): MutableLiveData<MediaMetadataCompat> {
         return connection.nowPlaying
     }
 
@@ -110,5 +109,7 @@ object PlaybackManager {
         return connection.sessionToken
     }
 
-
+    fun closeConnection() {
+        connection.close()
+    }
 }
