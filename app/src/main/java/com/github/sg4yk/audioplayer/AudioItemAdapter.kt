@@ -39,9 +39,9 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
         GlobalScope.launch(Dispatchers.Main) {
             val metadata = audioItemList[position].metadata
             val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
-
-//            holder.view.visibility = View.INVISIBLE
-            holder.albumArt.setImageBitmap(audioItemList[position].thumbnail)
+            if (audioItemList[position].thumbnail != null) {
+                holder.albumArt.setImageBitmap(audioItemList[position].thumbnail)
+            }
             holder.title.text = metadata.description.title
             holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
             holder.view.setOnClickListener {
@@ -52,6 +52,7 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
 
     fun setAudioItemList(list: List<AudioItem>) {
         audioItemList = list
+//        notifyItemRangeInserted(0, list.size)
         notifyDataSetChanged()
     }
 }

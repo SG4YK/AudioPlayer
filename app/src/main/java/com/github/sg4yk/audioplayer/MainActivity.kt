@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
@@ -31,6 +32,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.nav_header.*
 import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     private var controller: MediaControllerCompat? = null
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
+    private lateinit var defaultBg: Drawable
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -181,6 +184,8 @@ class MainActivity : AppCompatActivity() {
         connectionObserver = Observer<Boolean> {
             if (it && controller == null) {
                 // Stop observing connection
+                defaultBg = getDrawable(R.color.colorAccent)!!
+
                 PlaybackManager.isConnected().removeObserver(connectionObserver)
 
                 playButton.setOnClickListener {
@@ -299,7 +304,16 @@ class MainActivity : AppCompatActivity() {
                     val bitmap = metadata.description?.mediaUri?.let {
                         MediaHunter.getThumbnail(this@MainActivity, it, 48)
                     }
-                    setDrawerBg(bitmap)
+                    if (bitmap != null) {
+                        Log.d("MainActivity","Bitmap loaded")
+                        setDrawerBg(bitmap)
+                    } else {
+                        Log.d("MainActivity","Empty bitmap")
+                        val defaultBg = getDrawable(R.color.colorAccent)
+                        nav_header_bg.setImageDrawable(defaultBg)
+                        nav_header_bg2.setImageDrawable(defaultBg)
+                    }
+
                 }
                 async {
                     withContext(Dispatchers.Main) {

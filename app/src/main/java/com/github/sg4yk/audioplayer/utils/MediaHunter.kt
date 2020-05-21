@@ -3,10 +3,12 @@ package com.github.sg4yk.audioplayer.utils
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
@@ -15,7 +17,9 @@ import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Audio
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
+
 
 @WorkerThread
 object MediaHunter {
@@ -194,10 +198,6 @@ object MediaHunter {
         }
     }
 
-    private val albumArtProjection = arrayOf(
-        MediaStore.Audio.Albums._ID
-    )
-
     @RequiresApi(Build.VERSION_CODES.Q)
     fun getAlbumArt(ctx: Context, audioId: String, size: Int): Bitmap? {
         val uri = ContentUris.withAppendedId(
@@ -209,15 +209,69 @@ object MediaHunter {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getThumbnail(ctx: Context, uri: String, size: Int): Bitmap? {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             ctx.contentResolver.loadThumbnail(Uri.parse(uri), Size(size, size), null)
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getThumbnail(ctx: Context, uri: Uri, size: Int): Bitmap? {
-        return withContext(Dispatchers.IO){
-            ctx.contentResolver.loadThumbnail(uri, Size(size, size), null)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            withContext(Dispatchers.IO + SupervisorJob()) {
+                ctx.contentResolver.loadThumbnail(uri, Size(size, size), null)
+            }
+        } else {
+            withContext(Dispatchers.IO + SupervisorJob()) {
+                var albumArt: Bitmap? = null
+                val audioId = uri.lastPathSegment
+                val albumId = getAlbumIdFromAudioId(ctx, audioId!!)
+                if (albumId != null) {
+                    albumArt = getAlbumArtFromAlbumId(ctx, albumId)
+                }
+                albumArt
+            }
         }
+
     }
+
+    private suspend fun getAlbumIdFromAudioId(ctx: Context, mediaId: String): String? {
+        var albumId: String? = null
+        ctx.contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Audio.Media.ALBUM_ID),
+            "${MediaStore.Audio.Media._ID} =?",
+            arrayOf(mediaId),
+            null
+        )?.use { cursor ->
+            val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            if (cursor.moveToNext()) {
+                albumId = cursor.getStringOrNull(albumIdColumn)
+            }
+        }
+        return albumId
+    }
+
+    private suspend fun getAlbumArtFromAlbumId(ctx: Context, albumId: String): Bitmap? {
+        var albumArt: Bitmap? = null
+        ctx.contentResolver.query(
+            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Audio.Albums.ALBUM_ART),
+            "${MediaStore.Audio.Albums._ID} =?",
+            arrayOf(albumId),
+            null
+        )?.use { cursor ->
+            val albumArtColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART)
+            if (cursor.moveToNext()) {
+                val albumArtPath = cursor.getString(albumArtColumn)
+                if (albumArt != null || albumArtPath != "") {
+                    try {
+                        albumArt = BitmapFactory.decodeFile(albumArtPath)
+                    } catch (e: Exception) {
+                        Log.e("MediaHunter", e.message)
+                    }
+                }
+            }
+        }
+        return albumArt
+    }
+
 }

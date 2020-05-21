@@ -38,7 +38,7 @@ class LibraryFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         GlobalScope.launch(Dispatchers.Main) {
-            delay(300)
+            delay(250)
             recyclerView = view!!.findViewById(R.id.recycler_library)
 
             layoutManager = LinearLayoutManager(activity)

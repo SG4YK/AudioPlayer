@@ -60,7 +60,7 @@ class NotificationBuilder(private val context: Context, private val controller: 
     private val stopPendingIntent =
         MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP)
 
-    fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
+    suspend fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
         if (shouldCreateNowPlayingChannel()) {
             createNowPlayingChannel()
         }
@@ -91,9 +91,9 @@ class NotificationBuilder(private val context: Context, private val controller: 
             .setShowActionsInCompactView(playPauseIndex)
             .setShowCancelButton(true)
 
-        val albumArt = context.contentResolver.loadThumbnail(
+        val albumArt = MediaHunter.getThumbnail(context,
             description.mediaUri!!,
-            Size(300, 300), null
+            300
         )
 
         return builder.setContentIntent(controller.sessionActivity)
