@@ -9,8 +9,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -24,6 +26,7 @@ class LibraryFragment : Fragment() {
     private lateinit var viewModel: AppViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: LinearLayoutManager
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -33,27 +36,30 @@ class LibraryFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-//        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
 
-        recyclerView = view!!.findViewById(R.id.recycler_library)
-        layoutManager = LinearLayoutManager(activity)
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = adapter
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(300)
+            recyclerView = view!!.findViewById(R.id.recycler_library)
 
-        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
-        val mediaList = viewModel.audioItemsLiveData
-        val observer = Observer<List<AudioItem>> {
-
-//            GlobalScope.launch(Dispatchers.Main) {
-            adapter.setAudioItemList(it)
-//            }
+            layoutManager = LinearLayoutManager(activity)
+            recyclerView.layoutManager = layoutManager
+            recyclerView.adapter = AlphaInAnimationAdapter(adapter).apply {
+                setFirstOnly(false)
+                setDuration(300)
+            }
+            recyclerView.setHasFixedSize(true)
+            viewModel = ViewModelProvider(this@LibraryFragment).get(AppViewModel::class.java)
+            val mediaList = viewModel.audioItemsLiveData
+            val observer = Observer<List<AudioItem>> {
+                adapter.setAudioItemList(it)
+            }
+            mediaList.observe(viewLifecycleOwner, observer)
         }
-        mediaList.observe(viewLifecycleOwner, observer)
+
+
     }
 
     override fun onStart() {
         super.onStart()
-
-
     }
 }

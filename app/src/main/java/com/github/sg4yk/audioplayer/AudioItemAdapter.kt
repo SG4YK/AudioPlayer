@@ -40,6 +40,7 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
             val metadata = audioItemList[position].metadata
             val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
 
+//            holder.view.visibility = View.INVISIBLE
             holder.albumArt.setImageBitmap(audioItemList[position].thumbnail)
             holder.title.text = metadata.description.title
             holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"

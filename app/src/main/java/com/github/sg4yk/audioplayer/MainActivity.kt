@@ -15,7 +15,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
@@ -60,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.d("MainActivity","create")
+        Log.d("MainActivity", "create")
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -88,37 +87,32 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        val appBarLayout: ConstraintLayout = findViewById(R.id.app_bar_layout_light)
-        appBarLayout.post {
-            toolbar = findViewById(R.id.toolbar)
-            nav_host.post {
+        toolbar = findViewById(R.id.toolbar)
+        nav_host.post {
 
-                // setup navigation
-                navControl = findNavController(R.id.nav_host)
-                appBarConfiguration = AppBarConfiguration(
-                    setOf(
-                        // top level fragments
-                        R.id.nav_playlist, R.id.nav_library, R.id.nav_album, R.id.nav_folder, R.id.nav_artist
-                    ),
-                    findViewById<DrawerLayout>(R.id.drawer_layout)
-                )
+            // setup navigation
+            navControl = findNavController(R.id.nav_host)
+            appBarConfiguration = AppBarConfiguration(
+                setOf(
+                    // top level fragments
+                    R.id.nav_playlist, R.id.nav_library, R.id.nav_album, R.id.nav_folder, R.id.nav_artist
+                ),
+                findViewById<DrawerLayout>(R.id.drawer_layout)
+            )
 
-                toolbar.setupWithNavController(navControl, appBarConfiguration)
-                findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
-                navControl.addOnDestinationChangedListener { controller, destination, arguments ->
+            toolbar.setupWithNavController(navControl, appBarConfiguration)
+            findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
+            navControl.addOnDestinationChangedListener { controller, destination, arguments ->
 
-                    // Change toolbar title when navigate between fragments
-                    toolbar.title = when (destination.id) {
-                        R.id.nav_playlist -> getString(R.string.playlist)
-                        R.id.nav_library -> getString(R.string.library)
-                        R.id.nav_album -> getString(R.string.album)
-                        R.id.nav_folder -> getString(R.string.folder)
-                        R.id.nav_artist -> getString(R.string.artist)
-                        else -> getString(R.string.app_name)
-                    }
+                // Change toolbar title when navigate between fragments
+                toolbar.title = when (destination.id) {
+                    R.id.nav_playlist -> getString(R.string.playlist)
+                    R.id.nav_library -> getString(R.string.library)
+                    R.id.nav_album -> getString(R.string.album)
+                    R.id.nav_folder -> getString(R.string.folder)
+                    R.id.nav_artist -> getString(R.string.artist)
+                    else -> getString(R.string.app_name)
                 }
-
-
             }
 
             // setup menu
@@ -212,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                     private var cachedMediaUri: Uri? = Uri.EMPTY
 
                     override fun onChanged(metadata: MediaMetadataCompat?) {
+
                         if (metadata == null) {
                             // TODO
                             return
@@ -298,8 +293,8 @@ class MainActivity : AppCompatActivity() {
                     navHeaderAlbum.text = null
                 }
             } else {
-                var artist =  metadata.description?.subtitle?:"Unknown artist"
-                var album =  metadata.description?.description?:"Unknown album"
+                var artist = metadata.description?.subtitle ?: "Unknown artist"
+                var album = metadata.description?.description ?: "Unknown album"
                 async {
                     val bitmap = metadata.description?.mediaUri?.let {
                         MediaHunter.getThumbnail(this@MainActivity, it, 48)
@@ -326,12 +321,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        PlaybackManager.nowPlaying().removeObservers(this)
         super.onStop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        PlaybackManager.nowPlaying().removeObservers(this)
         PlaybackManager.closeConnection()
     }
 

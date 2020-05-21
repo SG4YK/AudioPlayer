@@ -27,11 +27,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-const val NOW_PLAYING_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.NOW_PLAYING"
+const val PLAYBACK_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.PLAYBACK"
 const val NOW_PLAYING_NOTIFICATION: Int = 128
 
-@WorkerThread
-class NotificationBuilder(private val context: Context) {
+class NotificationBuilder(private val context: Context, private val controller: MediaControllerCompat) {
     private val notificationManager = NotificationManagerCompat.from(context)
 
     private val skipToPreviousAction = NotificationCompat.Action(
@@ -66,12 +65,11 @@ class NotificationBuilder(private val context: Context) {
             createNowPlayingChannel()
         }
 
-        val controller = MediaControllerCompat(context, sessionToken)
         val description = controller.metadata.description
 
         val playbackState = controller.playbackState
 
-        val builder = NotificationCompat.Builder(context, NOW_PLAYING_CHANNEL)
+        val builder = NotificationCompat.Builder(context, PLAYBACK_CHANNEL)
 
         var playPauseIndex = 0
         if (playbackState.isSkipToPreviousEnabled) {
@@ -117,13 +115,13 @@ class NotificationBuilder(private val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun nowPlayingChannelExists() =
-        notificationManager.getNotificationChannel(NOW_PLAYING_CHANNEL) != null
+        notificationManager.getNotificationChannel(PLAYBACK_CHANNEL) != null
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNowPlayingChannel() {
         GlobalScope.launch {
             val notificationChannel = NotificationChannel(
-                NOW_PLAYING_CHANNEL,
+                PLAYBACK_CHANNEL,
                 "NOW_PLAYING",
                 NotificationManager.IMPORTANCE_LOW
             )

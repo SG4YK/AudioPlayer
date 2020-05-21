@@ -58,6 +58,7 @@ dependencies {
 
 //    Open source projects
     implementation 'jp.wasabeef:blurry:3.0.0'           //github.com/wasabeef/Blurry
+    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'   //github.com/wasabeef/recyclerview-animators#recyclerviewadapter
     implementation 'de.hdodenhof:circleimageview:3.1.0' //github.com/hdodenhof/CircleImageView
     implementation 'com.google.android.material:material:1.2.0-alpha06'
     //github.com/material-components/material-components-android

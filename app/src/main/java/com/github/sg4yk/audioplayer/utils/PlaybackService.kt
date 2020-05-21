@@ -91,7 +91,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
             it.registerCallback(MediaControllerCallback())
         }
 
-        notificationBuilder = NotificationBuilder(this)
+        notificationBuilder = NotificationBuilder(this, mediaController)
 
         notificationManager = NotificationManagerCompat.from(this)
 
@@ -229,6 +229,11 @@ class PlaybackService : MediaBrowserServiceCompat() {
                         return
                     }
                     cachedMediaUri = currentMediaUri
+                    serviceScope.launch {
+                        updateNotification(state)
+                    }
+                }
+                PlaybackStateCompat.STATE_PAUSED ->{
                     serviceScope.launch {
                         updateNotification(state)
                     }
