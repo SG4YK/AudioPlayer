@@ -63,6 +63,14 @@ class LegalInfoActivity : AppCompatActivity() {
                         )
                     }
                 }
+                "recyclerAni" -> {
+                    context?.let {
+                        SettingsActivity.openWebSite(
+                            it,
+                            "https://github.com/wasabeef/recyclerview-animators"
+                        )
+                    }
+                }
                 "uamp" ->{
                     context?.let { SettingsActivity.openWebSite(it, "https://github.com/android/uamp") }
                 }

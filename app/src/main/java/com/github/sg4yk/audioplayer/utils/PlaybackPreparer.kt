@@ -69,7 +69,6 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
 
     override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle) {
         mediaSource.whenReady {
-            // TODO: Rewrite with AudioHunter
             val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
                 item.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI) == uri.toString()
             }

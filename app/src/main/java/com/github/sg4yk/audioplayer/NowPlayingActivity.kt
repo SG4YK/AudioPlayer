@@ -3,6 +3,7 @@ package com.github.sg4yk.audioplayer
 import android.animation.Animator
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.media.session.PlaybackState
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -14,12 +15,12 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
-import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.Observer
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
@@ -48,9 +49,13 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var albumArt2: ImageView
     private lateinit var seekBar: AppCompatSeekBar
     private lateinit var seekbarJob: Job
-    private lateinit var duration: AppCompatTextView
+    private lateinit var mediaDuration: AppCompatTextView
     private lateinit var position: AppCompatTextView
     private lateinit var timebar: DefaultTimeBar
+    private lateinit var connectionObserver: Observer<Boolean>
+    private lateinit var metadataObserver: Observer<MediaMetadataCompat>
+    private lateinit var playbackStateObserver: Observer<PlaybackStateCompat>
+
     private var controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
     private var skipLock = false
     private var setBgJob: Job = Job()
@@ -58,63 +63,51 @@ class NowPlayingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
-        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
-        toolbar.post {
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar).also {
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
-
-            // set title info
-            // TODO
         }
 
-
-        // set album art and background
         backgroundImg = findViewById(R.id.background)
         backgroundImg2 = findViewById(R.id.background2)
         albumArt = findViewById(R.id.album_art)
         albumArt2 = findViewById(R.id.album_art2)
-
-        // set seekbar behavior
+        mediaDuration = findViewById(R.id.duration)
+        position = findViewById(R.id.position)
         seekBar = findViewById(R.id.seekbar)
+
+
+
         seekbar.post {
             // set coroutine job for seekbar
-            seekbarJob = GlobalScope.launch {
-                while (isActive) {
-                    delay(500L)
-//                    if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
-//                        updateProgress()
-//                    }
-                }
-            }
-            seekbarJob.start()
+
+//            seekbarJob.start()
 
             // on slide behavior
             seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        PlaybackManager.seekTo(progress)
+                    }
+                }
+
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                    // stop updating progress
-                    seekbarJob.cancel()
+                    try {
+                        seekbarJob.cancel()
+                    } catch (e: Exception) {
+                    }
                 }
 
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                    // start a new job
                     seekbarJob = GlobalScope.launch {
                         while (isActive) {
-                            delay(500L)
-//                            if (PlaybackManager.status() == PlaybackEngine.STATUS_PLAYING) {
-//                                updateProgress()
-//                            }
+                            updateProgress()
+                            delay(1000L)
                         }
                     }
-                    seekbarJob.start()
-//                    PlaybackManager.seekTo(seekbar.progress)
-                    updateProgress()
                 }
             })
-
-            timebar = findViewById(R.id.timebar)
-
         }
 
         // set buttons behavior
@@ -150,9 +143,6 @@ class NowPlayingActivity : AppCompatActivity() {
             }
         }
 
-        duration = findViewById(R.id.duration)
-        position = findViewById(R.id.position)
-
         controller.registerCallback(object : MediaControllerCompat.Callback() {
             private var cachedMediaUri = ""
             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
@@ -161,23 +151,36 @@ class NowPlayingActivity : AppCompatActivity() {
                 ) {
                     updateMetadata(metadata)
                 }
-
             }
         })
 
-        GlobalScope.launch(Dispatchers.Main) {
-            async {
-                val bitmap = MediaHunter.getThumbnail(
-                    this@NowPlayingActivity,
-                    controller.metadata.description.mediaUri!!, 320
-                )
-                setAlbumAndBg(bitmap, 0, 0)
-            }
-            toolbar.title = controller.metadata.description.title
-            toolbar.subtitle = controller.metadata.description.subtitle
-            duration.text = Generic.msecToStr(controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
-        }
+        // Initialize metadata and seekbar
+        connectionObserver = Observer { connected ->
+            if (connected) {
+                PlaybackManager.isConnected().removeObserver(connectionObserver)
+                val metadata = PlaybackManager.nowPlaying().value
+                updateMetadata(metadata, 0, 0)
 
+                playbackStateObserver = Observer<PlaybackStateCompat> { state ->
+                    try {
+                        seekbarJob.cancel()
+                    } catch (e: Exception) {
+                    }
+                    when (state.state) {
+                        PlaybackState.STATE_PLAYING -> {
+                            seekbarJob = GlobalScope.launch {
+                                while (isActive) {
+                                    updateProgress()
+                                    delay(1000L)
+                                }
+                            }
+                        }
+                    }
+                }
+                PlaybackManager.playbackState().observe(this, playbackStateObserver)
+            }
+        }
+        PlaybackManager.isConnected().observe(this, connectionObserver)
 
         // set enter animation
         if (PrefManager.revealAnimationEnabled(this)) {
@@ -209,7 +212,6 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onAnimationRepeat(animation: Animator?) {}
             override fun onAnimationCancel(animation: Animator?) {}
             override fun onAnimationStart(animation: Animator?) {}
-
             override fun onAnimationEnd(animation: Animator?) {
                 backPressLock = false
             }
@@ -223,7 +225,10 @@ class NowPlayingActivity : AppCompatActivity() {
         if (backPressLock) {
             return
         }
-        seekbarJob.cancel()
+        try {
+            seekbarJob.cancel()
+        } catch (e: Exception) {
+        }
         backPressLock = true
         if (PrefManager.revealAnimationEnabled(this)) {
             val endRadius = 100.0f
@@ -245,22 +250,32 @@ class NowPlayingActivity : AppCompatActivity() {
         backPressLock = false
     }
 
-    @WorkerThread
     private fun updateProgress() {
-//        seekBar.post { seekbar.progress = PlaybackManager.percentage() }
-//        position.post { position.text = PlaybackManager.positionAsString() }
-//        duration.post { duration.text = PlaybackManager.durationAsString() }
+        GlobalScope.launch(Dispatchers.Main) {
+            val pos = controller.playbackState.position
+            val dur = controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)
+            if (dur != 0L) {
+                val percentage = 100 * pos / dur
+                seekBar.progress = percentage.toInt()
+                position.text = Generic.msecToStr(pos)
+            }
+        }
     }
 
     //    @WorkerThread
     private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 300, bgDelay: Long = 1000) {
         GlobalScope.launch(Dispatchers.Main) {
+            // Disable skip when updating metadata
             skipLock = true
             async {
-                val bitmap = MediaHunter.getThumbnail(
-                    this@NowPlayingActivity,
-                    controller.metadata.description.mediaUri!!, 320
-                )
+                val uri = metadata?.description?.mediaUri ?: null
+                var bitmap: Bitmap? = null
+                if (uri != null) {
+                    bitmap = MediaHunter.getThumbnail(
+                        this@NowPlayingActivity,
+                        uri, 320
+                    )
+                }
                 setAlbumAndBg(bitmap, duration, bgDelay)
 
                 // wait for animation to finish
@@ -268,7 +283,11 @@ class NowPlayingActivity : AppCompatActivity() {
                 skipLock = false
             }
             toolbar.title = metadata?.description?.title ?: "Unknown title"
-            toolbar.subtitle = metadata?.description?.subtitle ?: "Unknown artist - Unknown album"
+            val artist = metadata?.description?.subtitle ?: "Unknown artist"
+            val album = metadata?.description?.description ?: "Unknown album"
+            toolbar.subtitle = "$artist - $album"
+            mediaDuration.text =
+                Generic.msecToStr(controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
         }
     }
 
@@ -297,10 +316,8 @@ class NowPlayingActivity : AppCompatActivity() {
                     backgroundImg.post { Generic.crossFade(backgroundImg, backgroundImg2, duration) }
                 }
             }
-
-
         } else {
-            setAlbumAndBg(getDrawable(R.drawable.lucas_benjamin_unsplash)!!.toBitmap(300, 300), duration)
+            setAlbumAndBg(getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(300, 300), duration)
         }
     }
 }

@@ -56,14 +56,21 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha02'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha02'
 
-//    Open source projects
-    implementation 'jp.wasabeef:blurry:3.0.0'           //github.com/wasabeef/Blurry
-    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'   //github.com/wasabeef/recyclerview-animators#recyclerviewadapter
-    implementation 'de.hdodenhof:circleimageview:3.1.0' //github.com/hdodenhof/CircleImageView
-    implementation 'com.google.android.material:material:1.2.0-alpha06'
-    //github.com/material-components/material-components-android
+    //github.com/google/ExoPlayer
     implementation 'com.google.android.exoplayer:exoplayer:2.11.4'
     implementation "com.google.android.exoplayer:exoplayer-core:2.11.4"
     implementation "com.google.android.exoplayer:exoplayer-ui:2.11.4"
     implementation "com.google.android.exoplayer:extension-mediasession:2.11.4"
+
+    //github.com/wasabeef/Blurry
+    implementation 'jp.wasabeef:blurry:3.0.0'
+
+    //github.com/wasabeef/recyclerview-animators
+    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
+
+    //github.com/hdodenhof/CircleImageView
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    //github.com/material-components/material-components-android
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
 }

@@ -38,6 +38,11 @@
             app:title="Material Design"
         />
         <Preference
+            app:key="recyclerAni"
+            app:summary="@string/license_apache"
+            app:title="RecyclerView Animators"
+        />
+        <Preference
                 app:key="uamp"
                 app:summary="@string/license_apache"
                 app:title="uamp"

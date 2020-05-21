@@ -7,6 +7,8 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
+import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.extensions.isPrepared
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -33,25 +35,25 @@ object PlaybackManager {
             val nowPlaying = connection.nowPlaying.value
             val controls = connection.transportControls
             val isPrepared = connection.playbackState.value?.isPrepared ?: false
-//            if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
-//                connection.playbackState.value?.let { playbackState ->
-//                    when {
-//                        playbackState.isPlaying ->
-//                            if (pauseAllowed) controls.pause() else Unit
-//                        playbackState.isPlayEnabled -> controls.play()
-//                        else -> {
-//                            Log.w(
-//                                "PlayAudio", "Playable item clicked but neither play nor pause are enabled!" +
-//                                        " (mediaId=$mediaId)"
-//                            )
-//                        }
-//                    }
-//                }
-//            } else {
-            controls.prepareFromMediaId(mediaId, null)
-            controls.play()
-            Log.d("TOKEN", connection.sessionToken.toString())
-//            }
+            if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
+                connection.playbackState.value?.let { playbackState ->
+                    when {
+                        playbackState.isPlaying ->
+                            if (pauseAllowed) controls.pause() else Unit
+                        playbackState.isPlayEnabled -> controls.play()
+                        else -> {
+                            Log.w(
+                                "PlayAudio", "Playable item clicked but neither play nor pause are enabled!" +
+                                        " (mediaId=$mediaId)"
+                            )
+                        }
+                    }
+                }
+            } else {
+                controls.prepareFromMediaId(mediaId, null)
+                controls.play()
+                Log.d("TOKEN", connection.sessionToken.toString())
+            }
         }
 
     }
@@ -91,6 +93,15 @@ object PlaybackManager {
 
     fun skipToId(id: Long) {
         connection.transportControls.skipToQueueItem(id)
+    }
+
+    fun seekTo(percentage: Int) {
+        val state = playbackState().value?.state ?: PlaybackStateCompat.STATE_NONE
+        if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_PAUSED) {
+            val duration = connection.nowPlaying.value?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) ?: 0
+            val position = duration / 100 * percentage
+            connection.transportControls.seekTo(position)
+        }
     }
 
     fun isConnected(): MutableLiveData<Boolean> {
