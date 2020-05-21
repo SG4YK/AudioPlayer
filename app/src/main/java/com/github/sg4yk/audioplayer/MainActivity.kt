@@ -62,7 +62,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.d("MainActivity", "create")
+
+
+
         // change status bar color when open drawer
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         drawerLayout.post {
@@ -142,9 +144,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (checkPermissionStatus()) {
+            PlaybackManager.connectPlaybackService(this)
+        } else {
+            grantPermissions()
+            return
+        }
+
         // setup fab
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.post {
+            fab.visibility = View.VISIBLE
             fab.setOnClickListener { v ->
                 val intent = Intent(this, NowPlayingActivity::class.java)
 
@@ -162,6 +172,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+
         navDrawer = findViewById(R.id.nav_drawer)
         navDrawer.post {
             navHeaderBg = findViewById(R.id.nav_header_bg)
@@ -174,11 +186,6 @@ class MainActivity : AppCompatActivity() {
             skipNextButton = findViewById(R.id.nav_button_next)
         }
 
-        if (checkPermissionStatus()) {
-            PlaybackManager.connectPlaybackService(this)
-        } else {
-            grantPermissions()
-        }
 
         // setup control when connected
         connectionObserver = Observer<Boolean> {
@@ -229,10 +236,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onStart() {
-        super.onStart()
-    }
-
     private fun checkPermissionStatus(): Boolean {
         permissions.forEach {
             if (checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED) {
@@ -251,12 +254,11 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Thread {
-                        PlaybackManager.connectPlaybackService(this)
-                        controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
-                    }.start()
+                    // restart activity
+                    finish()
+                    startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -305,10 +307,10 @@ class MainActivity : AppCompatActivity() {
                         MediaHunter.getThumbnail(this@MainActivity, it, 48)
                     }
                     if (bitmap != null) {
-                        Log.d("MainActivity","Bitmap loaded")
+                        Log.d("MainActivity", "Bitmap loaded")
                         setDrawerBg(bitmap)
                     } else {
-                        Log.d("MainActivity","Empty bitmap")
+                        Log.d("MainActivity", "Empty bitmap")
                         val defaultBg = getDrawable(R.color.colorAccent)
                         nav_header_bg.setImageDrawable(defaultBg)
                         nav_header_bg2.setImageDrawable(defaultBg)

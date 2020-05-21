@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
+import com.github.sg4yk.audioplayer.extensions.stateName
 import com.github.sg4yk.audioplayer.media.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Player
@@ -44,12 +45,13 @@ class PlaybackService : MediaBrowserServiceCompat() {
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
-        private val serviceJob = SupervisorJob()
-        private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+
         private const val PLAYBACK_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.PLAYBACK"
         private const val PLAYBACK_NOTIFICATION_ID = 1
     }
 
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
@@ -133,7 +135,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         Log.d("PlaybackService", "Stopping service")
-        super.onDestroy()
         becomingNoisyReceiver.unregister()
         mediaSession.run {
             isActive = false
@@ -147,6 +148,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         serviceJob.cancel()
         removeNowPlayingNotification()
         stopSelf()
+        super.onDestroy()
         Log.d("PlaybackService", "Service stopped")
     }
 
@@ -214,8 +216,9 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-        private var cachedMediaUri: Uri? = null
 
+        private var cachedMediaUri: Uri? = null
+        private var cachedState: Int = PlaybackStateCompat.STATE_NONE
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             // only apply when start playing a new track
             val s = state!!.state
@@ -225,15 +228,19 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 }
                 PlaybackStateCompat.STATE_PLAYING -> {
                     val currentMediaUri = mediaController.metadata.description.mediaUri
-                    if (currentMediaUri == cachedMediaUri || currentMediaUri == null) {
+                    if (cachedState == state.state
+                        && (currentMediaUri == cachedMediaUri || currentMediaUri == null)
+                    ) {
                         return
                     }
                     cachedMediaUri = currentMediaUri
+
                     serviceScope.launch {
                         updateNotification(state)
                     }
+
                 }
-                PlaybackStateCompat.STATE_PAUSED ->{
+                PlaybackStateCompat.STATE_PAUSED -> {
                     serviceScope.launch {
                         updateNotification(state)
                     }

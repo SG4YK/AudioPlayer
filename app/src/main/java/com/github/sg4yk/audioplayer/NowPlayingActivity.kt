@@ -26,6 +26,7 @@ import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.exoplayer2.ui.DefaultTimeBar
+import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
@@ -77,6 +78,7 @@ class NowPlayingActivity : AppCompatActivity() {
         position = findViewById(R.id.position)
         seekBar = findViewById(R.id.seekbar)
 
+//        timebar = findViewById(R.id.defa)
 
 
         seekbar.post {
@@ -130,7 +132,10 @@ class NowPlayingActivity : AppCompatActivity() {
         val skipPreviousButton = findViewById<FloatingActionButton>(R.id.button_previous).apply {
             setOnClickListener {
                 if (!skipLock) {
+                    seekbar.progress = 0
+                    position.text = "00:00"
                     PlaybackManager.skipPrevious()
+                    PlaybackManager.play()
                 }
             }
         }
@@ -138,7 +143,10 @@ class NowPlayingActivity : AppCompatActivity() {
         val skipNextButton = findViewById<FloatingActionButton>(R.id.button_next).apply {
             setOnClickListener {
                 if (!skipLock) {
+                    seekbar.progress = 0
+                    position.text = "00:00"
                     PlaybackManager.skipNext()
+                    PlaybackManager.play()
                 }
             }
         }

@@ -27,7 +27,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val job = GlobalScope.launch {
-            PlaybackManager.connectPlaybackService(application)
             mediaSource.load()
             mediaSource.whenReady {
 

@@ -15,7 +15,6 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
 
-@WorkerThread
 class PlaybackServiceConnection(context: Context, serviceComponent: ComponentName) {
     val isConnected = MutableLiveData<Boolean>()
         .apply { postValue(false) }
