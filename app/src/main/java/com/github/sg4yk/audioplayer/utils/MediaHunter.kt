@@ -121,11 +121,11 @@ object MediaHunter {
     )
 
 
-    fun getAllAlbums(ctx: Context): List<Album> {
+    fun getAllAlbums(ctx: Context): MutableList<Album> {
         val albumList = mutableListOf<Album>()
         ctx.contentResolver.query(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-            albumProjection, null, null, null
+            albumProjection, null, null,null
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM)

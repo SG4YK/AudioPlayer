@@ -25,8 +25,9 @@ class FolderFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
-        // TODO: Use the ViewModel
+        viewModel = activity?.run {
+            ViewModelProvider(this).get(AppViewModel::class.java)
+        }!!
     }
 
 }

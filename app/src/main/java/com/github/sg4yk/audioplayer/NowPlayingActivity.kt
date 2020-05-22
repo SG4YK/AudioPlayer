@@ -287,7 +287,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 setAlbumAndBg(bitmap, duration, bgDelay)
 
                 // wait for animation to finish
-                delay(duration + 100)
+                delay(duration + 200)
                 skipLock = false
             }
             toolbar.title = metadata?.description?.title ?: "Unknown title"
@@ -311,7 +311,7 @@ class NowPlayingActivity : AppCompatActivity() {
             } else {
                 backgroundImg2
             }
-            Blurry.with(this).async().radius(2).sampling(4).color(Color.argb(128, 0, 0, 0))
+            Blurry.with(this).async().radius(2).sampling(4).color(Color.argb(100, 0, 0, 0))
                 .from(bitmap).into(targetBG)
             targetAlbumArt.setImageBitmap(bitmap)
             Generic.crossFade(albumArt, albumArt2, duration)

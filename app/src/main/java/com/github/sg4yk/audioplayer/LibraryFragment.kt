@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -40,7 +41,6 @@ class LibraryFragment : Fragment() {
         GlobalScope.launch(Dispatchers.Main) {
             delay(250)
             recyclerView = view!!.findViewById(R.id.recycler_library)
-
             layoutManager = LinearLayoutManager(activity)
             recyclerView.layoutManager = layoutManager
             recyclerView.adapter = AlphaInAnimationAdapter(adapter).apply {
@@ -48,18 +48,15 @@ class LibraryFragment : Fragment() {
                 setDuration(300)
             }
             recyclerView.setHasFixedSize(true)
-            viewModel = ViewModelProvider(this@LibraryFragment).get(AppViewModel::class.java)
+//            viewModel = ViewModelProvider(this).get(AppViewModel::class.java)
+            viewModel = activity?.run {
+                ViewModelProvider(this).get(AppViewModel::class.java)
+            }!!
             val mediaList = viewModel.audioItemsLiveData
-            val observer = Observer<List<AudioItem>> {
+            val observer = Observer<MutableList<AudioItem>> {
                 adapter.setAudioItemList(it)
             }
             mediaList.observe(viewLifecycleOwner, observer)
         }
-
-
-    }
-
-    override fun onStart() {
-        super.onStart()
     }
 }

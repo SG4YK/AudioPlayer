@@ -18,6 +18,5 @@
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
             android:theme="@style/recyclerViewLight"
-            android:clipToPadding="false"
-    />
+            android:clipToPadding="false"/>
 </FrameLayout>

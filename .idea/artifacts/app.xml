@@ -11,9 +11,6 @@
         </option>
       </options>
     </properties>
-    <properties id="ant-preprocessing">
-      <options enabled="true" />
-    </properties>
     <root id="archive" name="app.apk">
       <element id="android-final-package" facet="app/android/Android" />
     </root>
