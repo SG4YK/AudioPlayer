@@ -13,8 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
-    private var audioItemList: MutableList<AudioItem> = mutableListOf()
+open class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
+    protected var audioItems: MutableList<AudioItem> = mutableListOf()
     private lateinit var context: Context
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -32,15 +32,15 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
     }
 
     override fun getItemCount(): Int {
-        return audioItemList.size
+        return audioItems.size
     }
 
     override fun onBindViewHolder(holder: AudioViewHolder, position: Int) {
         GlobalScope.launch(Dispatchers.Main) {
-            val metadata = audioItemList[position].metadata
+            val metadata = audioItems[position].metadata
             val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
-            if (audioItemList[position].thumbnail != null) {
-                holder.albumArt.setImageBitmap(audioItemList[position].thumbnail)
+            if (audioItems[position].thumbnail != null) {
+                holder.albumArt.setImageBitmap(audioItems[position].thumbnail)
             }
             holder.title.text = metadata.description.title
             holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
@@ -51,7 +51,7 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
     }
 
     fun setAudioItemList(list: MutableList<AudioItem>) {
-        audioItemList = list
+        audioItems = list
 //        notifyItemRangeInserted(0, list.size)
         notifyDataSetChanged()
     }

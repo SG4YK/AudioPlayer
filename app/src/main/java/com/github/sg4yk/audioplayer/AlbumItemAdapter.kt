@@ -1,6 +1,7 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,8 +39,21 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
             holder.title.text = albumItemList[position].album.album
             holder.artist.text = albumItemList[position].album.artist
             val albumArt = albumItemList[position].albumArt
-            if(albumArt!=null){
+            if (albumArt != null) {
                 holder.albumArt.setImageBitmap(albumArt)
+            }
+            val intent = Intent(context, AlbumDetailActivity::class.java).apply {
+                putExtra(
+                    AlbumDetailActivity.EXTRA_TAG,
+                    arrayOf(
+                        albumItemList[position].album.album ?: "Unknown album",
+                        albumItemList[position].album.artist ?: "Unknown artist",
+                        albumItemList[position].album.uri.toString()
+                    )
+                )
+            }
+            holder.view.setOnClickListener {
+                context.startActivity(intent)
             }
         }
     }

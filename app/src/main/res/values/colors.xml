@@ -18,4 +18,6 @@
     <color name="grayLighter">#9E9E9E</color>
     <color name="momo">#F596AA</color>
     <color name="transparent">@android:color/transparent</color>
+    <color name="textColorPrimary">#de000000</color>
+    <color name="textColorSecondary">#8a000000</color>
 </resources>

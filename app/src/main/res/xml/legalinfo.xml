@@ -35,7 +35,7 @@
         <Preference
             app:key="mdFont"
             app:summary="SIL Open Font License Version 1.1"
-            app:title="Material Design"
+            app:title="Material Design Icons"
         />
         <Preference
             app:key="recyclerAni"

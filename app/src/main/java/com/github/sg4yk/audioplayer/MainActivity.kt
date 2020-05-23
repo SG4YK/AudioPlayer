@@ -154,10 +154,10 @@ class MainActivity : AppCompatActivity() {
         // setup fab
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.post {
-            fab.visibility = View.VISIBLE
+
+            fab.hide()
             fab.setOnClickListener { v ->
                 val intent = Intent(this, NowPlayingActivity::class.java)
-
                 if (PrefManager.revealAnimationEnabled(this)) {
                     val location = IntArray(2)
                     v.getLocationInWindow(location)
@@ -169,6 +169,10 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     startActivity(intent)
                 }
+            }
+            GlobalScope.launch(Dispatchers.Main) {
+                delay(1000)
+                fab.show()
             }
         }
 

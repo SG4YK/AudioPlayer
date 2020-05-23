@@ -21,7 +21,7 @@
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:tint">@color/gray</item>
-<!--        <item name="tint">@color/gray</item>-->
+        <!--        <item name="tint">@color/gray</item>-->
     </style>
 
     <style name="AppThemeNoActionBarDark" parent="Theme.MaterialComponents.Light.NoActionBar">
@@ -38,22 +38,26 @@
     <style name="CustomToolbarLight" parent="@style/Widget.MaterialComponents.Toolbar">
         <item name="android:elevation" tools:ignore="NewApi,PrivateResource">@dimen/design_appbar_elevation</item>
         <item name="android:background">?attr/colorPrimary</item>
-        <item name="titleTextColor">@color/grayDarker</item>
-        <item name="subtitleTextColor">@color/gray</item>
+        <item name="titleTextColor">?android:attr/textColorPrimary</item>
+        <item name="subtitleTextColor">?android:attr/textColorSecondary</item>
         <item name="android:theme">@style/CustomToolbarLight.Primary</item>
     </style>
 
     <style name="CustomToolbarLight.Primary" parent="">
-        <item name="colorControlNormal">@color/gray</item>
+        <item name="colorControlNormal">@color/textColorSecondary</item>
         <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
     </style>
 
-    <style name="primaryTextLight">
-        <item name="android:textColor">?android:textColorPrimary</item>
+    <style name="PrimaryTextLight">
+        <item name="android:textColor">@color/textColorPrimary</item>
     </style>
 
-    <style name="secondaryTextLight">
-        <item name="android:textColor">?android:textColorSecondary</item>
+    <style name="TransparentText">
+        <item name="android:textColor">@color/transparent</item>
+    </style>
+
+    <style name="SecondaryTextLight">
+        <item name="android:textColor">@color/textColorPrimary</item>
     </style>
 
 
@@ -64,9 +68,19 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="recyclerViewLight" parent="Theme.MaterialComponents.Light">
+    <style name="RecyclerViewLight" parent="Theme.MaterialComponents.Light">
         <item name="colorPrimary">@color/colorAccent</item>
         <item name="colorPrimaryDark">@color/grayLighter</item>
         <item name="android:clipToPadding">false</item>
     </style>
+
+    <style name="AppThemeNoActionBar.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppThemeNoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
+    </style>
+
+    <style name="AppThemeNoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 </resources>

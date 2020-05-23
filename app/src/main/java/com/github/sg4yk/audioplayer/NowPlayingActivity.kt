@@ -26,7 +26,6 @@ import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.exoplayer2.ui.DefaultTimeBar
-import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
@@ -67,12 +66,12 @@ class NowPlayingActivity : AppCompatActivity() {
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar).also {
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            supportActionBar?.setDisplayShowHomeEnabled(true)
+//            supportActionBar?.setDisplayShowHomeEnabled(true)
         }
 
         backgroundImg = findViewById(R.id.background)
         backgroundImg2 = findViewById(R.id.background2)
-        albumArt = findViewById(R.id.album_art)
+        albumArt = findViewById(R.id.albumArt)
         albumArt2 = findViewById(R.id.album_art2)
         mediaDuration = findViewById(R.id.duration)
         position = findViewById(R.id.position)
@@ -212,21 +211,24 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun startRevealAnim(centerX: Int, centerY: Int) {
         backPressLock = true
-        val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
-        val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
-        anim.duration = 1000
-        anim.interpolator = DecelerateInterpolator(2.4f)
-        anim.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationRepeat(animation: Animator?) {}
-            override fun onAnimationCancel(animation: Animator?) {}
-            override fun onAnimationStart(animation: Animator?) {}
-            override fun onAnimationEnd(animation: Animator?) {
-                backPressLock = false
-            }
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(175)
+            val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
+            val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
+            anim.duration = 1000
+            anim.interpolator = DecelerateInterpolator(2.4f)
+            anim.addListener(object : Animator.AnimatorListener {
+                override fun onAnimationRepeat(animation: Animator?) {}
+                override fun onAnimationCancel(animation: Animator?) {}
+                override fun onAnimationStart(animation: Animator?) {}
+                override fun onAnimationEnd(animation: Animator?) {
+                    backPressLock = false
+                }
 
-        })
-        rootLayout.visibility = View.VISIBLE
-        anim.start()
+            })
+            rootLayout.visibility = View.VISIBLE
+            anim.start()
+        }
     }
 
     override fun onBackPressed() {
@@ -271,7 +273,7 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     //    @WorkerThread
-    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 300, bgDelay: Long = 1000) {
+    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 500, bgDelay: Long = 1500) {
         GlobalScope.launch(Dispatchers.Main) {
             // Disable skip when updating metadata
             skipLock = true
@@ -287,7 +289,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 setAlbumAndBg(bitmap, duration, bgDelay)
 
                 // wait for animation to finish
-                delay(duration + 200)
+                delay(duration + 300)
                 skipLock = false
             }
             toolbar.title = metadata?.description?.title ?: "Unknown title"

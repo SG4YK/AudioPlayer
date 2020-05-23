@@ -14,9 +14,10 @@
             android:overScrollMode="always"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
-            android:theme="@style/recyclerViewLight"
-            android:clipToPadding="false"/>
+            android:theme="@style/RecyclerViewLight"
+            android:clipToPadding="false"
+    />
 </FrameLayout>

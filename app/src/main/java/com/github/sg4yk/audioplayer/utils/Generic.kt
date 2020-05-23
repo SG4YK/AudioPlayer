@@ -1,9 +1,12 @@
 package com.github.sg4yk.audioplayer.utils
 
 import android.animation.Animator
+import android.content.Context
+import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.WorkerThread
+
 
 object Generic {
 
@@ -55,5 +58,18 @@ object Generic {
                     }
                 }
             }).start()
+    }
+
+    fun dp2px(dp: Float, context: Context): Float {
+        return dp * getDensity(context)
+    }
+
+    fun px2dp(px: Float, context: Context): Float {
+        return px / getDensity(context)
+    }
+
+    fun getDensity(context: Context): Float {
+        val metrics: DisplayMetrics = context.getResources().getDisplayMetrics()
+        return metrics.density
     }
 }

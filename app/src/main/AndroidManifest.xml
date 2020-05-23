@@ -14,14 +14,21 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
+        <activity
+                android:name=".AlbumDetailActivity"
+                android:label="@string/title_activity_album_detail"
+                android:theme="@style/AppThemeNoActionBar">
+        </activity>
+
         <service
-                android:name="com.github.sg4yk.audioplayer.utils.PlaybackService"
+                android:name=".utils.PlaybackService"
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>
         </service>
+
         <activity
                 android:name=".LegalInfoActivity"
                 android:label="@string/title_activity_licenses">
@@ -33,13 +40,15 @@
         </activity>
         <activity
                 android:name=".NowPlayingActivity"
-                android:theme="@style/AppThemeNoActionBarDark"
-                android:launchMode="singleTask">
+                android:launchMode="singleTask"
+                android:theme="@style/AppThemeNoActionBarDark">
         </activity>
-        <activity android:name=".MainActivity"
-                  android:launchMode="singleTask">
+        <activity
+                android:name=".MainActivity"
+                android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

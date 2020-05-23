@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="false"
+        tools:context=".AlbumDetailActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:fitsSystemWindows="false"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:theme="@style/AppThemeNoActionBar.AppBarOverlay">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar_layout"
+                android:fitsSystemWindows="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:toolbarId="@+id/toolbar"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+                app:contentScrim="@color/colorPrimary"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:expandedTitleTextAppearance="@style/TransparentText"
+                app:collapsedTitleTextAppearance="@style/PrimaryTextLight"
+        >
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <com.github.sg4yk.audioplayer.utils.SquareImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        app:srcCompat="@color/white"
+                        android:scaleType="centerCrop"
+                        app:layout_collapseMode="parallax"
+                        app:tint="@color/transparent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:id="@+id/albumArt" android:elevation="2dp" android:outlineProvider="bounds"/>
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:text="@string/album"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content" android:id="@+id/albumTitle"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/albumArt"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textColor="@color/textColorPrimary"
+                        android:layout_marginTop="32dp"
+                        android:elevation="0dp" android:layout_marginStart="64dp" android:layout_marginEnd="64dp"
+                />
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:text="@string/artist"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/artist"
+                        app:layout_constraintTop_toBottomOf="@+id/albumTitle"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textColor="@color/textColorSecondary"
+                        android:elevation="0dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="16dp" app:layout_constraintStart_toStartOf="@+id/albumTitle"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_height="?attr/actionBarSize"
+                    android:layout_width="match_parent"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/AppThemeNoActionBar.PopupOverlay"
+                    app:menu="@menu/menu_album_detail"
+                    app:colorControlNormal="@color/colorPrimary"
+                    android:layout_marginTop="@dimen/status_bar_height"/>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            android:id="@+id/recyclerView" android:clipToPadding="false" android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            app:layout_anchor="@id/albumArt"
+            app:layout_anchorGravity="bottom|end"
+            app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+            app:tint="@color/colorPrimary"
+            app:backgroundTint="@color/blue"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

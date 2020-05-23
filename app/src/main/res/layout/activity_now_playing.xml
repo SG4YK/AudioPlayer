@@ -79,7 +79,7 @@
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/button_play"
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#80FFFFFF"
+                app:backgroundTint="#4DFFFFFF"
                 android:outlineProvider="none"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -101,7 +101,7 @@
                                                          android:id="@+id/timebar" android:visibility="gone"/>
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#80FFFFFF"
+                app:backgroundTint="#4DFFFFFF"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
@@ -113,7 +113,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/button_play"/>
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#80FFFFFF"
+                app:backgroundTint="#4DFFFFFF"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
@@ -149,7 +149,7 @@
             android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
             android:visibility="gone"/>
     <com.github.sg4yk.audioplayer.utils.SquareImageView
-            android:id="@+id/album_art"
+            android:id="@+id/albumArt"
             android:layout_width="0dp"
             android:layout_height="1dp"
             app:srcCompat="@color/grayLighter"
