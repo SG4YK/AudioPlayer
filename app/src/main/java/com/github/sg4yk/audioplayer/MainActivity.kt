@@ -10,16 +10,12 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
-import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -27,88 +23,75 @@ import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.navigation.NavigationView
 import jp.wasabeef.blurry.Blurry
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.app_bar_layout_light.*
 import kotlinx.android.synthetic.main.nav_header.*
 import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var navControl: NavController
-    private lateinit var toolbar: MaterialToolbar
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var navDrawer: NavigationView
-    private var lastNavSlideOffset: Float = 0f
+
+    companion object {
+        private val permissions = arrayOf(
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        const val PERMISSION_REQUEST_CODE = 1
+    }
+
     private lateinit var decorView: View
-    private lateinit var navHeaderBg: ImageView
-    private lateinit var navHeaderBg2: ImageView
-    private lateinit var navHeaderTitle: TextView
-    private lateinit var navHeaderArtist: TextView
-    private lateinit var navHeaderAlbum: TextView
-    private lateinit var playButton: FloatingActionButton
-    private lateinit var skipPreviousButton: FloatingActionButton
-    private lateinit var skipNextButton: FloatingActionButton
+    private lateinit var defaultBg: Drawable
     private var controller: MediaControllerCompat? = null
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
-    private lateinit var defaultBg: Drawable
-
-    private val permissions = arrayOf(
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-
         // change status bar color when open drawer
-        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
-        drawerLayout.post {
-            decorView = window.decorView
-            drawerLayout.addDrawerListener(
-                object : DrawerLayout.DrawerListener {
-                    override fun onDrawerStateChanged(newState: Int) {}
-                    override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-                        if (lastNavSlideOffset <= 0.2f && slideOffset >= 0.2f) {
-                            setLightStatusBar(decorView, false)
-                        } else if (lastNavSlideOffset >= 0.2f && slideOffset <= 0.2f) {
-                            setLightStatusBar(decorView, true)
-                        }
-                        lastNavSlideOffset = slideOffset
-                    }
+        decorView = window.decorView
+        drawerLayout.addDrawerListener(
+            object : DrawerLayout.DrawerListener {
+                private var lastNavSlideOffset: Float = 0f
 
-                    override fun onDrawerClosed(drawerView: View) {
+                override fun onDrawerStateChanged(newState: Int) {}
+
+                override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                    if (lastNavSlideOffset <= 0.2f && slideOffset >= 0.2f) {
+                        setLightStatusBar(decorView, false)
+                    } else if (lastNavSlideOffset >= 0.2f && slideOffset <= 0.2f) {
                         setLightStatusBar(decorView, true)
                     }
-
-                    override fun onDrawerOpened(drawerView: View) {
-                        setLightStatusBar(decorView, false)
-                    }
+                    lastNavSlideOffset = slideOffset
                 }
-            )
-        }
 
-        toolbar = findViewById(R.id.toolbar)
-        nav_host.post {
+                override fun onDrawerClosed(drawerView: View) {
+                    setLightStatusBar(decorView, true)
+                }
 
-            // setup navigation
-            navControl = findNavController(R.id.nav_host)
-            appBarConfiguration = AppBarConfiguration(
+                override fun onDrawerOpened(drawerView: View) {
+                    setLightStatusBar(decorView, false)
+                }
+            }
+        )
+
+
+        // setup toolbar and navigation
+        navHost.post {
+            val navControl = findNavController(R.id.navHost)
+
+            val appBarConfiguration = AppBarConfiguration(
                 setOf(
-                    // top level fragments
-                    R.id.nav_playlist, R.id.nav_library, R.id.nav_album, R.id.nav_folder, R.id.nav_artist
+                    R.id.nav_playlist, R.id.nav_library, R.id.nav_album, R.id.nav_artist
                 ),
-                findViewById<DrawerLayout>(R.id.drawer_layout)
+                drawerLayout
             )
 
             toolbar.setupWithNavController(navControl, appBarConfiguration)
-            findViewById<NavigationView>(R.id.nav_drawer).setupWithNavController(navControl)
-            navControl.addOnDestinationChangedListener { controller, destination, arguments ->
 
+            navDrawer.setupWithNavController(navControl)
+
+            navControl.addOnDestinationChangedListener { controller, destination, arguments ->
                 // Change toolbar title when navigate between fragments
                 toolbar.title = when (destination.id) {
                     R.id.nav_playlist -> getString(R.string.playlist)
@@ -125,13 +108,11 @@ class MainActivity : AppCompatActivity() {
             toolbar.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_search -> {
+                        // TODO
                         true
                     }
                     R.id.menu_settings -> {
-                        Thread {
-                            val intent = Intent(this, SettingsActivity::class.java)
-                            startActivity(intent)
-                        }.start()
+                        startActivity(Intent(this, SettingsActivity::class.java))
                         true
                     }
                     R.id.menu_exit -> {
@@ -147,51 +128,36 @@ class MainActivity : AppCompatActivity() {
         if (checkPermissionStatus()) {
             PlaybackManager.connectPlaybackService(this)
         } else {
-            grantPermissions()
+            requestPermissions(permissions, PERMISSION_REQUEST_CODE)
             return
         }
 
         // setup fab
-        val fab: FloatingActionButton = findViewById(R.id.fab)
-        fab.post {
+        fab.hide()
+        fab.setOnClickListener { v ->
+            val intent = Intent(this, NowPlayingActivity::class.java)
+            if (!PrefManager.animationReduced(this)) {
+                val location = IntArray(2)
+                v.getLocationInWindow(location)
 
-            fab.hide()
-            fab.setOnClickListener { v ->
-                val intent = Intent(this, NowPlayingActivity::class.java)
-                if (!PrefManager.animationReduced(this)) {
-                    val location = IntArray(2)
-                    v.getLocationInWindow(location)
-                    val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
-                    intent.putExtra("fabX", location[0] + fab.width / 2)
-                    intent.putExtra("fabY", location[1] + fab.height / 2)
-                    intent.putExtra("fabD", fab.width)
-                    startActivity(intent, activityOptions.toBundle())
-                } else {
-                    startActivity(intent)
-                }
-            }
-            GlobalScope.launch(Dispatchers.Main) {
-                delay(500)
-                fab.show()
+                val activityOptions =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
+
+                intent.putExtra("fabX", location[0] + fab.width / 2)
+                intent.putExtra("fabY", location[1] + fab.height / 2)
+                intent.putExtra("fabD", fab.width)
+
+                startActivity(intent, activityOptions.toBundle())
+            } else {
+                startActivity(intent)
             }
         }
-
-
-
-        navDrawer = findViewById(R.id.nav_drawer)
-        navDrawer.post {
-            navHeaderBg = findViewById(R.id.nav_header_bg)
-            navHeaderBg2 = findViewById(R.id.nav_header_bg2)
-            navHeaderTitle = findViewById(R.id.nav_header_title)
-            navHeaderArtist = findViewById(R.id.nav_header_artist)
-            navHeaderAlbum = findViewById(R.id.nav_header_album)
-            playButton = findViewById(R.id.nav_button_play)
-            skipPreviousButton = findViewById(R.id.nav_button_previous)
-            skipNextButton = findViewById(R.id.nav_button_next)
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(500)
+            fab.show()
         }
 
-
-        // setup control when connected
+        // setup control when service is connected
         connectionObserver = Observer<Boolean> {
             if (it && controller == null) {
                 // Stop observing connection
@@ -199,7 +165,7 @@ class MainActivity : AppCompatActivity() {
 
                 PlaybackManager.isConnected().removeObserver(connectionObserver)
 
-                playButton.setOnClickListener {
+                buttonPlay.setOnClickListener {
                     when (PlaybackManager.playbackState().value?.state) {
                         PlaybackStateCompat.STATE_NONE -> {
                             PlaybackManager.playAll()
@@ -213,9 +179,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                skipNextButton.setOnClickListener { PlaybackManager.skipNext() }
+                buttonSkipNext.setOnClickListener { PlaybackManager.skipNext() }
 
-                skipPreviousButton.setOnClickListener { PlaybackManager.skipPrevious() }
+                buttonSkipPrevious.setOnClickListener { PlaybackManager.skipPrevious() }
 
                 // Start observing metadata
                 metadataObserver = object : Observer<MediaMetadataCompat> {
@@ -238,6 +204,7 @@ class MainActivity : AppCompatActivity() {
         }
         PlaybackManager.isConnected().observe(this, connectionObserver)
 
+        defaultBg = getDrawable(R.color.colorAccent)!!
     }
 
     private fun checkPermissionStatus(): Boolean {
@@ -249,20 +216,16 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun grantPermissions() {
-        requestPermissions(permissions, 1)
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
+        when (PERMISSION_REQUEST_CODE) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // restart activity
                     finish()
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG).show()
+                    showToast("Permission denied")
                 }
             }
         }
@@ -278,49 +241,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun setDrawerBg(bitmap: Bitmap?) {
-        withContext(Dispatchers.Main) {
-            if (bitmap != null) {
-                val targetBg = if (navHeaderBg.visibility == View.GONE) {
-                    navHeaderBg
-                } else {
-                    navHeaderBg2
-                }
-                Blurry.with(this@MainActivity).async().radius(2).color(Color.argb(76, 0, 0, 0))
-                    .from(bitmap).into(targetBg)
-                crossFade(navHeaderBg, navHeaderBg2, 250)
-            } else {
-                navHeaderBg.setBackgroundColor(R.color.colorAccent)
-            }
-        }
-    }
-
     private fun updateUI(metadata: MediaMetadataCompat?) {
-        GlobalScope.launch {
-            if (metadata == null || metadata.description.mediaUri == null) {
-                GlobalScope.launch(Dispatchers.Main) {
-                    navHeaderTitle.text = "Nothing playing"
-                    navHeaderArtist.text = null
-                    navHeaderAlbum.text = null
-                }
-            } else {
-                var artist = metadata.description?.subtitle ?: "Unknown artist"
-                var album = metadata.description?.description ?: "Unknown album"
+        if (metadata == null || metadata.description.mediaUri == null) {
+            navHeaderTitle.text = "Nothing playing"
+            navHeaderArtist.text = null
+            navHeaderAlbum.text = null
+        } else {
+            GlobalScope.launch(Dispatchers.IO) {
+                val artist = metadata.description?.subtitle ?: "Unknown artist"
+                val album = metadata.description?.description ?: "Unknown album"
+
                 async {
                     val bitmap = metadata.description?.mediaUri?.let {
                         MediaHunter.getThumbnail(this@MainActivity, it, 48)
                     }
-                    if (bitmap != null) {
-                        Log.d("MainActivity", "Bitmap loaded")
-                        setDrawerBg(bitmap)
-                    } else {
-                        Log.d("MainActivity", "Empty bitmap")
-                        val defaultBg = getDrawable(R.color.colorAccent)
-                        nav_header_bg.setImageDrawable(defaultBg)
-                        nav_header_bg2.setImageDrawable(defaultBg)
-                    }
-
+                    setDrawerBg(bitmap)
                 }
+
                 async {
                     withContext(Dispatchers.Main) {
                         navHeaderTitle.text = metadata.description?.title ?: "Unknown Title"
@@ -332,25 +269,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun setDrawerBg(bitmap: Bitmap?) {
+        GlobalScope.launch(Dispatchers.Main) {
+            // define which image view should be shown
+            val targetBg = if (navHeaderBg.visibility == View.GONE) {
+                navHeaderBg
+            } else {
+                navHeaderBg2
+            }
+
+            // prepare next background
+            if (bitmap != null) {
+                Blurry.with(this@MainActivity)
+                    .async()
+                    .radius(2)
+                    .color(Color.argb(76, 0, 0, 0))
+                    .from(bitmap).into(targetBg)
+            } else {
+                targetBg.setImageDrawable(defaultBg)
+            }
+
+            // start transition
+            crossFade(navHeaderBg, navHeaderBg2, 250)
+        }
+    }
+
     private fun showToast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onStop() {
-        super.onStop()
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         PlaybackManager.nowPlaying().removeObservers(this)
         PlaybackManager.closeConnection()
-    }
-
-    override fun onBackPressed() {
-        finish()
     }
 }

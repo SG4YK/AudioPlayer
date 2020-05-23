@@ -30,6 +30,9 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
+    val controller: MediaControllerCompat
+        get() = mediaController
+
     val sessionToken: MediaSessionCompat.Token
         get() = mediaBrowser.sessionToken
 

@@ -29,22 +29,29 @@
                 android:layout_height="0dp"
                 app:navGraph="@navigation/nav_graph_main"
                 app:defaultNavHost="true"
-                android:id="@+id/nav_host" android:elevation="0dp" app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/toolbar"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                android:id="@+id/navHost"
+                android:elevation="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar"
+                app:layout_constraintBottom_toBottomOf="parent"
+        />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clickable="true" app:srcCompat="@drawable/ic_play_arrow_white_24dp"
-            android:id="@+id/fab" android:focusable="true"
+            android:id="@+id/fab"
+            app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             app:fabSize="normal"
+            android:visibility="invisible"
             app:backgroundTint="@color/colorAccent"
             app:tint="@color/white"
-            android:visibility="invisible"
     />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
