@@ -16,12 +16,12 @@
     <PreferenceCategory
             app:title="INTERFACE">
         <SwitchPreferenceCompat
-                app:key="@string/reveal_ani_key"
-                app:title="Circular Reveal Animation"
-                app:icon="@drawable/ic_play_circle_filled_white_24dp"
-                android:defaultValue="true"
-                app:summaryOn="Disable for better performance"
-                app:summaryOff="Disabled"
+                app:key="@string/reduce_animation"
+                app:title="Reduce Animation"
+                app:icon="@drawable/transition"
+                android:defaultValue="false"
+                app:summaryOn="Animation reduced"
+                app:summaryOff="Reduce animation for better performance"
 
         />
     </PreferenceCategory>

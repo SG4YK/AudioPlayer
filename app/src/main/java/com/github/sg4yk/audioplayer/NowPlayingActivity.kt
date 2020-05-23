@@ -190,7 +190,7 @@ class NowPlayingActivity : AppCompatActivity() {
         PlaybackManager.isConnected().observe(this, connectionObserver)
 
         // set enter animation
-        if (PrefManager.revealAnimationEnabled(this)) {
+        if (!PrefManager.animationReduced(this)) {
             fabX = intent.getIntExtra("fabX", 0)
             fabY = intent.getIntExtra("fabY", 0)
             fabD = intent.getIntExtra("fabD", 0)
@@ -212,7 +212,9 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun startRevealAnim(centerX: Int, centerY: Int) {
         backPressLock = true
         GlobalScope.launch(Dispatchers.Main) {
+            // wait for other loading tasks
             delay(175)
+
             val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
             val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
             anim.duration = 1000
@@ -240,7 +242,7 @@ class NowPlayingActivity : AppCompatActivity() {
         } catch (e: Exception) {
         }
         backPressLock = true
-        if (PrefManager.revealAnimationEnabled(this)) {
+        if (!PrefManager.animationReduced(this)) {
             val endRadius = 100.0f
             val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
             anim.duration = 500
@@ -273,7 +275,7 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     //    @WorkerThread
-    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 500, bgDelay: Long = 1500) {
+    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 400, bgDelay: Long = 1500) {
         GlobalScope.launch(Dispatchers.Main) {
             // Disable skip when updating metadata
             skipLock = true
@@ -283,13 +285,13 @@ class NowPlayingActivity : AppCompatActivity() {
                 if (uri != null) {
                     bitmap = MediaHunter.getThumbnail(
                         this@NowPlayingActivity,
-                        uri, 320
+                        uri, 500
                     )
                 }
                 setAlbumAndBg(bitmap, duration, bgDelay)
 
                 // wait for animation to finish
-                delay(duration + 300)
+                delay(duration + 100)
                 skipLock = false
             }
             toolbar.title = metadata?.description?.title ?: "Unknown title"
@@ -297,7 +299,7 @@ class NowPlayingActivity : AppCompatActivity() {
             val album = metadata?.description?.description ?: "Unknown album"
             toolbar.subtitle = "$artist - $album"
             mediaDuration.text =
-                Generic.msecToStr(controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
+                Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?:0)
         }
     }
 
@@ -313,7 +315,7 @@ class NowPlayingActivity : AppCompatActivity() {
             } else {
                 backgroundImg2
             }
-            Blurry.with(this).async().radius(2).sampling(4).color(Color.argb(100, 0, 0, 0))
+            Blurry.with(this).async().radius(2).sampling(6).color(Color.argb(100, 0, 0, 0))
                 .from(bitmap).into(targetBG)
             targetAlbumArt.setImageBitmap(bitmap)
             Generic.crossFade(albumArt, albumArt2, duration)

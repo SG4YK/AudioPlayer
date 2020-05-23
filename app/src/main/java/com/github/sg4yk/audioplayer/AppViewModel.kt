@@ -150,14 +150,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
 class AudioItem(val metadata: MediaMetadataCompat) {
     companion object {
-        const val THUMBNAIL_SIZE = 64
+        const val THUMBNAIL_SIZE = 80
     }
     var thumbnail: Bitmap? = null
 }
 
 class AlbumItem(val album: Album) {
     companion object {
-        const val ALBUM_ART_SIZE = 300
+        const val ALBUM_ART_SIZE = 250
     }
     var albumArt: Bitmap? = null
 }

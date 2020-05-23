@@ -24,8 +24,8 @@
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
                 app:contentScrim="@color/colorPrimary"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:expandedTitleTextAppearance="@style/TransparentText"
-                app:collapsedTitleTextAppearance="@style/PrimaryTextLight"
+                app:expandedTitleTextAppearance="@style/ActionbarTitle.Transparent"
+                app:collapsedTitleTextAppearance="@style/ActionbarTitle.Light"
         >
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -35,28 +35,32 @@
                 <com.github.sg4yk.audioplayer.utils.SquareImageView
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        app:srcCompat="@color/white"
+                        app:srcCompat="@color/colorPrimary"
                         android:scaleType="centerCrop"
                         app:layout_collapseMode="parallax"
                         app:tint="@color/transparent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        android:id="@+id/albumArt" android:elevation="2dp" android:outlineProvider="bounds"/>
+                        android:transitionName="TRANSITION_ALBUMART"
+                        android:id="@+id/albumArt" android:elevation="2dp" android:outlineProvider="bounds"
+                />
                 <androidx.appcompat.widget.AppCompatTextView
                         android:text="@string/album"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content" android:id="@+id/albumTitle"
+                        android:transitionName="TRANSITION_TITLE"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/albumArt"
-                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
                         android:textColor="@color/textColorPrimary"
                         android:layout_marginTop="32dp"
-                        android:elevation="0dp" android:layout_marginStart="64dp" android:layout_marginEnd="64dp"
-                />
+                        android:elevation="0dp" android:layout_marginStart="72dp" android:layout_marginEnd="64dp"
+                        android:textStyle="normal"/>
                 <androidx.appcompat.widget.AppCompatTextView
                         android:text="@string/artist"
+                        android:transitionName="TRANSITION_ARTIST"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:id="@+id/artist"
                         app:layout_constraintTop_toBottomOf="@+id/albumTitle"

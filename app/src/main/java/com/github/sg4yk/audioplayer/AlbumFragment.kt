@@ -20,12 +20,13 @@ class AlbumFragment : Fragment() {
 
     companion object {
         fun newInstance() = AlbumFragment()
-        private val adapter = AlbumItemAdapter()
+
     }
 
     private lateinit var viewModel: AppViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: GridLayoutManager
+    private lateinit var adapter: AlbumItemAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,6 +37,7 @@ class AlbumFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        adapter = AlbumItemAdapter()
 
         GlobalScope.launch(Dispatchers.Main) {
             delay(300)

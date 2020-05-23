@@ -48,11 +48,11 @@
         <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
     </style>
 
-    <style name="PrimaryTextLight">
+    <style name="ActionbarTitle.Light" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">@color/textColorPrimary</item>
     </style>
 
-    <style name="TransparentText">
+    <style name="ActionbarTitle.Transparent" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">@color/transparent</item>
     </style>
 
@@ -80,6 +80,8 @@
     </style>
 
     <style name="AppThemeNoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="tint">@color/gray</item>
+        <item name="colorControlNormal">@color/textColorSecondary</item>
     </style>
 
     <style name="AppThemeNoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>

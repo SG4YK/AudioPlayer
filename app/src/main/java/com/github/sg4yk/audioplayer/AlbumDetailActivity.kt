@@ -30,6 +30,9 @@ class AlbumDetailActivity : AppCompatActivity() {
     companion object {
         private var thresHold: Int? = null
         const val EXTRA_TAG = "ALBUM_EXTRA"
+        const val TRANSITION_ALBUMART = "TRANSITION_ALBUMART"
+        const val TRANSITION_TITLE = "TRANSITION_TITLE"
+        const val TRANSITION_ARTIST = "TRANSITION_ARTIST"
     }
 
     val adapter = AlbumDetailAdapter()
@@ -105,7 +108,7 @@ class AlbumDetailActivity : AppCompatActivity() {
         artist.text = extras[1]
         toolbar.subtitle = extras[1]
         GlobalScope.launch(Dispatchers.Main) {
-            val bitmap = MediaHunter.getThumbnail(this@AlbumDetailActivity, extras[2], 300)
+            val bitmap = MediaHunter.getThumbnail(this@AlbumDetailActivity, extras[2], 720)
             if (bitmap != null) {
                 albumArt.setImageBitmap(bitmap)
             }

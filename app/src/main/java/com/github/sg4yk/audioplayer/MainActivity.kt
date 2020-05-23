@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity() {
             fab.hide()
             fab.setOnClickListener { v ->
                 val intent = Intent(this, NowPlayingActivity::class.java)
-                if (PrefManager.revealAnimationEnabled(this)) {
+                if (!PrefManager.animationReduced(this)) {
                     val location = IntArray(2)
                     v.getLocationInWindow(location)
                     val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             GlobalScope.launch(Dispatchers.Main) {
-                delay(1000)
+                delay(500)
                 fab.show()
             }
         }

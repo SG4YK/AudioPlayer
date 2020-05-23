@@ -1,5 +1,6 @@
 package com.github.sg4yk.audioplayer
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -7,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.github.sg4yk.audioplayer.utils.PrefManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,8 +55,20 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
                     )
                 )
             }
+
+
             holder.view.setOnClickListener {
-                context.startActivity(intent)
+                if (!PrefManager.animationReduced(context)) {
+                    val options = ActivityOptionsCompat.makeClipRevealAnimation(
+                        holder.view,
+                        0, 0,
+                        holder.view.width,
+                        holder.view.height
+                    )
+                    context.startActivity(intent, options.toBundle())
+                } else {
+                    context.startActivity(intent)
+                }
             }
         }
     }

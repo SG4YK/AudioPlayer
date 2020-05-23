@@ -7,8 +7,8 @@ import com.github.sg4yk.audioplayer.R
 
 @WorkerThread
 object PrefManager {
-    fun revealAnimationEnabled(context: Context): Boolean {
+    fun animationReduced(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return pref.getBoolean(context.getString(R.string.reveal_ani_key), true)
+        return pref.getBoolean(context.getString(R.string.reduce_animation), false)
     }
 }
