@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.sg4yk.audioplayer.media.Album
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -54,12 +55,10 @@ class AlbumFragment : Fragment() {
                 ViewModelProvider(this).get(AppViewModel::class.java)
             }!!
             val albumList = viewModel.albumItemsLiveData
-            val observer = Observer<MutableList<AlbumItem>> {
-                adapter.setAlbumItemList(it)
+            val observer = Observer<MutableList<Album>> {
+                adapter.setAlbums(it)
             }
             albumList.observe(viewLifecycleOwner, observer)
         }
-
     }
-
 }

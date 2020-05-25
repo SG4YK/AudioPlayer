@@ -1,20 +1,24 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Context
-import android.support.v4.media.MediaMetadataCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.github.sg4yk.audioplayer.media.Audio
+import com.github.sg4yk.audioplayer.utils.Generic
+import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
-    private var audioItems: MutableList<AudioItem> = mutableListOf()
+    private var audioItems: MutableList<Audio> = mutableListOf()
     private lateinit var context: Context
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -22,6 +26,7 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
         val title: TextView = v.findViewById(R.id.audioItemTitle)
         val description: TextView = v.findViewById(R.id.audioItemDescription)
         val albumArt: ImageView = v.findViewById(R.id.audioItemAlbumArt)
+        val duration: TextView = v.findViewById(R.id.duration)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioViewHolder {
@@ -37,20 +42,28 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
 
     override fun onBindViewHolder(holder: AudioViewHolder, position: Int) {
         GlobalScope.launch(Dispatchers.Main) {
-            val metadata = audioItems[position].metadata
-            val mediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).toString()
-            if (audioItems[position].thumbnail != null) {
-                holder.albumArt.setImageBitmap(audioItems[position].thumbnail)
+            val audio = audioItems[position]
+            async {
+                holder.title.text = audio.title
+                holder.description.text = "${audio.artist ?: "Unknown artist"} - ${audio.album ?: "Unknown album"}"
+                holder.duration.text = Generic.msecToStr(audioItems[position].duration ?: 0)
+                holder.view.setOnClickListener {
+                    PlaybackManager.playAudioFromId(audio.id.toString())
+                }
             }
-            holder.title.text = metadata.description.title
-            holder.description.text = "${metadata.description.subtitle} - ${metadata.description.description}"
-            holder.view.setOnClickListener {
-                PlaybackManager.playAudioFromId(mediaId)
+
+            async {
+                Glide.with(holder.albumArt)
+                    .load(MediaHunter.getArtUriFromAlbumId(audio.albumId ?: -1))
+                    .error(R.drawable.default_album_art_blue)
+                    .thumbnail(0.25f)
+                    .centerInside()
+                    .into(holder.albumArt)
             }
         }
     }
 
-    fun setAudioItemList(list: MutableList<AudioItem>) {
+    fun setAudioItemList(list: MutableList<Audio>) {
         audioItems = list
         notifyDataSetChanged()
     }

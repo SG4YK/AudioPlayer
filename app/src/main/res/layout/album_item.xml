@@ -36,8 +36,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Title"
-                    android:textAppearance="?attr/textAppearanceHeadline6"
-                    android:id="@+id/album_item_title" android:textStyle="normal"/>
+                    android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+                    android:id="@+id/album_item_title" android:textStyle="normal"
+                    android:textColor="@color/textColorPrimary"/>
             <androidx.appcompat.widget.AppCompatTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

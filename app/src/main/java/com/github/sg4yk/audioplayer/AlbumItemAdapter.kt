@@ -2,23 +2,27 @@ package com.github.sg4yk.audioplayer
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.RequestManager
+import com.github.sg4yk.audioplayer.media.Album
+import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PrefManager
 
-
 class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>() {
-    private var albumItemList: MutableList<AlbumItem> = mutableListOf()
+    private var albumList: MutableList<Album> = mutableListOf()
     private lateinit var context: Context
+    private lateinit var imgLoader: RequestManager
 
     class AlbumViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
@@ -31,61 +35,59 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.album_item, parent, false)
         context = parent.context
+        imgLoader = Glide.with(context)
         return AlbumViewHolder(view)
     }
 
     override fun getItemCount(): Int {
-        return albumItemList.size
+        return albumList.size
     }
 
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
-        holder.title.text = albumItemList[position].album.album
-        holder.artist.text = albumItemList[position].album.artist
-
-//            val albumArt = albumItemList[position].albumArt
-//            if (albumArt != null) {
-//                holder.albumArt.setImageBitmap(albumArt)
-//            }
-
-        Glide.with(holder.albumArt)
-            .load(MediaHunter.getArtUriFromAlbumId(albumItemList[position].album.id!!))
+        holder.title.text = albumList[position].album
+        holder.artist.text = albumList[position].artist
+        imgLoader.load(MediaHunter.getArtUriFromAlbumId(albumList[position].id!!))
             .thumbnail(0.25f)
             .centerInside()
-            .into(holder.albumArt);
-
-
-        val intent = Intent(context, AlbumDetailActivity::class.java).apply {
-            putExtra(
-                AlbumDetailActivity.EXTRA_TAG,
-                arrayOf(
-                    albumItemList[position].album.album ?: "Unknown album",
-                    albumItemList[position].album.artist ?: "Unknown artist",
-                    albumItemList[position].album.id.toString()
-                )
-            )
-        }
-
+            .into(holder.albumArt)
 
         holder.view.setOnClickListener {
-            if (!PrefManager.animationReduced(context)) {
-                val options = ActivityOptionsCompat.makeClipRevealAnimation(
-                    holder.view,
-                    0, 0,
-                    holder.view.width,
-                    holder.view.height
-                )
-                context.startActivity(intent, options.toBundle())
-            } else {
-                context.startActivity(intent)
-            }
-        }
+            Palette.from(holder.albumArt.drawable.toBitmap(100, 100))
+                .generate { palette ->
+                    val primaryColor = palette?.getDominantColor(Color.WHITE) ?: Color.WHITE
+                    val intent = Intent(context, AlbumDetailActivity::class.java).apply {
+                        putExtra(
+                            AlbumDetailActivity.METADATA_TAG,
+                            arrayOf(
+                                albumList[position].album ?: "Unknown album",
+                                albumList[position].artist ?: "Unknown artist",
+                                albumList[position].id.toString()
+                            )
+                        )
+                        putExtra(
+                            AlbumDetailActivity.IS_DARK_ALBUM_ART_TAG,
+                            Generic.luminance(primaryColor) < AlbumDetailActivity.STATUS_BAR_LUMINANCE_THRESHOLD
+                        )
+                    }
 
+                    if (!PrefManager.animationReduced(context)) {
+                        val options = ActivityOptionsCompat.makeClipRevealAnimation(
+                            holder.view,
+                            0, 0,
+                            holder.view.width,
+                            holder.view.height
+                        )
+                        context.startActivity(intent, options.toBundle())
+                    } else {
+                        context.startActivity(intent)
+                    }
+                }
+
+        }
     }
 
-
-    fun setAlbumItemList(list: MutableList<AlbumItem>) {
-        albumItemList = list
-//        notifyItemRangeInserted(0, list.size)
+    fun setAlbums(list: MutableList<Album>) {
+        albumList = list
         notifyDataSetChanged()
     }
 }

@@ -1,17 +1,17 @@
 package com.github.sg4yk.audioplayer
 
-import android.content.ContentUris
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.net.Uri
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -32,25 +32,36 @@ import kotlinx.coroutines.*
 
 class AlbumDetailActivity : AppCompatActivity() {
     companion object {
-        private var thresHold: Int? = null
-        const val EXTRA_TAG = "ALBUM_EXTRA"
-        const val TRANSITION_ALBUMART = "TRANSITION_ALBUMART"
-        const val TRANSITION_TITLE = "TRANSITION_TITLE"
-        const val TRANSITION_ARTIST = "TRANSITION_ARTIST"
+        private var threshold: Int? = null
+        private var statusBarPosThreshold: Int? = null
+        const val STATUS_BAR_LUMINANCE_THRESHOLD = 128
+        const val FAB_LUMINANCE_THRESHOLD = 128
+        const val METADATA_TAG = "EXTRA_METADATA"
+        const val IS_DARK_ALBUM_ART_TAG = "EXTRA_IS_DARK_ALBUM_ART"
+        private val whiteFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.DST)
     }
 
-    val adapter = AlbumDetailAdapter()
-
-    val songsInAlbum: MutableLiveData<MutableList<MediaMetadataCompat>> = MutableLiveData()
+    private val adapter = AlbumDetailAdapter()
+    private lateinit var decorView: View
+    private var navIcon: Drawable? = null
+    private val songsInAlbum: MutableLiveData<MutableList<MediaMetadataCompat>> = MutableLiveData()
+    private val albumArtJob = SupervisorJob()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_album_detail)
 
+        decorView = window.decorView
+
+        toolbar.post {
+            setUpAppBar(intent.getBooleanExtra(IS_DARK_ALBUM_ART_TAG, false))
+        }
+
         loadData()
 
-        if (thresHold == null) {
-            thresHold = -getResources().getDisplayMetrics().widthPixels / 2
+        if (threshold == null) {
+            threshold = -(resources.displayMetrics.widthPixels shr 1)
+            statusBarPosThreshold = -resources.displayMetrics.widthPixels * 17 / 20
         }
 
         setSupportActionBar(toolbar)
@@ -60,24 +71,6 @@ class AlbumDetailActivity : AppCompatActivity() {
             Snackbar.make(view, "Not implemented yet", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
-
-        val albumArt = findViewById<ImageView>(R.id.albumArt)
-
-        val appBarLayout = findViewById<AppBarLayout>(R.id.app_bar)
-        appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
-            private var cachedOffset = 0
-            override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
-                if (cachedOffset > thresHold!! && verticalOffset <= thresHold!!) {
-                    collapse()
-                } else if (cachedOffset < thresHold!! && verticalOffset >= thresHold!!) {
-                    expand()
-                }
-                val opacity = (verticalOffset - thresHold!!) / 200f
-                albumTitle.alpha = opacity
-                artist.alpha = opacity
-                cachedOffset = verticalOffset
-            }
-        })
 
         GlobalScope.launch(Dispatchers.Main) {
             val layoutManager = LinearLayoutManager(this@AlbumDetailActivity)
@@ -106,20 +99,15 @@ class AlbumDetailActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun loadData() {
         // load album metadata
-        val extras = intent.getStringArrayExtra(EXTRA_TAG)
-        albumTitle.text = extras[0]
-        artist.text = extras[1]
-        toolbar.title = extras[0]
-        GlobalScope.launch(Dispatchers.IO) {
+        val extras = intent.getStringArrayExtra(METADATA_TAG)
+
+        GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             // set album art
-            val artworkuri = ContentUris.withAppendedId(
-                Uri.parse("content://media/external/audio/albumart"),
-                extras[2].toLong()
-            )
+            val albumArtUri = MediaHunter.getArtUriFromAlbumId(extras[2].toLong() ?: -1)
 
             val futureTarget: FutureTarget<Bitmap> = Glide.with(albumArt)
                 .asBitmap()
-                .load(artworkuri)
+                .load(albumArtUri)
                 .placeholder(R.drawable.white)
                 .submit(720, 720)
 
@@ -131,20 +119,33 @@ class AlbumDetailActivity : AppCompatActivity() {
                 albumArt.setImageBitmap(bitmap)
             }
 
-            delay(200)
+            delay(300)
+
             // set fab color
             Palette.from(bitmap).generate { palette ->
-                val foreground = palette?.getLightVibrantColor(Color.WHITE)
-                val background = palette?.getDarkMutedColor(Color.WHITE)
-                fab.imageTintList = foreground?.let { ColorStateList.valueOf(it) }
-                fab.backgroundTintList = background?.let { ColorStateList.valueOf(it) }
+                val primary = palette?.getDominantColor(Color.WHITE)
+                if (Generic.luminance(primary ?: Color.WHITE) >= FAB_LUMINANCE_THRESHOLD) {
+                    // dominant color is bright
+                    var secondary = palette?.getDarkMutedColor(Generic.setAlpha(primary!!, 128))
+                    fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
+                    fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                } else {
+                    // dominant color is dark
+                    var secondary = palette?.getLightVibrantColor(Color.WHITE)
+                    fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
+                    fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                }
                 fab.show()
             }
-
         }
 
+        // load metadata
+        albumTitle.text = extras[0]
+        artist.text = extras[1]
+        toolbar.title = extras[0]
+
         // load songs in album
-        GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             delay(300)
             songsInAlbum.postValue(
                 MediaHunter.getSongsInAlbumById(
@@ -157,8 +158,57 @@ class AlbumDetailActivity : AppCompatActivity() {
             adapter.setSongsInAlbum(it)
         }
         songsInAlbum.observe(this@AlbumDetailActivity, observer)
+    }
 
+    private fun setUpAppBar(isAlbumArtDark: Boolean) {
+        navIcon = toolbar.navigationIcon
+        if (isAlbumArtDark) {
+            // change status bar color dynamically
+            Generic.setLightStatusBar(decorView, false)
+            navIcon?.colorFilter = whiteFilter
+            appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
+                private var cachedOffset = 0
+                override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
+                    if (cachedOffset > threshold!! && verticalOffset <= threshold!!) {
+                        collapse()
+                    } else if (cachedOffset < threshold!! && verticalOffset >= threshold!!) {
+                        expand()
+                    }
 
+                    if (cachedOffset > statusBarPosThreshold!! && verticalOffset <= statusBarPosThreshold!!) {
+                        // collapsing
+                        navIcon?.clearColorFilter()
+                        Generic.setLightStatusBar(decorView, true)
+                    } else if (cachedOffset < statusBarPosThreshold!! && verticalOffset >= statusBarPosThreshold!!) {
+                        // expanding
+                        navIcon?.colorFilter = whiteFilter
+                        Generic.setLightStatusBar(decorView, false)
+                    }
+                    val opacity = (verticalOffset - threshold!!) / 200f
+                    albumTitle.alpha = opacity
+                    artist.alpha = opacity
+                    cachedOffset = verticalOffset
+                }
+            })
+        } else {
+            // always use light status bar (dark icon)
+
+//            Generic.setLightStatusBar(decorView, true)
+            appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
+                private var cachedOffset = 0
+                override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
+                    if (cachedOffset > threshold!! && verticalOffset <= threshold!!) {
+                        collapse()
+                    } else if (cachedOffset < threshold!! && verticalOffset >= threshold!!) {
+                        expand()
+                    }
+                    val opacity = (verticalOffset - threshold!!) / 200f
+                    albumTitle.alpha = opacity
+                    artist.alpha = opacity
+                    cachedOffset = verticalOffset
+                }
+            })
+        }
     }
 }
 
@@ -183,7 +233,6 @@ class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHold
         holder.artist.text = audioItems[position].description.subtitle
         holder.duration.text =
             Generic.msecToStr(audioItems[position].getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
-
     }
 
     override fun getItemCount(): Int {
@@ -194,5 +243,4 @@ class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHold
         audioItems = list
         notifyDataSetChanged()
     }
-
 }

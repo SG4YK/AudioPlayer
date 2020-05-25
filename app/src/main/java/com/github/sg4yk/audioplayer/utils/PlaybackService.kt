@@ -309,18 +309,18 @@ class PlaybackService : MediaBrowserServiceCompat() {
     ) : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
             val metadata = player.currentTag as MediaMetadataCompat
-            val description = metadata.description
-            val title = description.title
-            val artist = description.subtitle
-            val album = description.description
-            val uri = Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
-//            val uri = metadata.description.mediaUri
-            return MediaDescriptionCompat.Builder()
-                .setTitle(title)
-                .setSubtitle(artist)
-                .setDescription(album)
-                .setMediaUri(uri)
-                .build()
+//            val description = metadata.description
+//            val title = description.title
+//            val artist = description.subtitle
+//            val album = description.description
+//            val uri = Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
+//            return MediaDescriptionCompat.Builder()
+//                .setTitle(title)
+//                .setSubtitle(artist)
+//                .setDescription(album)
+//                .setMediaUri(uri)
+//                .build()
+            return metadata.description
         }
 
     }

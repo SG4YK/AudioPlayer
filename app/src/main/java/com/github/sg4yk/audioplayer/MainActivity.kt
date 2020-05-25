@@ -10,9 +10,10 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -21,31 +22,35 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
-import com.github.sg4yk.audioplayer.utils.Generic.crossFade
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.FutureTarget
+import com.github.sg4yk.audioplayer.utils.Generic
+import com.github.sg4yk.audioplayer.utils.Generic.setLightStatusBar
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import io.alterac.blurkit.BlurKit
+import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_layout_light.*
 import kotlinx.android.synthetic.main.nav_header.*
 import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
-
-    companion object {
-        private val permissions = arrayOf(
-            android.Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-
-        const val PERMISSION_REQUEST_CODE = 1
-    }
-
     private lateinit var decorView: View
     private lateinit var defaultBg: Drawable
     private var controller: MediaControllerCompat? = null
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
+    private var skipLock = false
+    private lateinit var imgLoader: RequestManager
+    private lateinit var blur: Blurry.Composer
+    private val mainActivityjob = SupervisorJob()
+
+    private val permissions = arrayOf(
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +58,10 @@ class MainActivity : AppCompatActivity() {
         BlurKit.init(application);
         // change status bar color when open drawer
         decorView = window.decorView
+
+        imgLoader = Glide.with(this)
+        blur = Blurry.with(this).async().radius(2)
+
         drawerLayout.addDrawerListener(
             object : DrawerLayout.DrawerListener {
                 private var lastNavSlideOffset: Float = 0f
@@ -77,7 +86,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
-
 
         // setup toolbar and navigation
         navHost.post {
@@ -156,8 +164,9 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+
         GlobalScope.launch(Dispatchers.Main) {
-            delay(500)
+            delay(1000)
             fab.show()
         }
 
@@ -183,9 +192,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                buttonSkipNext.setOnClickListener { PlaybackManager.skipNext() }
+                buttonSkipNext.setOnClickListener {
+                    if (!skipLock) {
+                        PlaybackManager.skipNext()
+                    }
+                }
 
-                buttonSkipPrevious.setOnClickListener { PlaybackManager.skipPrevious() }
+                buttonSkipPrevious.setOnClickListener {
+                    if (!skipLock) {
+                        PlaybackManager.skipPrevious()
+                    }
+                }
 
                 // Start observing metadata
                 metadataObserver = object : Observer<MediaMetadataCompat> {
@@ -206,9 +223,8 @@ class MainActivity : AppCompatActivity() {
                 PlaybackManager.nowPlaying().observe(this, metadataObserver)
             }
         }
-        PlaybackManager.isConnected().observe(this, connectionObserver)
 
-        defaultBg = getDrawable(R.color.colorAccent)!!
+        PlaybackManager.isConnected().observe(this, connectionObserver)
     }
 
     private fun checkPermissionStatus(): Boolean {
@@ -235,68 +251,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLightStatusBar(view: View, on: Boolean) {
-        GlobalScope.launch(Dispatchers.Main) {
-            if (on) {
-                view.systemUiVisibility = view.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                view.systemUiVisibility = view.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-            }
-        }
-    }
-
     private fun updateUI(metadata: MediaMetadataCompat?) {
+        skipLock = true
         if (metadata == null || metadata.description.mediaUri == null) {
             navHeaderTitle.text = "Nothing playing"
             navHeaderArtist.text = null
             navHeaderAlbum.text = null
         } else {
             GlobalScope.launch(Dispatchers.IO) {
-                val artist = metadata.description?.subtitle ?: "Unknown artist"
-                val album = metadata.description?.description ?: "Unknown album"
+                // set album art
+                val albumId = MediaHunter.getAlbumIdFromAudioId(
+                    this@MainActivity,
+                    metadata.description.mediaId!!
+                )
+                if (albumId != MediaHunter.ALBUM_NOT_EXIST) {
 
-                async {
-                    val bitmap = metadata.description?.mediaUri?.let {
-                        MediaHunter.getThumbnail(this@MainActivity, it, 48)
-                    }
+                    val futureTarget: FutureTarget<Bitmap> =
+                        imgLoader
+                            .asBitmap()
+                            .load(MediaHunter.getArtUriFromAlbumId(albumId!!))
+                            .submit(50, 50)
+
+                    delay(50)
+
+                    val bitmap = futureTarget.get()
                     setDrawerBg(bitmap)
-                }
 
-                async {
-                    withContext(Dispatchers.Main) {
-                        navHeaderTitle.text = metadata.description?.title ?: "Unknown Title"
-                        navHeaderArtist.text = artist
-                        navHeaderAlbum.text = album
-                    }
+                    imgLoader.clear(futureTarget)
+                } else {
+                    setDrawerBg(null)
                 }
             }
+
+            // set metadata
+            navHeaderTitle.text = metadata.description?.title ?: "Unknown Title"
+            navHeaderArtist.text = metadata.description?.subtitle ?: "Unknown artist"
+            navHeaderAlbum.text = metadata.description?.description ?: "Unknown album"
         }
     }
 
     private fun setDrawerBg(bitmap: Bitmap?) {
-
-        GlobalScope.launch(Dispatchers.Main) {
-            // define which image view should be shown
-            val targetBg = if (navHeaderBg.visibility == View.GONE) {
-                navHeaderBg
-            } else {
-                navHeaderBg2
-            }
-
+        val nextView = viewSwitcher.nextView as ImageView
+        GlobalScope.launch(mainActivityjob) {
             // prepare next background
             if (bitmap != null) {
-//                Blurry.with(this@MainActivity)
-//                    .async()
-//                    .radius(2)
-//                    .color(Color.argb(76, 0, 0, 0))
-//                    .from(bitmap).into(targetBg)
-                targetBg.setImageBitmap(BlurKit.getInstance().blur(bitmap, 2))
+                Palette.from(bitmap).generate { palette ->
+                    val luminance = Generic.luminance(palette?.getDominantColor(Color.WHITE) ?: 200)
+
+                    // Darken the image depending on its dominant color
+                    // Alpha is between 20 and 76
+                    var alpha = 20
+                    if (luminance > 170) {
+                        alpha = if (luminance > 226) {
+                            76
+                        } else {
+                            luminance - 150
+                        }
+                    }
+                    blur.color(Color.argb(alpha, 0, 0, 0)).from(bitmap).into(nextView)
+                }
+//                nextView.setImageBitmap(bitmap)
             } else {
-                targetBg.setImageDrawable(defaultBg)
+                nextView.setImageDrawable(defaultBg)
             }
 
-            // start transition
-            crossFade(navHeaderBg, navHeaderBg2, 250)
+            delay(100)
+            withContext(Dispatchers.Main) {
+                viewSwitcher.showNext()
+            }
+            delay(300)
+            skipLock = false
         }
     }
 
@@ -310,3 +334,5 @@ class MainActivity : AppCompatActivity() {
         PlaybackManager.closeConnection()
     }
 }
+
+const val PERMISSION_REQUEST_CODE = 1

@@ -9,11 +9,12 @@
         tools:context=".AlbumDetailActivity">
 
     <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
+            android:id="@+id/appBarLayout"
             android:fitsSystemWindows="false"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:theme="@style/AppThemeNoActionBar.AppBarOverlay">
+            android:theme="@style/AppThemeNoActionBar.AppBarOverlay"
+    >
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:id="@+id/collapsing_toolbar_layout"
@@ -53,11 +54,12 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/albumArt"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
                         android:textColor="@color/textColorPrimary"
                         android:layout_marginTop="32dp"
                         android:elevation="0dp" android:layout_marginStart="72dp" android:layout_marginEnd="64dp"
                         android:textStyle="normal"/>
+
                 <androidx.appcompat.widget.AppCompatTextView
                         android:text="@string/artist"
                         android:transitionName="TRANSITION_ARTIST"
@@ -69,7 +71,23 @@
                         android:textColor="@color/textColorSecondary"
                         android:elevation="0dp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:layout_marginBottom="16dp" app:layout_constraintStart_toStartOf="@+id/albumTitle"/>
+                        android:layout_marginBottom="24dp" app:layout_constraintStart_toStartOf="@+id/albumTitle"/>
+                <Space
+                        android:layout_width="16dp"
+                        android:layout_height="28dp"
+                        app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="@+id/albumArt"
+                        android:id="@+id/space5"/>
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+                        app:tint="@color/colorPrimary"
+                        app:backgroundTint="@color/blue"
+                        android:visibility="invisible"
+                        app:fabSize="normal" app:layout_constraintEnd_toEndOf="@+id/albumArt"
+                        android:layout_marginEnd="16dp" app:layout_constraintTop_toTopOf="@+id/space5"
+                />
             </androidx.constraintlayout.widget.ConstraintLayout>
             <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
@@ -78,8 +96,8 @@
                     app:layout_collapseMode="pin"
                     app:popupTheme="@style/AppThemeNoActionBar.PopupOverlay"
                     app:menu="@menu/menu_album_detail"
-                    app:colorControlNormal="@color/colorPrimary"
-                    android:layout_marginTop="@dimen/status_bar_height"/>
+                    android:layout_marginTop="@dimen/status_bar_height"
+            />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -92,16 +110,5 @@
             android:id="@+id/recyclerView" android:clipToPadding="false" android:paddingTop="8dp"
             android:paddingBottom="8dp"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/fab_margin"
-            app:layout_anchor="@id/albumArt"
-            app:layout_anchorGravity="bottom|end"
-            app:srcCompat="@drawable/ic_play_arrow_white_24dp"
-            app:tint="@color/colorPrimary"
-            app:backgroundTint="@color/blue"
-            android:visibility="invisible"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

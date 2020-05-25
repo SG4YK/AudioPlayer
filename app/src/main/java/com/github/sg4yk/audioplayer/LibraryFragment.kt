@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.sg4yk.audioplayer.media.Audio
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.library_fragment.*
 import kotlinx.coroutines.Dispatchers
@@ -37,13 +38,11 @@ class LibraryFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         GlobalScope.launch(Dispatchers.Main) {
-            // wait for drawer animation to finish
-            delay(300)
-
+            delay(100)
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = AlphaInAnimationAdapter(audioItemAdapter).apply {
-                    setFirstOnly(false)
+                    setFirstOnly(true)
                     setDuration(300)
                 }
                 setHasFixedSize(true)
@@ -53,7 +52,9 @@ class LibraryFragment : Fragment() {
                 ViewModelProvider(this).get(AppViewModel::class.java)
             }!!
 
-            val observer = Observer<MutableList<AudioItem>> {
+            delay(200)
+
+            val observer = Observer<MutableList<Audio>> {
                 audioItemAdapter.setAudioItemList(it)
             }
             viewModel.audioItemsLiveData.observe(viewLifecycleOwner, observer)

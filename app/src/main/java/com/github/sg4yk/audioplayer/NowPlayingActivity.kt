@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -13,6 +14,7 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
@@ -20,11 +22,12 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Observer
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_now_playing.*
 import kotlinx.coroutines.*
@@ -49,10 +52,13 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
     private lateinit var playbackStateObserver: Observer<PlaybackStateCompat>
-
+    private lateinit var imgLoader: RequestManager
+    private lateinit var blur: Blurry.Composer
+    private lateinit var defaultAlbumArt: Bitmap
     private var controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
     private var skipLock = false
     private var setBgJob: Job = Job()
+    private var inited = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +68,14 @@ class NowPlayingActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         mediaDuration = findViewById(R.id.duration)
         position = findViewById(R.id.position)
+        defaultAlbumArt = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
+
+        imgLoader = Glide.with(this)
+        blur = Blurry.with(this)
+            .async()
+            .color(Color.argb(76, 0, 0, 0))
+            .radius(3)
+            .sampling(6)
 
         seekbar.apply {
             setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
@@ -90,61 +104,42 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         // set buttons behavior
-        val playButton = findViewById<FloatingActionButton>(R.id.button_play).apply {
-            setOnClickListener {
-                when (controller?.playbackState?.state) {
-                    PlaybackStateCompat.STATE_NONE -> {
-                        PlaybackManager.playAll()
-                    }
-                    PlaybackStateCompat.STATE_PLAYING -> {
-                        PlaybackManager.pause()
-                    }
-                    PlaybackStateCompat.STATE_PAUSED -> {
-                        PlaybackManager.play()
-                    }
+        buttonPlay.setOnClickListener {
+            when (controller?.playbackState?.state) {
+                PlaybackStateCompat.STATE_NONE -> {
+                    PlaybackManager.playAll()
                 }
-            }
-        }
-
-        val skipPreviousButton = findViewById<FloatingActionButton>(R.id.button_previous).apply {
-            setOnClickListener {
-                if (!skipLock) {
-                    seekbar.progress = 0
-                    position.text = "00:00"
-                    PlaybackManager.skipPrevious()
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    PlaybackManager.pause()
+                }
+                PlaybackStateCompat.STATE_PAUSED -> {
                     PlaybackManager.play()
                 }
             }
         }
 
-        val skipNextButton = findViewById<FloatingActionButton>(R.id.button_next).apply {
-            setOnClickListener {
-                if (!skipLock) {
-                    seekbar.progress = 0
-                    position.text = "00:00"
-                    PlaybackManager.skipNext()
-                    PlaybackManager.play()
-                }
+        buttonSkipPrevious.setOnClickListener {
+            if (!skipLock) {
+                seekbar.progress = 0
+                position.text = "00:00"
+                PlaybackManager.skipPrevious()
+                PlaybackManager.play()
             }
         }
 
-        controller.registerCallback(object : MediaControllerCompat.Callback() {
-            private var cachedMediaUri = ""
-            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                if (metadata != null && metadata.description.title != null
-                    && metadata.description.mediaUri.toString() != cachedMediaUri
-                ) {
-                    updateMetadata(metadata)
-                }
+        buttonSkipNext.setOnClickListener {
+            if (!skipLock) {
+                seekbar.progress = 0
+                position.text = "00:00"
+                PlaybackManager.skipNext()
+                PlaybackManager.play()
             }
-        })
+        }
 
         // Initialize metadata and seekbar
         connectionObserver = Observer { connected ->
             if (connected) {
                 PlaybackManager.isConnected().removeObserver(connectionObserver)
-                val metadata = PlaybackManager.nowPlaying().value
-                updateMetadata(metadata, 0, 0)
 
                 playbackStateObserver = Observer<PlaybackStateCompat> { state ->
                     try {
@@ -163,6 +158,27 @@ class NowPlayingActivity : AppCompatActivity() {
                     }
                 }
                 PlaybackManager.playbackState().observe(this, playbackStateObserver)
+
+                metadataObserver = object : Observer<MediaMetadataCompat> {
+                    private var cachedMediaUri: Uri? = Uri.EMPTY
+
+                    override fun onChanged(metadata: MediaMetadataCompat?) {
+                        if (metadata == null) {
+                            // TODO
+                            return
+                        }
+                        if (metadata.description.mediaUri != cachedMediaUri) {
+                            cachedMediaUri = metadata.description.mediaUri
+                            if (inited) {
+                                updateUI(metadata)
+                            } else {
+                                inited = true
+                                updateUI(PlaybackManager.nowPlaying().value, true, 0)
+                            }
+                        }
+                    }
+                }
+                PlaybackManager.nowPlaying().observe(this, metadataObserver)
             }
         }
         PlaybackManager.isConnected().observe(this, connectionObserver)
@@ -252,62 +268,74 @@ class NowPlayingActivity : AppCompatActivity() {
         }
     }
 
-    //    @WorkerThread
-    private fun updateMetadata(metadata: MediaMetadataCompat?, duration: Long = 400, bgDelay: Long = 1500) {
-        GlobalScope.launch(Dispatchers.Main) {
-            // Disable skip when updating metadata
-            skipLock = true
-            async {
-                val uri = metadata?.description?.mediaUri ?: null
-                var bitmap: Bitmap? = null
-                if (uri != null) {
-                    bitmap = MediaHunter.getThumbnail(
-                        this@NowPlayingActivity,
-                        uri, 500
-                    )
-                }
-                setAlbumAndBg(bitmap, duration, bgDelay)
+    private fun updateUI(metadata: MediaMetadataCompat?, disableAnim: Boolean = false, bgDelay: Long = 1200) {
+        // Disable skip when updating metadata
+        skipLock = true
 
-                // wait for animation to finish
-                delay(duration + 100)
-                skipLock = false
+        toolbar.title = metadata?.description?.title ?: "Unknown title"
+        val artist = metadata?.description?.subtitle ?: "Unknown artist"
+        val album = metadata?.description?.description ?: "Unknown album"
+        toolbar.subtitle = "$artist - $album"
+        duration.text = Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) ?: 0)
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val mediaId = metadata?.description?.mediaId
+            if (mediaId != null && mediaId != "") {
+                val albumId = MediaHunter.getAlbumIdFromAudioId(this@NowPlayingActivity, mediaId!!.toLong())
+
+                if (albumId != MediaHunter.ALBUM_NOT_EXIST) {
+
+                    val futureTarget = imgLoader.asBitmap()
+                        .load(MediaHunter.getArtUriFromAlbumId(albumId))
+                        .submit(720, 720)
+
+                    setAlbumAndBg(futureTarget.get(), disableAnim, bgDelay)
+
+                    imgLoader.clear(futureTarget)
+                }
+            } else {
+                setAlbumAndBg(defaultAlbumArt, disableAnim, bgDelay)
             }
-            toolbar.title = metadata?.description?.title ?: "Unknown title"
-            val artist = metadata?.description?.subtitle ?: "Unknown artist"
-            val album = metadata?.description?.description ?: "Unknown album"
-            toolbar.subtitle = "$artist - $album"
-            mediaDuration.text =
-                Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) ?: 0)
         }
     }
 
-    private suspend fun setAlbumAndBg(bitmap: Bitmap?, duration: Long, bgDelay: Long = 0) {
-        if (bitmap != null) {
-            val targetAlbumArt = if (albumArt.visibility == View.GONE) {
-                albumArt
-            } else {
-                albumArt2
-            }
-            val targetBG = if (background.visibility == View.GONE) {
-                background
-            } else {
-                background2
-            }
-            Blurry.with(this).async().radius(2).sampling(6).color(Color.argb(100, 0, 0, 0))
-                .from(bitmap).into(targetBG)
-            targetAlbumArt.setImageBitmap(bitmap)
-            Generic.crossFade(albumArt, albumArt2, duration)
-
-            // only the last one will apply
-            setBgJob.cancel()
-            setBgJob = GlobalScope.launch {
-                delay(bgDelay)
-                if (isActive) {
-                    background.post { Generic.crossFade(background, background2, duration) }
+    private suspend fun setAlbumAndBg(bitmap: Bitmap?, disableAnim: Boolean, bgDelay: Long = 0) {
+        GlobalScope.launch(Dispatchers.Main) {
+            if (bitmap != null) {
+                if (!disableAnim) {
+                    val nextView = albumArtSwitcher.nextView as ImageView
+                    nextView.setImageBitmap(bitmap)
+                    delay(100)
+                    albumArtSwitcher.showNext()
+                } else {
+                    val currentView = albumArtSwitcher.currentView as ImageView
+                    currentView.setImageBitmap(bitmap)
                 }
+
+                // only the last one will apply
+                setBgJob.cancel()
+                setBgJob = GlobalScope.launch(Dispatchers.Main) {
+                    delay(bgDelay)
+                    if (isActive) {
+                        if (!disableAnim) {
+                            val nextBg = bgSwitcher.nextView as ImageView
+                            blur.from(bitmap)
+                                .into(nextBg)
+                            bgSwitcher.showNext()
+                        } else {
+                            val curBg = bgSwitcher.currentView as ImageView
+                            blur.from(bitmap)
+                                .into(curBg)
+                        }
+                    }
+                }
+
+                delay(400)
+                skipLock = false
+
+            } else {
+                setAlbumAndBg(defaultAlbumArt, disableAnim, bgDelay)
             }
-        } else {
-            setAlbumAndBg(getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(300, 300), duration)
         }
     }
 }

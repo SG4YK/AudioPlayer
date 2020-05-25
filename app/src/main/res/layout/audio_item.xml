@@ -35,9 +35,7 @@
             android:textColor="@color/textColorPrimary"
             android:singleLine="true"
             android:ellipsize="end"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginEnd="16dp"
-    />
+            app:layout_constraintEnd_toStartOf="@+id/duration" android:layout_marginEnd="16dp"/>
 
     <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="0dp"
@@ -68,5 +66,11 @@
             app:layout_constraintStart_toEndOf="@+id/audioItemAlbumArt"
             app:layout_constraintTop_toBottomOf="@+id/space"
     />
+    <androidx.appcompat.widget.AppCompatTextView
+            android:text="00:00"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/duration"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBaseline_toBaselineOf="@+id/audioItemTitle"
+            android:layout_marginEnd="16dp" android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
