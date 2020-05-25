@@ -16,6 +16,8 @@
             tools:listitem="@layout/album_item"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:clipToPadding="false"
             android:theme="@style/RecyclerViewLight"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

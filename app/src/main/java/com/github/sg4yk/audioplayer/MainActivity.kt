@@ -12,6 +12,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -19,11 +20,12 @@ import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import androidx.palette.graphics.Palette
 import com.github.sg4yk.audioplayer.utils.Generic.crossFade
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import jp.wasabeef.blurry.Blurry
+import io.alterac.blurkit.BlurKit
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_layout_light.*
 import kotlinx.android.synthetic.main.nav_header.*
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         private val permissions = arrayOf(
             android.Manifest.permission.READ_EXTERNAL_STORAGE
         )
+
         const val PERMISSION_REQUEST_CODE = 1
     }
 
@@ -47,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        BlurKit.init(application);
         // change status bar color when open drawer
         decorView = window.decorView
         drawerLayout.addDrawerListener(
@@ -140,12 +143,13 @@ class MainActivity : AppCompatActivity() {
                 val location = IntArray(2)
                 v.getLocationInWindow(location)
 
-                val activityOptions =
-                    ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
-
-                intent.putExtra("fabX", location[0] + fab.width / 2)
-                intent.putExtra("fabY", location[1] + fab.height / 2)
-                intent.putExtra("fabD", fab.width)
+                val activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this, v, "reveal")
+                val extras = intArrayOf(
+                    location[0] + fab.width / 2,
+                    location[1] + fab.height / 2,
+                    fab.width
+                )
+                intent.putExtra(NowPlayingActivity.EXTRA_TAG, extras)
 
                 startActivity(intent, activityOptions.toBundle())
             } else {
@@ -269,7 +273,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun setDrawerBg(bitmap: Bitmap?) {
+    private fun setDrawerBg(bitmap: Bitmap?) {
+
         GlobalScope.launch(Dispatchers.Main) {
             // define which image view should be shown
             val targetBg = if (navHeaderBg.visibility == View.GONE) {
@@ -280,11 +285,12 @@ class MainActivity : AppCompatActivity() {
 
             // prepare next background
             if (bitmap != null) {
-                Blurry.with(this@MainActivity)
-                    .async()
-                    .radius(2)
-                    .color(Color.argb(76, 0, 0, 0))
-                    .from(bitmap).into(targetBg)
+//                Blurry.with(this@MainActivity)
+//                    .async()
+//                    .radius(2)
+//                    .color(Color.argb(76, 0, 0, 0))
+//                    .from(bitmap).into(targetBg)
+                targetBg.setImageBitmap(BlurKit.getInstance().blur(bitmap, 2))
             } else {
                 targetBg.setImageDrawable(defaultBg)
             }

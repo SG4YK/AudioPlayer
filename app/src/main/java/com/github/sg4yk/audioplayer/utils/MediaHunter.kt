@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 @WorkerThread
 object MediaHunter {
 
+    val baseAlbumArtUri = Uri.parse("content://media/external/audio/albumart")
+
     private val audioProjection = arrayOf(
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.TITLE,
@@ -339,4 +341,7 @@ object MediaHunter {
         return albumArt
     }
 
+    fun getArtUriFromAlbumId(albumId: Long): Uri {
+        return ContentUris.withAppendedId(baseAlbumArtUri, albumId)
+    }
 }

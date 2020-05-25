@@ -1,5 +1,9 @@
 package com.github.sg4yk.audioplayer
 
+import android.content.ContentUris
+import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,18 +17,18 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.FutureTarget
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.activity_album_detail.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class AlbumDetailActivity : AppCompatActivity() {
     companion object {
@@ -53,7 +57,7 @@ class AlbumDetailActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "Not implemented yet", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
 
@@ -104,14 +108,39 @@ class AlbumDetailActivity : AppCompatActivity() {
         // load album metadata
         val extras = intent.getStringArrayExtra(EXTRA_TAG)
         albumTitle.text = extras[0]
-        toolbar.title = extras[0]
         artist.text = extras[1]
-        toolbar.subtitle = extras[1]
-        GlobalScope.launch(Dispatchers.Main) {
-            val bitmap = MediaHunter.getThumbnail(this@AlbumDetailActivity, extras[2], 720)
-            if (bitmap != null) {
+        toolbar.title = extras[0]
+        GlobalScope.launch(Dispatchers.IO) {
+            // set album art
+            val artworkuri = ContentUris.withAppendedId(
+                Uri.parse("content://media/external/audio/albumart"),
+                extras[2].toLong()
+            )
+
+            val futureTarget: FutureTarget<Bitmap> = Glide.with(albumArt)
+                .asBitmap()
+                .load(artworkuri)
+                .placeholder(R.drawable.white)
+                .submit(720, 720)
+
+            val bitmap = futureTarget.get()
+
+            Glide.with(albumArt).clear(futureTarget)
+
+            withContext(Dispatchers.Main) {
                 albumArt.setImageBitmap(bitmap)
             }
+
+            delay(200)
+            // set fab color
+            Palette.from(bitmap).generate { palette ->
+                val foreground = palette?.getLightVibrantColor(Color.WHITE)
+                val background = palette?.getDarkMutedColor(Color.WHITE)
+                fab.imageTintList = foreground?.let { ColorStateList.valueOf(it) }
+                fab.backgroundTintList = background?.let { ColorStateList.valueOf(it) }
+                fab.show()
+            }
+
         }
 
         // load songs in album
@@ -120,7 +149,7 @@ class AlbumDetailActivity : AppCompatActivity() {
             songsInAlbum.postValue(
                 MediaHunter.getSongsInAlbumById(
                     this@AlbumDetailActivity,
-                    Uri.parse(extras[2]).lastPathSegment!!
+                    extras[2]
                 )
             )
         }
@@ -128,6 +157,8 @@ class AlbumDetailActivity : AppCompatActivity() {
             adapter.setSongsInAlbum(it)
         }
         songsInAlbum.observe(this@AlbumDetailActivity, observer)
+
+
     }
 }
 

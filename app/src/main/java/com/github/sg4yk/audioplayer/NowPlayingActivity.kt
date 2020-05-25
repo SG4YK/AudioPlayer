@@ -8,15 +8,14 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatSeekBar
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
@@ -25,8 +24,6 @@ import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import com.google.android.exoplayer2.ui.DefaultTimeBar
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_now_playing.*
@@ -35,6 +32,10 @@ import kotlin.math.hypot
 
 
 class NowPlayingActivity : AppCompatActivity() {
+    companion object {
+        private const val LOG_TAG = "NowPlayingActivity"
+        const val EXTRA_TAG = "REVEAL_ANIM_EXTRA"
+    }
 
     private var fabX = 0
     private var fabY = 0
@@ -42,16 +43,9 @@ class NowPlayingActivity : AppCompatActivity() {
     private var radius = 0f
     private var backPressLock = false
 
-    private lateinit var rootLayout: View
-    private lateinit var backgroundImg: ImageView
-    private lateinit var backgroundImg2: ImageView
-    private lateinit var albumArt: ImageView
-    private lateinit var albumArt2: ImageView
-    private lateinit var seekBar: AppCompatSeekBar
     private lateinit var seekbarJob: Job
     private lateinit var mediaDuration: AppCompatTextView
     private lateinit var position: AppCompatTextView
-    private lateinit var timebar: DefaultTimeBar
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
     private lateinit var playbackStateObserver: Observer<PlaybackStateCompat>
@@ -63,30 +57,14 @@ class NowPlayingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar).also {
-            setSupportActionBar(toolbar)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//            supportActionBar?.setDisplayShowHomeEnabled(true)
-        }
 
-        backgroundImg = findViewById(R.id.background)
-        backgroundImg2 = findViewById(R.id.background2)
-        albumArt = findViewById(R.id.albumArt)
-        albumArt2 = findViewById(R.id.album_art2)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         mediaDuration = findViewById(R.id.duration)
         position = findViewById(R.id.position)
-        seekBar = findViewById(R.id.seekbar)
 
-//        timebar = findViewById(R.id.defa)
-
-
-        seekbar.post {
-            // set coroutine job for seekbar
-
-//            seekbarJob.start()
-
-            // on slide behavior
-            seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+        seekbar.apply {
+            setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     if (fromUser) {
                         PlaybackManager.seekTo(progress)
@@ -191,11 +169,11 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // set enter animation
         if (!PrefManager.animationReduced(this)) {
-            fabX = intent.getIntExtra("fabX", 0)
-            fabY = intent.getIntExtra("fabY", 0)
-            fabD = intent.getIntExtra("fabD", 0)
+            val extras = intent.getIntArrayExtra(EXTRA_TAG)
+            fabX = extras[0]
+            fabY = extras[1]
+            fabD = extras[2]
             radius = hypot(fabX.toDouble(), fabY.toDouble()).toFloat()
-            rootLayout = findViewById(R.id.rootLayout)
             rootLayout.visibility = View.INVISIBLE
             rootLayout.post {
                 startRevealAnim(fabX, fabY)
@@ -208,7 +186,6 @@ class NowPlayingActivity : AppCompatActivity() {
         return super.onSupportNavigateUp()
     }
 
-
     private fun startRevealAnim(centerX: Int, centerY: Int) {
         backPressLock = true
         GlobalScope.launch(Dispatchers.Main) {
@@ -216,7 +193,8 @@ class NowPlayingActivity : AppCompatActivity() {
             delay(175)
 
             val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
-            val anim = ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
+            val anim =
+                ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
             anim.duration = 1000
             anim.interpolator = DecelerateInterpolator(2.4f)
             anim.addListener(object : Animator.AnimatorListener {
@@ -226,7 +204,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 override fun onAnimationEnd(animation: Animator?) {
                     backPressLock = false
                 }
-
             })
             rootLayout.visibility = View.VISIBLE
             anim.start()
@@ -240,6 +217,7 @@ class NowPlayingActivity : AppCompatActivity() {
         try {
             seekbarJob.cancel()
         } catch (e: Exception) {
+            Log.e(LOG_TAG, e.message)
         }
         backPressLock = true
         if (!PrefManager.animationReduced(this)) {
@@ -268,7 +246,7 @@ class NowPlayingActivity : AppCompatActivity() {
             val dur = controller.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)
             if (dur != 0L) {
                 val percentage = 100 * pos / dur
-                seekBar.progress = percentage.toInt()
+                seekbar.progress = percentage.toInt()
                 position.text = Generic.msecToStr(pos)
             }
         }
@@ -299,7 +277,7 @@ class NowPlayingActivity : AppCompatActivity() {
             val album = metadata?.description?.description ?: "Unknown album"
             toolbar.subtitle = "$artist - $album"
             mediaDuration.text =
-                Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?:0)
+                Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) ?: 0)
         }
     }
 
@@ -310,10 +288,10 @@ class NowPlayingActivity : AppCompatActivity() {
             } else {
                 albumArt2
             }
-            val targetBG = if (backgroundImg.visibility == View.GONE) {
-                backgroundImg
+            val targetBG = if (background.visibility == View.GONE) {
+                background
             } else {
-                backgroundImg2
+                background2
             }
             Blurry.with(this).async().radius(2).sampling(6).color(Color.argb(100, 0, 0, 0))
                 .from(bitmap).into(targetBG)
@@ -325,7 +303,7 @@ class NowPlayingActivity : AppCompatActivity() {
             setBgJob = GlobalScope.launch {
                 delay(bgDelay)
                 if (isActive) {
-                    backgroundImg.post { Generic.crossFade(backgroundImg, backgroundImg2, duration) }
+                    background.post { Generic.crossFade(background, background2, duration) }
                 }
             }
         } else {

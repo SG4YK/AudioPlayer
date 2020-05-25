@@ -7,12 +7,15 @@
         android:layout_height="match_parent"
         tools:context=".LibraryFragment"
         android:id="@+id/frameLayout2">
+
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/audio_item" android:id="@+id/recycler_library"
+            tools:listitem="@layout/audio_item"
+            android:id="@+id/recyclerView"
             android:overScrollMode="always"
-            app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
             android:paddingTop="8dp"

@@ -9,7 +9,7 @@
     <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:srcCompat="@color/colorAccent"
+            app:srcCompat="@color/blueLighter"
             android:id="@+id/navHeaderBg2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -17,7 +17,9 @@
             app:layout_constraintStart_toStartOf="parent"
             android:scaleType="centerCrop"
             android:tint="@color/transparent"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            app:tint="#4D000000"
+    />
 
     <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="0dp"
@@ -28,10 +30,26 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:scaleType="centerCrop"
-            app:srcCompat="@color/colorAccent"
+            app:srcCompat="@color/blue"
             android:tint="@color/transparent"
-            android:visibility="visible"/>
+            android:visibility="visible"
+            app:tint="#4D000000"
+    />
 
+    <!--    <io.alterac.blurkit.BlurLayout-->
+    <!--            android:id="@+id/blurLayout"-->
+    <!--            android:layout_width="0dp"-->
+    <!--            android:layout_height="0dp"-->
+    <!--            blurkit:blk_blurRadius="2"-->
+    <!--            blurkit:blk_fps="60"-->
+    <!--            android:visibility="invisible"-->
+    <!--            android:tint="@color/transparent"-->
+    <!--            android:backgroundTint="@color/transparent"-->
+    <!--            android:foregroundTint="@color/transparent"-->
+    <!--            app:layout_constraintEnd_toEndOf="parent"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintTop_toTopOf="parent"-->
+    <!--            app:layout_constraintBottom_toBottomOf="parent"/>-->
     <androidx.appcompat.widget.AppCompatTextView
             android:text="@string/now_playing"
             android:layout_width="wrap_content"
@@ -160,5 +178,4 @@
             android:outlineProvider="none"
             app:layout_constraintTop_toTopOf="@+id/buttonPlay"
     />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

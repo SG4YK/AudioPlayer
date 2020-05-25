@@ -134,7 +134,7 @@
                 android:layout_marginEnd="32dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <com.github.sg4yk.audioplayer.utils.SquareImageView
-            android:id="@+id/album_art2"
+            android:id="@+id/albumArt2"
             android:layout_width="0dp"
             android:layout_height="1dp"
             app:srcCompat="@color/grayLighter"

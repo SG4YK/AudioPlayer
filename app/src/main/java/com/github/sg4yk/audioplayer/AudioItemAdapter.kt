@@ -13,15 +13,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-open class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
-    protected var audioItems: MutableList<AudioItem> = mutableListOf()
+class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
+    private var audioItems: MutableList<AudioItem> = mutableListOf()
     private lateinit var context: Context
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
-        val title: TextView = v.findViewById(R.id.audio_item_title)
-        val description: TextView = v.findViewById(R.id.audio_item_description)
-        val albumArt: ImageView = v.findViewById(R.id.audio_item_albumart)
+        val title: TextView = v.findViewById(R.id.audioItemTitle)
+        val description: TextView = v.findViewById(R.id.audioItemDescription)
+        val albumArt: ImageView = v.findViewById(R.id.audioItemAlbumArt)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioViewHolder {
@@ -52,7 +52,6 @@ open class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewH
 
     fun setAudioItemList(list: MutableList<AudioItem>) {
         audioItems = list
-//        notifyItemRangeInserted(0, list.size)
         notifyDataSetChanged()
     }
 }

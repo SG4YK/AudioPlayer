@@ -19,7 +19,7 @@
         <!-- Media -->
         <com.github.sg4yk.audioplayer.utils.SquareImageView
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="100dp"
                 app:srcCompat="@drawable/default_album_art_blue"
                 android:scaleType="centerCrop"
                 android:tint="@color/transparent"

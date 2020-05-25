@@ -46,7 +46,7 @@ class AlbumFragment : Fragment() {
             layoutManager = GridLayoutManager(activity, 2)
             recyclerView.layoutManager = layoutManager
             recyclerView.adapter = AlphaInAnimationAdapter(adapter).apply {
-                setFirstOnly(false)
+                setFirstOnly(true)
                 setDuration(300)
             }
             recyclerView.setHasFixedSize(true)
