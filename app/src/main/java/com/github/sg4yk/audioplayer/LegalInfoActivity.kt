@@ -43,8 +43,11 @@ class LegalInfoActivity : AppCompatActivity() {
                 "circleImgView" -> {
                     context?.let { SettingsActivity.openWebSite(it, "https://github.com/hdodenhof/CircleImageView") }
                 }
-                "exoPlayer" ->{
+                "exoPlayer" -> {
                     context?.let { SettingsActivity.openWebSite(it, "https://github.com/google/ExoPlayer") }
+                }
+                "glide" -> {
+                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/bumptech/glide") }
                 }
                 "mdcAndroid" -> {
                     context?.let {
@@ -71,7 +74,7 @@ class LegalInfoActivity : AppCompatActivity() {
                         )
                     }
                 }
-                "uamp" ->{
+                "uamp" -> {
                     context?.let { SettingsActivity.openWebSite(it, "https://github.com/android/uamp") }
                 }
             }

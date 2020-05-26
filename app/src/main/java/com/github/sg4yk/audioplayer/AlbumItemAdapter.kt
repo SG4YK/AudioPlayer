@@ -3,6 +3,7 @@ package com.github.sg4yk.audioplayer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,8 @@ import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PrefManager
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>() {
     private var albumList: MutableList<Album> = mutableListOf()
@@ -46,40 +49,49 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.title.text = albumList[position].album
         holder.artist.text = albumList[position].artist
-        imgLoader.load(MediaHunter.getArtUriFromAlbumId(albumList[position].id!!))
-            .thumbnail(0.25f)
-            .centerInside()
-            .into(holder.albumArt)
+        try {
+            Glide.with(holder.view)
+                .load(MediaHunter.getArtUriFromAlbumId(albumList[position].id!!))
+                .thumbnail(0.25f)
+                .centerInside()
+                .placeholder(R.drawable.default_album_art_blue)
+                .into(holder.albumArt)
+        } catch (e: Exception) {
+            Log.w("AlbumItemAdapter", e.message)
+        }
 
         holder.view.setOnClickListener {
             Palette.from(holder.albumArt.drawable.toBitmap(100, 100))
                 .generate { palette ->
-                    val primaryColor = palette?.getDominantColor(Color.WHITE) ?: Color.WHITE
-                    val intent = Intent(context, AlbumDetailActivity::class.java).apply {
-                        putExtra(
-                            AlbumDetailActivity.METADATA_TAG,
-                            arrayOf(
-                                albumList[position].album ?: "Unknown album",
-                                albumList[position].artist ?: "Unknown artist",
-                                albumList[position].id.toString()
+                    GlobalScope.launch {
+                        val primaryColor = palette?.getDominantColor(Color.WHITE) ?: Color.WHITE
+                        Log.d("HolderOnclickListener", "%x".format(primaryColor))
+                        val intent = Intent(context, AlbumDetailActivity::class.java).apply {
+                            putExtra(
+                                AlbumDetailActivity.METADATA_TAG,
+                                arrayOf(
+                                    albumList[position].album ?: "Unknown album",
+                                    albumList[position].artist ?: "Unknown artist",
+                                    albumList[position].id.toString()
+                                )
                             )
-                        )
-                        putExtra(
-                            AlbumDetailActivity.IS_DARK_ALBUM_ART_TAG,
-                            Generic.luminance(primaryColor) < AlbumDetailActivity.STATUS_BAR_LUMINANCE_THRESHOLD
-                        )
-                    }
+                            putExtra(
+                                AlbumDetailActivity.IS_DARK_ALBUM_ART_TAG,
+                                Generic.luminance(primaryColor) < AlbumDetailActivity.STATUS_BAR_LUMINANCE_THRESHOLD
+                            )
+                        }
 
-                    if (!PrefManager.animationReduced(context)) {
-                        val options = ActivityOptionsCompat.makeClipRevealAnimation(
-                            holder.view,
-                            0, 0,
-                            holder.view.width,
-                            holder.view.height
-                        )
-                        context.startActivity(intent, options.toBundle())
-                    } else {
-                        context.startActivity(intent)
+                        if (!PrefManager.animationReduced(context)) {
+                            val options = ActivityOptionsCompat.makeClipRevealAnimation(
+                                holder.view,
+                                0, 0,
+                                holder.view.width,
+                                holder.view.height
+                            )
+                            context.startActivity(intent, options.toBundle())
+                        } else {
+                            context.startActivity(intent)
+                        }
                     }
                 }
 

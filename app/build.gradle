@@ -75,7 +75,6 @@ dependencies {
     //github.com/material-components/material-components-android
     implementation 'com.google.android.material:material:1.2.0-alpha06'
 
-    //github.com/CameraKit/blurkit-android
-    implementation 'io.alterac.blurkit:blurkit:1.1.0'
+    //github.com/https://github.com/bumptech/glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
 }

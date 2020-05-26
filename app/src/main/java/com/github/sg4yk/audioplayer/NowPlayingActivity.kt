@@ -3,7 +3,7 @@ package com.github.sg4yk.audioplayer
 import android.animation.Animator
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.media.session.PlaybackState
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
@@ -12,8 +12,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -21,9 +19,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
+import androidx.interpolator.view.animation.FastOutLinearInInterpolator
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.github.sg4yk.audioplayer.extensions.isPlaying
+import com.github.sg4yk.audioplayer.extensions.stateName
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
@@ -38,6 +40,8 @@ class NowPlayingActivity : AppCompatActivity() {
     companion object {
         private const val LOG_TAG = "NowPlayingActivity"
         const val EXTRA_TAG = "REVEAL_ANIM_EXTRA"
+        private const val BUTTON_STATE_PLAYING = 1
+        private const val BUTTON_STATE_NOT_PLAYING = 0
     }
 
     private var fabX = 0
@@ -58,7 +62,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private var controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
     private var skipLock = false
     private var setBgJob: Job = Job()
-    private var inited = false
+    private var currentButtonState = BUTTON_STATE_NOT_PLAYING
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,17 +145,39 @@ class NowPlayingActivity : AppCompatActivity() {
             if (connected) {
                 PlaybackManager.isConnected().removeObserver(connectionObserver)
 
-                playbackStateObserver = Observer<PlaybackStateCompat> { state ->
-                    try {
-                        seekbarJob.cancel()
-                    } catch (e: Exception) {
-                    }
-                    when (state.state) {
-                        PlaybackState.STATE_PLAYING -> {
-                            seekbarJob = GlobalScope.launch {
-                                while (isActive) {
-                                    updateProgress()
-                                    delay(1000L)
+                playbackStateObserver = object : Observer<PlaybackStateCompat> {
+                    private var inited = false
+
+                    override fun onChanged(state: PlaybackStateCompat?) {
+                        if (!inited) {
+                            inited = true
+                            updateProgress()
+                            if (state != null && state.isPlaying) {
+                                seekbarJob = GlobalScope.launch {
+                                    while (isActive) {
+                                        updateProgress()
+                                        delay(1000L)
+                                    }
+                                }
+                                setButtonState(BUTTON_STATE_PLAYING)
+                            }
+                        } else {
+                            try {
+                                seekbarJob.cancel()
+                            } catch (e: Exception) {
+                                Log.w(LOG_TAG, e.message)
+                            }
+                            if (state != null && state.state != PlaybackStateCompat.STATE_BUFFERING) {
+                                if (state.state == PlaybackStateCompat.STATE_PLAYING) {
+                                    seekbarJob = GlobalScope.launch {
+                                        while (isActive) {
+                                            updateProgress()
+                                            delay(1000L)
+                                        }
+                                    }
+                                    setButtonState(BUTTON_STATE_PLAYING)
+                                } else {
+                                    setButtonState(BUTTON_STATE_NOT_PLAYING)
                                 }
                             }
                         }
@@ -161,6 +187,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
                 metadataObserver = object : Observer<MediaMetadataCompat> {
                     private var cachedMediaUri: Uri? = Uri.EMPTY
+                    private var inited = false
 
                     override fun onChanged(metadata: MediaMetadataCompat?) {
                         if (metadata == null) {
@@ -211,8 +238,8 @@ class NowPlayingActivity : AppCompatActivity() {
             val endRadius = hypot(centerX.toDouble(), centerY.toDouble()).toFloat()
             val anim =
                 ViewAnimationUtils.createCircularReveal(rootLayout, centerX, centerY, fabD.toFloat() / 2, endRadius)
-            anim.duration = 1000
-            anim.interpolator = DecelerateInterpolator(2.4f)
+            anim.duration = 500
+            anim.interpolator = FastOutSlowInInterpolator()
             anim.addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
                 override fun onAnimationCancel(animation: Animator?) {}
@@ -239,8 +266,8 @@ class NowPlayingActivity : AppCompatActivity() {
         if (!PrefManager.animationReduced(this)) {
             val endRadius = 100.0f
             val anim = ViewAnimationUtils.createCircularReveal(rootLayout, fabX, fabY, radius, fabD.toFloat() / 2)
-            anim.duration = 500
-            anim.interpolator = AccelerateInterpolator()
+            anim.duration = 400
+            anim.interpolator = FastOutLinearInInterpolator()
             anim.doOnEnd {
                 rootLayout.visibility = View.INVISIBLE
                 finishAfterTransition()
@@ -264,6 +291,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 val percentage = 100 * pos / dur
                 seekbar.progress = percentage.toInt()
                 position.text = Generic.msecToStr(pos)
+                duration.text = Generic.msecToStr(dur)
             }
         }
     }
@@ -276,7 +304,6 @@ class NowPlayingActivity : AppCompatActivity() {
         val artist = metadata?.description?.subtitle ?: "Unknown artist"
         val album = metadata?.description?.description ?: "Unknown album"
         toolbar.subtitle = "$artist - $album"
-        duration.text = Generic.msecToStr(metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) ?: 0)
 
         GlobalScope.launch(Dispatchers.IO) {
             val mediaId = metadata?.description?.mediaId
@@ -285,13 +312,20 @@ class NowPlayingActivity : AppCompatActivity() {
 
                 if (albumId != MediaHunter.ALBUM_NOT_EXIST) {
 
-                    val futureTarget = imgLoader.asBitmap()
-                        .load(MediaHunter.getArtUriFromAlbumId(albumId))
-                        .submit(720, 720)
+                    try {
+                        val futureTarget = imgLoader.asBitmap()
+                            .error(R.drawable.default_album_art_blue)
+                            .load(MediaHunter.getArtUriFromAlbumId(albumId))
+                            .submit(720, 720)
 
-                    setAlbumAndBg(futureTarget.get(), disableAnim, bgDelay)
+                        delay(50)
 
-                    imgLoader.clear(futureTarget)
+                        setAlbumAndBg(futureTarget.get(), disableAnim, bgDelay)
+
+                        imgLoader.clear(futureTarget)
+                    } catch (e: Exception) {
+                        setAlbumAndBg(null, disableAnim, bgDelay)
+                    }
                 }
             } else {
                 setAlbumAndBg(defaultAlbumArt, disableAnim, bgDelay)
@@ -335,6 +369,26 @@ class NowPlayingActivity : AppCompatActivity() {
 
             } else {
                 setAlbumAndBg(defaultAlbumArt, disableAnim, bgDelay)
+            }
+        }
+    }
+
+    private fun setButtonState(state: Int) {
+        if (state == currentButtonState) {
+            return
+        }
+        currentButtonState = state
+        when (state) {
+            BUTTON_STATE_NOT_PLAYING -> {
+                buttonPlay.setImageResource(R.drawable.avd_pause_to_play)
+                val icon = buttonPlay.drawable as AnimatedVectorDrawable
+                icon.start()
+            }
+
+            BUTTON_STATE_PLAYING -> {
+                buttonPlay.setImageResource(R.drawable.avd_play_to_pause)
+                val icon = buttonPlay.drawable as AnimatedVectorDrawable
+                icon.start()
             }
         }
     }

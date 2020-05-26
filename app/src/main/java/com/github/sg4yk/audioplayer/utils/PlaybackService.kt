@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
 import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.extensions.stateName
@@ -87,6 +88,8 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 isActive = true
             }
 
+
+
         sessionToken = mediaSession.sessionToken
 
         mediaController = MediaControllerCompat(this, mediaSession).also {
@@ -126,6 +129,11 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         Log.d("PlaybackService", "Service started")
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        MediaButtonReceiver.handleIntent(mediaSession, intent);
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {

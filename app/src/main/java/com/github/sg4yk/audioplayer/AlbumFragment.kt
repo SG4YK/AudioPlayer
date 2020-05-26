@@ -21,7 +21,6 @@ class AlbumFragment : Fragment() {
 
     companion object {
         fun newInstance() = AlbumFragment()
-
     }
 
     private lateinit var viewModel: AppViewModel

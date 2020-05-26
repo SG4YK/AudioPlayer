@@ -1,6 +1,7 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -53,12 +54,16 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
             }
 
             async {
-                Glide.with(holder.albumArt)
-                    .load(MediaHunter.getArtUriFromAlbumId(audio.albumId ?: -1))
-                    .error(R.drawable.default_album_art_blue)
-                    .thumbnail(0.25f)
-                    .centerInside()
-                    .into(holder.albumArt)
+                try {
+                    Glide.with(holder.albumArt)
+                        .load(MediaHunter.getArtUriFromAlbumId(audio.albumId ?: -1))
+                        .placeholder(R.drawable.default_album_art_blue)
+                        .thumbnail(0.25f)
+                        .centerInside()
+                        .into(holder.albumArt)
+                } catch (e: Exception) {
+                    Log.w("AudioItemAdapter", e.message)
+                }
             }
         }
     }

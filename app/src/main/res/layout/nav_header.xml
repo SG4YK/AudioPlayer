@@ -132,7 +132,7 @@
             android:elevation="0dp"
             app:elevation="0dp"
             app:backgroundTint="#4D000000"
-            app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+            app:srcCompat="@drawable/avd_pause_to_play"
             app:tint="@color/white"
             app:layout_constraintTop_toBottomOf="@+id/navHeaderAlbum"
             app:layout_constraintBottom_toBottomOf="parent"

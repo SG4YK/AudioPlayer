@@ -28,14 +28,18 @@
                 app:title="ExoPlayer"
         />
         <Preference
+                app:key="glide"
+                app:title="Glide"
+        />
+        <Preference
                 app:key="mdcAndroid"
                 app:summary="@string/license_apache"
                 app:title="Material Components for Android"
         />
         <Preference
-            app:key="mdFont"
-            app:summary="SIL Open Font License Version 1.1"
-            app:title="Material Design Icons"
+                app:key="mdFont"
+                app:summary="SIL Open Font License Version 1.1"
+                app:title="Material Design Icons"
         />
         <Preference
             app:key="recyclerAni"

@@ -98,6 +98,7 @@ class PlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
         extras: Bundle?,
         cb: ResultReceiver?
     ): Boolean {
+        Log.d("PlaybackService", "Preparer on command")
         return false
     }
 

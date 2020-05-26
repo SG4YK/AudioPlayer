@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.Drawable
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
@@ -24,29 +24,37 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.request.FutureTarget
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.Generic.setLightStatusBar
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
-import io.alterac.blurkit.BlurKit
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_layout_light.*
 import kotlinx.android.synthetic.main.nav_header.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val BUTTON_STATE_PLAYING = 1
+        private const val BUTTON_STATE_NOT_PLAYING = 0
+    }
+
     private lateinit var decorView: View
-    private lateinit var defaultBg: Drawable
+    private lateinit var defaultBg: Bitmap
     private var controller: MediaControllerCompat? = null
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
+    private lateinit var playbackStateObserver: Observer<PlaybackStateCompat>
     private var skipLock = false
     private lateinit var imgLoader: RequestManager
     private lateinit var blur: Blurry.Composer
-    private val mainActivityjob = SupervisorJob()
+
+    private var currentButtonState = BUTTON_STATE_NOT_PLAYING
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -55,7 +63,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        BlurKit.init(application);
         // change status bar color when open drawer
         decorView = window.decorView
 
@@ -174,8 +181,6 @@ class MainActivity : AppCompatActivity() {
         connectionObserver = Observer<Boolean> {
             if (it && controller == null) {
                 // Stop observing connection
-                defaultBg = getDrawable(R.color.colorAccent)!!
-
                 PlaybackManager.isConnected().removeObserver(connectionObserver)
 
                 buttonPlay.setOnClickListener {
@@ -204,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Start observing metadata
+                // observe metadata
                 metadataObserver = object : Observer<MediaMetadataCompat> {
                     private var cachedMediaUri: Uri? = Uri.EMPTY
 
@@ -221,6 +226,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 PlaybackManager.nowPlaying().observe(this, metadataObserver)
+
+                // observe playback state
+                playbackStateObserver = Observer<PlaybackStateCompat> { state ->
+                    when (state?.state) {
+                        PlaybackStateCompat.STATE_PLAYING -> {
+                            setButtonState(BUTTON_STATE_PLAYING)
+                        }
+                        PlaybackStateCompat.STATE_BUFFERING -> {
+                            // DO NOTHING
+                        }
+                        else -> {
+                            setButtonState(BUTTON_STATE_NOT_PLAYING)
+                        }
+                    }
+                }
+                PlaybackManager.playbackState().observe(this, playbackStateObserver)
             }
         }
 
@@ -252,32 +273,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(metadata: MediaMetadataCompat?) {
+        Log.d("UpdatingUI", "UI")
         skipLock = true
         if (metadata == null || metadata.description.mediaUri == null) {
             navHeaderTitle.text = "Nothing playing"
             navHeaderArtist.text = null
             navHeaderAlbum.text = null
         } else {
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch {
                 // set album art
                 val albumId = MediaHunter.getAlbumIdFromAudioId(
                     this@MainActivity,
-                    metadata.description.mediaId!!
+                    metadata.description.mediaId!!.toLong()
                 )
                 if (albumId != MediaHunter.ALBUM_NOT_EXIST) {
-
-                    val futureTarget: FutureTarget<Bitmap> =
-                        imgLoader
-                            .asBitmap()
-                            .load(MediaHunter.getArtUriFromAlbumId(albumId!!))
+                    try {
+                        val futureTarget = imgLoader.asBitmap()
+                            .load(MediaHunter.getArtUriFromAlbumId(albumId))
                             .submit(50, 50)
 
-                    delay(50)
+                        delay(50)
+                        val bitmap = futureTarget.get()
+                        imgLoader.clear(futureTarget)
+                        setDrawerBg(bitmap)
+                    } catch (e: Exception) {
+                        Log.w("MainActivity", e.message)
+                        setDrawerBg(null)
 
-                    val bitmap = futureTarget.get()
-                    setDrawerBg(bitmap)
-
-                    imgLoader.clear(futureTarget)
+                    }
                 } else {
                     setDrawerBg(null)
                 }
@@ -292,33 +315,35 @@ class MainActivity : AppCompatActivity() {
 
     private fun setDrawerBg(bitmap: Bitmap?) {
         val nextView = viewSwitcher.nextView as ImageView
-        GlobalScope.launch(mainActivityjob) {
+
+        GlobalScope.launch(Dispatchers.Main) {
             // prepare next background
             if (bitmap != null) {
-                Palette.from(bitmap).generate { palette ->
-                    val luminance = Generic.luminance(palette?.getDominantColor(Color.WHITE) ?: 200)
+                try {
+                    Palette.from(bitmap).generate { palette ->
+                        val luminance = Generic.luminance(palette?.getDominantColor(Color.WHITE) ?: 200)
 
-                    // Darken the image depending on its dominant color
-                    // Alpha is between 20 and 76
-                    var alpha = 20
-                    if (luminance > 170) {
-                        alpha = if (luminance > 226) {
-                            76
-                        } else {
-                            luminance - 150
+                        // Darken the image depending on its dominant color
+                        // Alpha is between 20 and 76
+                        var alpha = 20
+                        if (luminance > 170) {
+                            alpha = if (luminance > 226) {
+                                76
+                            } else {
+                                luminance - 150
+                            }
                         }
+                        blur.color(Color.argb(alpha, 0, 0, 0)).from(bitmap).into(nextView)
                     }
-                    blur.color(Color.argb(alpha, 0, 0, 0)).from(bitmap).into(nextView)
+                } catch (e: Exception) {
+                    Log.w("MainActivity", e.message)
+                    nextView.setImageResource(R.color.colorAccent)
                 }
-//                nextView.setImageBitmap(bitmap)
             } else {
-                nextView.setImageDrawable(defaultBg)
+                nextView.setImageResource(R.color.colorAccent)
             }
+            viewSwitcher.showNext()
 
-            delay(100)
-            withContext(Dispatchers.Main) {
-                viewSwitcher.showNext()
-            }
             delay(300)
             skipLock = false
         }
@@ -332,6 +357,26 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         PlaybackManager.nowPlaying().removeObservers(this)
         PlaybackManager.closeConnection()
+    }
+
+    private fun setButtonState(state: Int) {
+        if (state == currentButtonState) {
+            return
+        }
+        currentButtonState = state
+        when (state) {
+            BUTTON_STATE_NOT_PLAYING -> {
+                buttonPlay.setImageResource(R.drawable.avd_pause_to_play)
+                val icon = buttonPlay.drawable as AnimatedVectorDrawable
+                icon.start()
+            }
+
+            BUTTON_STATE_PLAYING -> {
+                buttonPlay.setImageResource(R.drawable.avd_play_to_pause)
+                val icon = buttonPlay.drawable as AnimatedVectorDrawable
+                icon.start()
+            }
+        }
     }
 }
 

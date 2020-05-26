@@ -9,12 +9,14 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.palette.graphics.Palette
@@ -105,36 +107,40 @@ class AlbumDetailActivity : AppCompatActivity() {
             // set album art
             val albumArtUri = MediaHunter.getArtUriFromAlbumId(extras[2].toLong() ?: -1)
 
-            val futureTarget: FutureTarget<Bitmap> = Glide.with(albumArt)
-                .asBitmap()
-                .load(albumArtUri)
-                .placeholder(R.drawable.white)
-                .submit(720, 720)
+            var bitmap = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
 
-            val bitmap = futureTarget.get()
+            try {
+                val futureTarget: FutureTarget<Bitmap> = Glide.with(albumArt)
+                    .asBitmap()
+                    .load(albumArtUri)
+                    .submit(720, 720)
+                bitmap = futureTarget.get()
+                Glide.with(albumArt).clear(futureTarget)
 
-            Glide.with(albumArt).clear(futureTarget)
-
-            withContext(Dispatchers.Main) {
-                albumArt.setImageBitmap(bitmap)
+                // set fab color
+                Palette.from(bitmap).generate { palette ->
+                    val primary = palette?.getDominantColor(Color.WHITE)
+                    if (Generic.luminance(primary ?: Color.WHITE) >= FAB_LUMINANCE_THRESHOLD) {
+                        // dominant color is bright
+                        var secondary = palette?.getDarkMutedColor(Generic.setAlpha(primary!!, 128))
+                        fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
+                        fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                    } else {
+                        // dominant color is dark
+                        var secondary = palette?.getLightVibrantColor(Color.WHITE)
+                        fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
+                        fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    albumArt.setImageBitmap(bitmap)
+                }
+            } catch (e: Exception) {
+                Log.w("AlbumDetailActivity", "e.message")
             }
 
-            delay(300)
-
-            // set fab color
-            Palette.from(bitmap).generate { palette ->
-                val primary = palette?.getDominantColor(Color.WHITE)
-                if (Generic.luminance(primary ?: Color.WHITE) >= FAB_LUMINANCE_THRESHOLD) {
-                    // dominant color is bright
-                    var secondary = palette?.getDarkMutedColor(Generic.setAlpha(primary!!, 128))
-                    fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
-                    fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
-                } else {
-                    // dominant color is dark
-                    var secondary = palette?.getLightVibrantColor(Color.WHITE)
-                    fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
-                    fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
-                }
+            withContext(Dispatchers.Main) {
+                delay(300)
                 fab.show()
             }
         }
