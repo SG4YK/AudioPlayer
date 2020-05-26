@@ -21,7 +21,6 @@ import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
-import com.github.sg4yk.audioplayer.extensions.stateName
 import com.github.sg4yk.audioplayer.media.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Player
@@ -137,8 +136,10 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
-        super.onTaskRemoved(rootIntent)
-        onDestroy()
+        if (!PrefManager.keepBgService(this)) {
+            super.onTaskRemoved(rootIntent)
+            onDestroy()
+        }
     }
 
     override fun onDestroy() {

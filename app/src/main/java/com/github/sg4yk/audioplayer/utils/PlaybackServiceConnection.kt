@@ -85,6 +85,9 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
+
+            nowPlaying.postValue(mediaController.metadata)
+            playbackState.postValue(mediaController.playbackState)
             isConnected.postValue(true)
         }
 

@@ -1,15 +1,25 @@
 <PreferenceScreen
-        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
             app:title="PLAYBACK">
         <SwitchPreferenceCompat
                 app:key="autoPause"
-                app:title="Auto Pause (TODO)"
+                app:title="Auto pause (TODO)"
                 app:enabled="false"
                 android:defaultValue="false"
                 app:summary="Pause on headphones disconnect"
                 app:icon="@drawable/ic_pause_white_24dp"
+        />
+        <SwitchPreferenceCompat
+                app:key="@string/keep_bg_service"
+                app:title="Background service"
+                app:enabled="true"
+                android:defaultValue="true"
+                app:summaryOn="Keep playing when task is removed"
+                app:summaryOff="Stop playback when task is removed"
+                app:icon="@drawable/ic_memory_white_24dp"
         />
     </PreferenceCategory>
 
@@ -17,7 +27,7 @@
             app:title="INTERFACE">
         <SwitchPreferenceCompat
                 app:key="@string/reduce_animation"
-                app:title="Reduce Animation"
+                app:title="Reduce animation"
                 app:icon="@drawable/transition"
                 android:defaultValue="false"
                 app:summaryOn="Animation reduced"
@@ -46,12 +56,12 @@
                 app:key="sourceCode"
                 app:summary="Feel free to give a star!"
                 app:icon="@drawable/ic_code_white_24dp"
-                app:title="Source Code"/>
+                app:title="Source code"/>
 
         <Preference
                 app:key="legalInfo"
                 app:icon="@drawable/ic_account_balance_white_24dp"
-                app:title="Legal Information"/>
+                app:title="Legal information"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

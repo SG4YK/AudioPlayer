@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -116,6 +117,7 @@ class NotificationBuilder(private val context: Context, private val controller: 
                 }
             }
         }
+//        albumArt = controller.metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
         return builder.setContentIntent(controller.sessionActivity)
             .setContentText("${description.subtitle} - ${description.description}")
