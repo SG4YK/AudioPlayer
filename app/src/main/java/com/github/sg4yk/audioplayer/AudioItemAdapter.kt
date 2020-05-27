@@ -18,7 +18,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
+class AudioItemAdapter : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
     private var audioItems: MutableList<Audio> = mutableListOf()
     private lateinit var context: Context
 
@@ -31,15 +31,13 @@ class AudioItemAdapter() : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.audio_item, parent, false)
         context = parent.context
+        val view = LayoutInflater.from(context)
+            .inflate(R.layout.audio_item, parent, false)
         return AudioViewHolder(view)
     }
 
-    override fun getItemCount(): Int {
-        return audioItems.size
-    }
+    override fun getItemCount(): Int = audioItems.size
 
     override fun onBindViewHolder(holder: AudioViewHolder, position: Int) {
         GlobalScope.launch(Dispatchers.Main) {

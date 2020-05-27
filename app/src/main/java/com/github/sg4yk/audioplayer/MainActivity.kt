@@ -263,8 +263,8 @@ class MainActivity : AppCompatActivity() {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // restart activity
-                    finish()
-                    startActivity(intent)
+//                    finish()
+//                    startActivity(intent)
                 } else {
                     showToast("Permission denied")
                 }
@@ -273,7 +273,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(metadata: MediaMetadataCompat?) {
-        Log.d("UpdatingUI", "UI")
         skipLock = true
         if (metadata == null || metadata.description.mediaUri == null) {
             navHeaderTitle.text = "Nothing playing"

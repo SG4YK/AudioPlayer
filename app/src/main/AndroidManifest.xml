@@ -14,6 +14,9 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
+        <activity android:name=".ArtistDetailActivity"
+                  android:theme="@style/AppThemeNoActionBar">
+        </activity>
         <activity
                 android:name=".AlbumDetailActivity"
                 android:label="@string/title_activity_album_detail"
@@ -27,7 +30,6 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
-
             </intent-filter>
         </service>
 

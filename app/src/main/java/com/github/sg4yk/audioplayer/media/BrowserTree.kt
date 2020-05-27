@@ -105,10 +105,10 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
     }
 
     private fun encodeUri(uri: String): String = if (Charset.isSupported("UTF-8")) {
-        URLEncoder.encode(uri ?: "", "UTF-8")
+        URLEncoder.encode(uri, "UTF-8")
     } else {
         @Suppress("deprecation")
-        URLEncoder.encode(uri ?: "")
+        URLEncoder.encode(uri)
     }
 }
 

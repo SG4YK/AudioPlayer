@@ -19,6 +19,7 @@ import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PrefManager
+import kotlinx.android.synthetic.main.album_item.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -29,9 +30,9 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
 
     class AlbumViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
-        val title: TextView = v.findViewById(R.id.album_item_title)
-        val artist: TextView = v.findViewById(R.id.album_item_artist)
-        val albumArt: ImageView = v.findViewById(R.id.album_item_art)
+        val title: TextView = v.title
+        val artist: TextView = v.artist
+        val albumArt: ImageView = v.albumArt
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumViewHolder {
@@ -42,16 +43,14 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
         return AlbumViewHolder(view)
     }
 
-    override fun getItemCount(): Int {
-        return albumList.size
-    }
+    override fun getItemCount(): Int = albumList.size
 
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.title.text = albumList[position].album
         holder.artist.text = albumList[position].artist
         try {
             Glide.with(holder.view)
-                .load(MediaHunter.getArtUriFromAlbumId(albumList[position].id!!))
+                .load(MediaHunter.getArtUriFromAlbumId(albumList[position].id))
                 .thumbnail(0.25f)
                 .centerInside()
                 .placeholder(R.drawable.default_album_art_blue)

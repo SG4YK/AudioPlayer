@@ -42,9 +42,14 @@
                 app:title="Material Design Icons"
         />
         <Preference
-            app:key="recyclerAni"
-            app:summary="@string/license_apache"
-            app:title="RecyclerView Animators"
+                app:key="recyclerAni"
+                app:summary="@string/license_apache"
+                app:title="RecyclerView Animators"
+        />
+        <Preference
+                app:key="swipe"
+                app:summary="@string/license_apache"
+                app:title="Swipe"
         />
         <Preference
                 app:key="uamp"

@@ -4,11 +4,18 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ArtistFragment">
+        tools:context=".ArtistFragment"
+>
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="@string/artist"/>
+            tools:listitem="@layout/artist_item"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:theme="@style/RecyclerViewLight"
+            android:id="@+id/recyclerView"
+    />
 
 </FrameLayout>

@@ -10,6 +10,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.widget.ImageView
@@ -18,11 +19,14 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.GestureDetectorCompat
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.github.pwittchen.swipe.library.rx2.Swipe
+import com.github.pwittchen.swipe.library.rx2.SwipeListener
 import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
@@ -68,19 +72,22 @@ class NowPlayingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
 
+        toolbar.post {
+            setSupportActionBar(toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setDisplayShowHomeEnabled(true)
+        }
+
         controller = MediaControllerCompat(this, PlaybackManager.sessionToken())
 
         defaultAlbumArt = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
-
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         imgLoader = Glide.with(this)
         blur = Blurry.with(this)
             .async()
             .color(Color.argb(76, 0, 0, 0))
             .radius(3)
-            .sampling(6)
+            .sampling(8)
 
         seekbar.apply {
             setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
@@ -114,7 +121,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // set buttons behavior
         buttonPlay.setOnClickListener {
-            when (controller?.playbackState?.state) {
+            when (controller.playbackState?.state) {
                 PlaybackStateCompat.STATE_NONE -> {
                     PlaybackManager.playAll()
                 }
@@ -129,8 +136,6 @@ class NowPlayingActivity : AppCompatActivity() {
 
         buttonSkipPrevious.setOnClickListener {
             if (!skipLock) {
-                seekbar.progress = 0
-                position.text = "00:00"
                 PlaybackManager.skipPrevious()
                 PlaybackManager.play()
             }
@@ -138,10 +143,49 @@ class NowPlayingActivity : AppCompatActivity() {
 
         buttonSkipNext.setOnClickListener {
             if (!skipLock) {
-                seekbar.progress = 0
-                position.text = "00:00"
                 PlaybackManager.skipNext()
                 PlaybackManager.play()
+            }
+        }
+
+        albumArtSwitcher.post {
+            val swipe = Swipe()
+            swipe.setListener(object : SwipeListener {
+                override fun onSwipingLeft(event: MotionEvent?) {
+                }
+
+                override fun onSwipedLeft(event: MotionEvent?): Boolean {
+                    buttonSkipNext.performClick()
+                    return true
+                }
+
+                override fun onSwipingRight(event: MotionEvent?) {
+                }
+
+                override fun onSwipedRight(event: MotionEvent?): Boolean {
+                    buttonSkipPrevious.performClick()
+                    return true
+                }
+
+                override fun onSwipingUp(event: MotionEvent?) {
+                }
+
+                override fun onSwipedUp(event: MotionEvent?): Boolean {
+                    return true
+                }
+
+                override fun onSwipedDown(event: MotionEvent?): Boolean {
+                    return true
+                }
+
+                override fun onSwipingDown(event: MotionEvent?) {
+                }
+            }
+            )
+
+            albumArtSwitcher.setOnTouchListener { view, event ->
+                swipe.dispatchTouchEvent(event);
+                true
             }
         }
 

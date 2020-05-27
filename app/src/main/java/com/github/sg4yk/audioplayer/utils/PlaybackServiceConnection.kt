@@ -121,13 +121,6 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
         override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
         }
 
-        override fun onSessionEvent(event: String?, extras: Bundle?) {
-            super.onSessionEvent(event, extras)
-//            when (event) {
-//                NETWORK_FAILURE -> networkFailure.postValue(true)
-//            }
-        }
-
         /**
          * Normally if a [MediaBrowserServiceCompat] drops its connection the callback comes via
          * [MediaControllerCompat.Callback] (here). But since other connection status events

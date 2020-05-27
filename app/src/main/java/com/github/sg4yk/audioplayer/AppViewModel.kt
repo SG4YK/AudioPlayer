@@ -4,17 +4,16 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.github.sg4yk.audioplayer.media.Album
+import com.github.sg4yk.audioplayer.media.Artist
 import com.github.sg4yk.audioplayer.media.Audio
 import com.github.sg4yk.audioplayer.media.MetadataSource
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class AppViewModel(application: Application) : AndroidViewModel(application) {
@@ -22,17 +21,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private const val preloadItemsCount = 15
     }
 
-//    var audioItemsLiveData: MutableLiveData<MutableList<AudioItem>> = MutableLiveData()
-
     var audioItemsLiveData: MutableLiveData<MutableList<Audio>> = MutableLiveData()
 
     var albumItemsLiveData: MutableLiveData<MutableList<Album>> = MutableLiveData()
 
-//    private var audioItems: MutableList<AudioItem> = mutableListOf()
+    var artistItemsLiveData: MutableLiveData<MutableList<Artist>> = MutableLiveData()
 
     private var audioItems: MutableList<Audio> = mutableListOf()
 
     private var albumItems: MutableList<Album> = mutableListOf()
+
+    private var artistItems: MutableList<Artist> = mutableListOf()
 
     private var metadataList: MutableList<MediaMetadataCompat> = mutableListOf()
 
@@ -43,66 +42,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var context = application
 
     init {
-//        val preloadJob = GlobalScope.launch(Dispatchers.IO + appModelJob) {
-//            mediaSource.load()
-//            mediaSource.whenReady {
-//
-//                metadataList = mediaSource.toMutableList()
-//                metadataList.forEach {
-//                    audioItems.add(AudioItem(it))
-//                }
-//
-//                // preload album art for first 15 items
-//                val loadCount =
-//                    (if (audioItems.size >= preloadItemsCount) preloadItemsCount else audioItems.size) - 1
-//                for (i in 0..loadCount) {
-//                    async {
-//                        audioItems[i].thumbnail =
-//                            MediaHunter.getThumbnail(
-//                                application,
-//                                audioItems[i].metadata.description!!.mediaUri!!,
-//                                AudioItem.THUMBNAIL_SIZE
-//                            )
-//                    }
-//                }
-//            }
-//        }
-//
-//        val loadJob = GlobalScope.launch(Dispatchers.IO + appModelJob) {
-//            preloadJob.join()
-//            // show the preloaded item
-//            audioItemsLiveData.postValue(
-//                audioItems
-//            )
-//            // load the rest part
-//            for (i in preloadItemsCount..audioItems.size - 1) {
-//                async {
-//                    try {
-//                        audioItems[i].thumbnail =
-//                            MediaHunter.getThumbnail(
-//                                application,
-//                                audioItems[i].metadata.description!!.mediaUri!!,
-//                                AudioItem.THUMBNAIL_SIZE
-//                            )
-//                    } catch (e: Exception) {
-//                        Log.w("AppViewModel", e.message)
-//                    }
-//                }
-//            }
-//        }
-
-//        GlobalScope.launch {
-//            loadJob.join()
-//            // all items loaded
-//            audioItemsLiveData.postValue(
-//                audioItems
-//            )
-//        }
-
-
         GlobalScope.launch {
+            delay(100)
             refreshAudioItems()
+
+            delay(300)
             refreshAlbumItems()
+
+            delay(300)
+            refreshArtistItems()
         }
     }
 
@@ -120,11 +68,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshAlbumItems() {
         albumItems.clear()
         val job = GlobalScope.launch(Dispatchers.IO + appModelJob) {
-            albumItems = MediaHunter.getAllAlbums(context).toMutableList()
+            albumItems = MediaHunter.getAllAlbums(context)
         }
         GlobalScope.launch {
             job.join()
             albumItemsLiveData.postValue(albumItems)
+        }
+    }
+
+    fun refreshArtistItems() {
+        artistItems.clear()
+        val job = GlobalScope.launch(Dispatchers.IO + appModelJob) {
+            artistItems = MediaHunter.getAllArtists(context)
+        }
+        GlobalScope.launch {
+            job.join()
+            artistItemsLiveData.postValue(artistItems)
         }
     }
 }

@@ -1,12 +1,16 @@
 package com.github.sg4yk.audioplayer.utils
 
 import android.animation.Animator
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.WorkerThread
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -73,22 +77,22 @@ object Generic {
     }
 
     fun getDensity(context: Context): Float {
-        val metrics: DisplayMetrics = context.getResources().getDisplayMetrics()
+        val metrics: DisplayMetrics = context.resources.displayMetrics
         return metrics.density
     }
 
     fun luminance(color: Int): Int {
-        val B = color and 0b11111111;
-        val G = (color and 0b1111111100000000) shr 8
-        val R = (color and 0b111111110000000000000000) shr 16
-        return (R + R + R + B + G + G + G + G) shr 3
+        val b = color and 0xff
+        val g = (color and 0xff00) shr 8
+        val r = (color and 0xff0000) shr 16
+        return (r + r + r + b + g + g + g + g) shr 3
     }
 
     fun setAlpha(color: Int, alpha: Int): Int {
-        val B = color and 0b11111111;
-        val G = (color and 0b1111111100000000) shr 8
-        val R = (color and 0b111111110000000000000000) shr 16
-        return Color.argb(alpha, R, G, B)
+        val b = color and 0xff
+        val g = (color and 0xff00) shr 8
+        val r = (color and 0xdff0000) shr 16
+        return Color.argb(alpha, r, g, b)
     }
 
     fun setLightStatusBar(view: View, on: Boolean) {
@@ -100,4 +104,21 @@ object Generic {
             }
         }
     }
+
+    fun openWebsite(ctx: Context, url: String) {
+        val website: Uri = Uri.parse(url)
+        val intent = Intent(Intent.ACTION_VIEW, website)
+        if (intent.resolveActivity(ctx.packageManager) != null) {
+            ctx.startActivity(intent)
+        }
+    }
+
+    fun openWebsite(activity: Activity, url: String) {
+        val website: Uri = Uri.parse(url)
+        val intent = Intent(Intent.ACTION_VIEW, website)
+        if (intent.resolveActivity(activity.packageManager) != null) {
+            activity.startActivity(intent)
+        }
+    }
+
 }

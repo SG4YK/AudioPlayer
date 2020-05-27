@@ -9,7 +9,8 @@
         app:cardElevation="2dp"
         android:clickable="true"
         android:focusable="true"
-        android:focusableInTouchMode="false">
+        android:focusableInTouchMode="false"
+>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -23,7 +24,7 @@
                 app:srcCompat="@drawable/default_album_art_blue"
                 android:scaleType="centerCrop"
                 android:tint="@color/transparent"
-                android:id="@+id/album_item_art"/>
+                android:id="@+id/albumArt"/>
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -37,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:text="Title"
                     android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
-                    android:id="@+id/album_item_title" android:textStyle="normal"
+                    android:id="@+id/title" android:textStyle="normal"
                     android:textColor="@color/textColorPrimary"/>
             <androidx.appcompat.widget.AppCompatTextView
                     android:layout_width="wrap_content"
@@ -46,7 +47,7 @@
                     android:text="Artist"
                     android:textAppearance="?attr/textAppearanceBody2"
                     android:textColor="?android:attr/textColorSecondary"
-                    android:id="@+id/album_item_artist"/>
+                    android:id="@+id/artist"/>
 
         </LinearLayout>
 

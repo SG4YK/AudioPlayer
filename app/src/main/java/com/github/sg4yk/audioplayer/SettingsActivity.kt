@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import com.github.sg4yk.audioplayer.utils.Generic
 import com.google.android.material.appbar.MaterialToolbar
 
 class SettingsActivity : AppCompatActivity() {
@@ -38,13 +39,13 @@ class SettingsActivity : AppCompatActivity() {
         override fun onPreferenceTreeClick(preference: Preference?): Boolean {
             when (preference?.key) {
                 "version" -> {
-                    context?.let { openWebSite(it, "https://github.com/SG4YK/AudioPlayer/releases") }
+//                    activity?.let { Generic.openWebsite(it, "https://github.com/SG4YK/AudioPlayer/releases" ) }
                 }
                 "developer" -> {
-                    context?.let { openWebSite(it, "https://sg4yk.com") }
+                    activity?.let { Generic.openWebsite(it, "https://sg4yk.com") }
                 }
                 "sourceCode" -> {
-                    context?.let { openWebSite(it, "https://github.com/SG4YK/AudioPlayer") }
+                    activity?.let { Generic.openWebsite(it, "https://github.com/SG4YK/AudioPlayer") }
                 }
                 "legalInfo" -> {
                     val intent = Intent(context, LegalInfoActivity::class.java)
@@ -53,23 +54,10 @@ class SettingsActivity : AppCompatActivity() {
             }
             return super.onPreferenceTreeClick(preference)
         }
-
-
     }
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return super.onSupportNavigateUp()
     }
-
-    companion object {
-        fun openWebSite(ctx: Context, url: String) {
-            val webpage: Uri = Uri.parse(url)
-            val intent = Intent(Intent.ACTION_VIEW, webpage)
-            if (intent.resolveActivity(ctx.packageManager) != null) {
-                ctx.startActivity(intent)
-            }
-        }
-    }
-
 }

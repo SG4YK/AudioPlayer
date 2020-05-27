@@ -52,7 +52,6 @@ object PlaybackManager {
             } else {
                 controls.prepareFromMediaId(mediaId, null)
                 controls.play()
-                Log.d("TOKEN", connection.sessionToken.toString())
             }
         }
 

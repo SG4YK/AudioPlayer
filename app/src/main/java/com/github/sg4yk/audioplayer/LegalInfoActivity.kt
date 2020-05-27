@@ -1,13 +1,11 @@
 package com.github.sg4yk.audioplayer
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.github.sg4yk.audioplayer.utils.Generic
 
 class LegalInfoActivity : AppCompatActivity() {
 
@@ -30,53 +28,46 @@ class LegalInfoActivity : AppCompatActivity() {
         }
 
         override fun onPreferenceTreeClick(preference: Preference?): Boolean {
-            when (preference?.key) {
+            val url = when (preference?.key) {
                 "AOSP" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://source.android.com/license") }
+                    "https://source.android.com/license"
                 }
                 "audioPlayer" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/SG4YK/AudioPlayer") }
+                    "https://github.com/SG4YK/AudioPlayer"
                 }
                 "blurry" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/wasabeef/Blurry") }
+                    "https://github.com/wasabeef/Blurry"
                 }
                 "circleImgView" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/hdodenhof/CircleImageView") }
+                    "https://github.com/hdodenhof/CircleImageView"
                 }
                 "exoPlayer" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/google/ExoPlayer") }
+                    "https://github.com/google/ExoPlayer"
                 }
                 "glide" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/bumptech/glide") }
+                    "https://github.com/bumptech/glide"
                 }
                 "mdcAndroid" -> {
-                    context?.let {
-                        SettingsActivity.openWebSite(
-                            it,
-                            "https://github.com/material-components/material-components-android"
-                        )
-                    }
-
+                    "https://github.com/material-components/material-components-android"
                 }
                 "mdFont" -> {
-                    context?.let {
-                        SettingsActivity.openWebSite(
-                            it,
-                            "https://github.com/templarian/MaterialDesign"
-                        )
-                    }
+                    "https://github.com/templarian/MaterialDesign"
                 }
                 "recyclerAni" -> {
-                    context?.let {
-                        SettingsActivity.openWebSite(
-                            it,
-                            "https://github.com/wasabeef/recyclerview-animators"
-                        )
-                    }
+                    "https://github.com/wasabeef/recyclerview-animators"
+                }
+                "swipe" -> {
+                    "https://github.com/pwittchen/swipe"
                 }
                 "uamp" -> {
-                    context?.let { SettingsActivity.openWebSite(it, "https://github.com/android/uamp") }
+                    "https://github.com/android/uamp"
                 }
+                else -> {
+                    null
+                }
+            }
+            if (url != null) {
+                activity?.let { Generic.openWebsite(it, url) }
             }
             return super.onPreferenceTreeClick(preference)
         }
@@ -87,13 +78,4 @@ class LegalInfoActivity : AppCompatActivity() {
         return super.onSupportNavigateUp()
     }
 
-    companion object {
-        fun openWebSite(ctx: Context, url: String) {
-            val webpage: Uri = Uri.parse(url)
-            val intent = Intent(Intent.ACTION_VIEW, webpage)
-            if (intent.resolveActivity(ctx.packageManager) != null) {
-                ctx.startActivity(intent)
-            }
-        }
-    }
 }

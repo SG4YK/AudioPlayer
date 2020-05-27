@@ -17,8 +17,6 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +28,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.activity_album_detail.*
+import kotlinx.android.synthetic.main.album_detail_audio_item.view.*
 import kotlinx.coroutines.*
 
 class AlbumDetailActivity : AppCompatActivity() {
@@ -46,7 +45,7 @@ class AlbumDetailActivity : AppCompatActivity() {
     private val adapter = AlbumDetailAdapter()
     private lateinit var decorView: View
     private var navIcon: Drawable? = null
-    private val songsInAlbum: MutableLiveData<MutableList<MediaMetadataCompat>> = MutableLiveData()
+    private var songsInAlbum: MutableList<MediaMetadataCompat> = mutableListOf()
     private val albumArtJob = SupervisorJob()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,7 +104,7 @@ class AlbumDetailActivity : AppCompatActivity() {
 
         GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             // set album art
-            val albumArtUri = MediaHunter.getArtUriFromAlbumId(extras[2].toLong() ?: -1)
+            val albumArtUri = MediaHunter.getArtUriFromAlbumId(extras[2].toLong())
 
             var bitmap = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
 
@@ -119,17 +118,17 @@ class AlbumDetailActivity : AppCompatActivity() {
 
                 // set fab color
                 Palette.from(bitmap).generate { palette ->
-                    val primary = palette?.getDominantColor(Color.WHITE)
-                    if (Generic.luminance(primary ?: Color.WHITE) >= FAB_LUMINANCE_THRESHOLD) {
+                    val dominant = palette?.getDominantColor(Color.WHITE)
+                    if (Generic.luminance(dominant ?: Color.WHITE) >= FAB_LUMINANCE_THRESHOLD) {
                         // dominant color is bright
-                        var secondary = palette?.getDarkMutedColor(Generic.setAlpha(primary!!, 128))
+                        val secondary = palette?.getDarkMutedColor(Generic.setAlpha(dominant!!, 128))
                         fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
-                        fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                        fab.backgroundTintList = dominant?.let { ColorStateList.valueOf(it) }
                     } else {
                         // dominant color is dark
-                        var secondary = palette?.getLightVibrantColor(Color.WHITE)
+                        val secondary = palette?.getLightVibrantColor(Color.WHITE)
                         fab.imageTintList = secondary?.let { ColorStateList.valueOf(it) }
-                        fab.backgroundTintList = primary?.let { ColorStateList.valueOf(it) }
+                        fab.backgroundTintList = dominant?.let { ColorStateList.valueOf(it) }
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -152,18 +151,12 @@ class AlbumDetailActivity : AppCompatActivity() {
 
         // load songs in album
         GlobalScope.launch(Dispatchers.IO + albumArtJob) {
-            delay(300)
-            songsInAlbum.postValue(
-                MediaHunter.getSongsInAlbumById(
-                    this@AlbumDetailActivity,
-                    extras[2]
-                )
-            )
+            delay(200)
+            songsInAlbum = MediaHunter.getAudioByAlbumId(this@AlbumDetailActivity, extras[2])
+            withContext(Dispatchers.Main) {
+                adapter.setSongsInAlbum(songsInAlbum)
+            }
         }
-        val observer = Observer<MutableList<MediaMetadataCompat>> {
-            adapter.setSongsInAlbum(it)
-        }
-        songsInAlbum.observe(this@AlbumDetailActivity, observer)
     }
 
     private fun setUpAppBar(isAlbumArtDark: Boolean) {
@@ -223,9 +216,9 @@ class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHold
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
-        val title: TextView = v.findViewById(R.id.title)
-        val artist: TextView = v.findViewById(R.id.artist)
-        val duration: TextView = v.findViewById(R.id.duration)
+        val title: TextView = v.title
+        val artist: TextView = v.artist
+        val duration: TextView = v.duration
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AudioViewHolder {
@@ -241,9 +234,8 @@ class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHold
             Generic.msecToStr(audioItems[position].getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
     }
 
-    override fun getItemCount(): Int {
-        return audioItems.size
-    }
+    override fun getItemCount(): Int = audioItems.size
+
 
     fun setSongsInAlbum(list: MutableList<MediaMetadataCompat>) {
         audioItems = list
