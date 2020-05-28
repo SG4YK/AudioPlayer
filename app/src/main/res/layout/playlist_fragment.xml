@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
         tools:context=".PlaylistFragment" android:id="@+id/frameLayout">
-    <androidx.appcompat.widget.AppCompatTextView
-            android:text="@string/playlist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/textView3"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
-    <androidx.appcompat.widget.AppCompatTextView
-            android:text="TopStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/textView4"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"/>
-    <androidx.appcompat.widget.AppCompatTextView
-            android:text="BottomEnd"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/textView5"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" tools:layout_editor_absoluteY="1dp"
+            tools:layout_editor_absoluteX="1dp" tools:listitem="@layout/playlist_item" android:id="@+id/recyclerView"
+            android:theme="@style/RecyclerViewLight"
+    />
+</FrameLayout>

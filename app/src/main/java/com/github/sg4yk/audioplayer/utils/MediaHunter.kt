@@ -1,6 +1,7 @@
 package com.github.sg4yk.audioplayer.utils
 
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -18,6 +19,7 @@ import androidx.core.database.getStringOrNull
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Artist
 import com.github.sg4yk.audioplayer.media.Audio
+import com.github.sg4yk.audioplayer.media.Playlist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
@@ -60,6 +62,13 @@ object MediaHunter {
         MediaStore.Audio.Artists.Albums.FIRST_YEAR,
         MediaStore.Audio.Artists.Albums.LAST_YEAR,
         MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS
+    )
+
+    private val playlistProjection = arrayOf(
+        MediaStore.Audio.Playlists._ID,
+        MediaStore.Audio.Playlists.NAME,
+        MediaStore.Audio.Playlists.DATE_ADDED,
+        MediaStore.Audio.Playlists.DATE_MODIFIED
     )
 
     private val metadataProjection = arrayOf(
@@ -204,6 +213,10 @@ object MediaHunter {
         )
     }
 
+    fun getAllPlaylists(ctx: Context): MutableList<Playlist> {
+        return queryPlaylist(ctx)
+    }
+
     private fun queryMetadata(
         ctx: Context,
         uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -259,6 +272,17 @@ object MediaHunter {
             }
         }
         return metadataList
+    }
+
+    fun createPlaylist(ctx: Context, name: String) {
+        val resolver = ctx.contentResolver
+        val playListDetail = ContentValues().apply {
+            put(MediaStore.Audio.Playlists.NAME, name)
+            put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis())
+            put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis())
+        }
+        val cusor = resolver.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, playListDetail)
+        Log.d("MediaHunter", "Playlist added")
     }
 
     private fun queryAudio(
@@ -391,5 +415,38 @@ object MediaHunter {
             }
         }
         return artistList
+    }
+
+    private fun queryPlaylist(
+        ctx: Context,
+        uri: Uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+        projection: Array<String> = playlistProjection,
+        selection: String? = null,
+        args: Array<String>? = null,
+        sortOrder: String? = MediaStore.Audio.Playlists.DEFAULT_SORT_ORDER
+    ): MutableList<Playlist> {
+        val playlistList = mutableListOf<Playlist>()
+        ctx.contentResolver.query(
+            uri, projection, selection, args, sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.NAME)
+            val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.DATE_ADDED)
+            val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.DATE_MODIFIED)
+
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getStringOrNull(nameColumn)
+                val dateAdded = cursor.getLongOrNull(dateAddedColumn)
+                val dateModified = cursor.getLongOrNull(dateModifiedColumn)
+                val contentUri =
+                    ContentUris.withAppendedId(
+                        MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                playlistList += Playlist(contentUri, id, name, dateAdded, dateModified)
+            }
+        }
+        return playlistList
     }
 }

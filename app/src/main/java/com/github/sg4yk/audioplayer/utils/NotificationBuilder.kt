@@ -69,7 +69,6 @@ class NotificationBuilder(private val context: Context, private val controller: 
 
         val description = metadata.description
 
-        Log.d("NotificationBuilder", "${description.title} + ${playbackState.stateName}")
         val builder = NotificationCompat.Builder(context, PLAYBACK_CHANNEL)
 
         var playPauseIndex = 0

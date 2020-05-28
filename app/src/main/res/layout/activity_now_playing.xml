@@ -77,7 +77,7 @@
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/buttonPlay"
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#4DFFFFFF"
+                app:backgroundTint="#44FFFFFF"
                 android:outlineProvider="none"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
                                                          android:id="@+id/timebar" android:visibility="gone"/>
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#4DFFFFFF"
+                app:backgroundTint="#44FFFFFF"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
@@ -111,7 +111,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/buttonPlay"/>
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:tint="@color/colorPrimary"
-                app:backgroundTint="#4DFFFFFF"
+                app:backgroundTint="#44FFFFFF"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"

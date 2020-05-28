@@ -108,7 +108,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
             android:id="@+id/recyclerView" android:clipToPadding="false" android:paddingTop="8dp"
-            android:paddingBottom="8dp"/>
+            android:paddingBottom="8dp" tools:listitem="@layout/album_detail_audio_item"/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

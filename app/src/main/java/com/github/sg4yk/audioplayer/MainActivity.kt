@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -45,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var decorView: View
-    private lateinit var defaultBg: Bitmap
     private var controller: MediaControllerCompat? = null
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
@@ -109,6 +109,10 @@ class MainActivity : AppCompatActivity() {
 
             navDrawer.setupWithNavController(navControl)
 
+            infoArea.setOnClickListener {
+                this@MainActivity.startActivity(Intent(this@MainActivity, NowPlayingActivity::class.java))
+            }
+
             navControl.addOnDestinationChangedListener { controller, destination, arguments ->
                 // Change toolbar title when navigate between fragments
                 toolbar.title = when (destination.id) {
@@ -143,13 +147,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (checkPermissionStatus()) {
-            PlaybackManager.connectPlaybackService(this)
-        } else {
-            requestPermissions(permissions, PERMISSION_REQUEST_CODE)
-            return
-        }
-
         // setup fab
         fab.hide()
         fab.setOnClickListener { v ->
@@ -172,11 +169,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        GlobalScope.launch(Dispatchers.Main) {
-            delay(1000)
-            fab.show()
+        if (checkPermissionStatus()) {
+            PlaybackManager.connectPlaybackService(this)
+            GlobalScope.launch(Dispatchers.Main) {
+                delay(1000)
+                fab.show()
+            }
+            startObserve()
+        } else {
+            requestPermissions(permissions, PERMISSION_REQUEST_CODE)
         }
+    }
 
+    private fun startObserve() {
         // setup control when service is connected
         connectionObserver = Observer<Boolean> {
             if (it && controller == null) {
@@ -253,7 +258,6 @@ class MainActivity : AppCompatActivity() {
                 PlaybackManager.playbackState().observe(this, playbackStateObserver)
             }
         }
-
         PlaybackManager.isConnected().observe(this, connectionObserver)
     }
 
@@ -266,14 +270,21 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (PERMISSION_REQUEST_CODE) {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // restart activity
-//                    finish()
-//                    startActivity(intent)
+                    // refresh data
+                    val appViewModel = ViewModelProvider(this).get(AppViewModel::class.java).apply {
+                        refreshAll()
+                    }
+                    GlobalScope.launch(Dispatchers.Main) {
+                        startObserve()
+                        delay(1000)
+                        fab.show()
+                    }
                 } else {
                     showToast("Permission denied")
                 }

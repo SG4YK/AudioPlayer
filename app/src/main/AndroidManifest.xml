@@ -14,8 +14,11 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppThemeNoActionBar">
-        <activity android:name=".ArtistDetailActivity"
-                  android:theme="@style/AppThemeNoActionBar">
+        <activity android:name=".PlaylistDetailActivity">
+        </activity>
+        <activity
+                android:name=".ArtistDetailActivity"
+                android:theme="@style/AppThemeNoActionBar">
         </activity>
         <activity
                 android:name=".AlbumDetailActivity"

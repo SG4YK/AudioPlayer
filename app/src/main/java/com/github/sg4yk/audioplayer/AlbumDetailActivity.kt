@@ -51,19 +51,19 @@ class AlbumDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_album_detail)
 
+        if (threshold == null) {
+            threshold = -(resources.displayMetrics.widthPixels shr 1)
+            statusBarPosThreshold = -resources.displayMetrics.widthPixels * 17 / 20
+        }
+
         decorView = window.decorView
         metadata = intent.getStringArrayExtra(METADATA_TAG)
         albumDetailAdapter = AlbumDetailAdapter(metadata[2])
 
-        toolbar.post {
-            setUpAppBar(intent.getBooleanExtra(IS_DARK_ALBUM_ART_TAG, false))
-        }
-
         loadData()
 
-        if (threshold == null) {
-            threshold = -(resources.displayMetrics.widthPixels shr 1)
-            statusBarPosThreshold = -resources.displayMetrics.widthPixels * 17 / 20
+        toolbar.post {
+            setUpAppBar(intent.getBooleanExtra(IS_DARK_ALBUM_ART_TAG, false))
         }
 
         setSupportActionBar(toolbar)
@@ -195,9 +195,9 @@ class AlbumDetailActivity : AppCompatActivity() {
             appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
                 private var cachedOffset = 0
                 override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
-                    if (cachedOffset > threshold!! && verticalOffset <= threshold!!) {
+                    if (threshold!! in verticalOffset until cachedOffset) {
                         collapse()
-                    } else if (cachedOffset < threshold!! && verticalOffset >= threshold!!) {
+                    } else if (threshold!! in (cachedOffset + 1)..verticalOffset) {
                         expand()
                     }
                     val opacity = (verticalOffset - threshold!!) / 200f

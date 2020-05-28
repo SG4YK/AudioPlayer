@@ -8,10 +8,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import com.github.sg4yk.audioplayer.media.Album
-import com.github.sg4yk.audioplayer.media.Artist
-import com.github.sg4yk.audioplayer.media.Audio
-import com.github.sg4yk.audioplayer.media.MetadataSource
+import com.github.sg4yk.audioplayer.media.*
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import kotlinx.coroutines.*
 
@@ -27,11 +24,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     var artistItemsLiveData: MutableLiveData<MutableList<Artist>> = MutableLiveData()
 
+    var playlistItemsLiveData: MutableLiveData<MutableList<Playlist>> = MutableLiveData()
+
     private var audioItems: MutableList<Audio> = mutableListOf()
 
     private var albumItems: MutableList<Album> = mutableListOf()
 
     private var artistItems: MutableList<Artist> = mutableListOf()
+
+    private var playlistItems: MutableList<Playlist> = mutableListOf()
 
     private var metadataList: MutableList<MediaMetadataCompat> = mutableListOf()
 
@@ -42,6 +43,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var context = application
 
     init {
+        Log.d("AppViewModel", "init")
         GlobalScope.launch {
             delay(100)
             refreshAudioItems()
@@ -51,6 +53,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
             delay(300)
             refreshArtistItems()
+
+            delay(300)
+            refreshPlaylistItems()
+        }
+    }
+
+    fun refreshAll() {
+        GlobalScope.launch {
+            refreshAudioItems()
+            refreshAlbumItems()
+            refreshArtistItems()
+            refreshPlaylistItems()
         }
     }
 
@@ -84,6 +98,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         GlobalScope.launch {
             job.join()
             artistItemsLiveData.postValue(artistItems)
+        }
+    }
+
+    fun refreshPlaylistItems() {
+        playlistItems.clear()
+        val job = GlobalScope.launch(Dispatchers.IO + appModelJob) {
+            playlistItems = MediaHunter.getAllPlaylists(context)
+        }
+        GlobalScope.launch {
+            job.join()
+            playlistItemsLiveData.postValue(playlistItems)
         }
     }
 }

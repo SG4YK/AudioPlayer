@@ -19,7 +19,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.GestureDetectorCompat
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Observer
@@ -67,6 +66,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private var currentButtonState = BUTTON_STATE_NOT_PLAYING
 
     private lateinit var controller: MediaControllerCompat
+    private var enterAniPlayed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -261,14 +261,19 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // set enter animation
         if (!PrefManager.animationReduced(this)) {
-            val extras = intent.getIntArrayExtra(EXTRA_TAG)
-            fabX = extras[0]
-            fabY = extras[1]
-            fabD = extras[2]
-            radius = hypot(fabX.toDouble(), fabY.toDouble()).toFloat()
-            rootLayout.visibility = View.INVISIBLE
-            rootLayout.post {
-                startRevealAnim(fabX, fabY)
+            try {
+                val extras = intent.getIntArrayExtra(EXTRA_TAG)
+                fabX = extras[0]
+                fabY = extras[1]
+                fabD = extras[2]
+                radius = hypot(fabX.toDouble(), fabY.toDouble()).toFloat()
+                rootLayout.visibility = View.INVISIBLE
+                rootLayout.post {
+                    startRevealAnim(fabX, fabY)
+                }
+                enterAniPlayed = true
+            } catch (e: Exception) {
+                Log.d("NowPlayingActivity", e.message)
             }
         }
     }
@@ -315,7 +320,7 @@ class NowPlayingActivity : AppCompatActivity() {
             Log.e(LOG_TAG, e.message)
         }
         backPressLock = true
-        if (!PrefManager.animationReduced(this)) {
+        if (enterAniPlayed && !PrefManager.animationReduced(this)) {
             val endRadius = 100.0f
             val anim = ViewAnimationUtils.createCircularReveal(
                 rootLayout,

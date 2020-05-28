@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="false"
+        tools:context=".AlbumDetailActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:fitsSystemWindows="false"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:theme="@style/AppThemeNoActionBar.AppBarOverlay"
+    >
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar_layout"
+                android:fitsSystemWindows="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:toolbarId="@+id/toolbar"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+                app:contentScrim="@color/colorPrimary"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:expandedTitleTextAppearance="@style/ActionbarTitle.Transparent"
+                app:collapsedTitleTextAppearance="@style/ActionbarTitle.Light"
+        >
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/album_art_container"
+                        app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" app:layout_constraintHorizontal_bias="0.0">
+
+                    <com.github.sg4yk.audioplayer.utils.SquareImageView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:id="@+id/albumArt0" android:tint="@color/transparent"
+                            app:tint="@color/transparent" app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/albumArt1"
+                            app:layout_constraintBottom_toTopOf="@+id/albumArt2"/>
+                    <com.github.sg4yk.audioplayer.utils.SquareImageView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:id="@+id/albumArt1" android:tint="@color/transparent"
+                            app:tint="@color/transparent"
+                            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/albumArt0"
+                            app:layout_constraintBottom_toTopOf="@+id/albumArt3"/>
+                    <com.github.sg4yk.audioplayer.utils.SquareImageView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:id="@+id/albumArt2" android:tint="@color/transparent"
+                            app:tint="@color/transparent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/albumArt3"
+                            app:layout_constraintTop_toBottomOf="@+id/albumArt0"/>
+                    <com.github.sg4yk.audioplayer.utils.SquareImageView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:id="@+id/albumArt3" android:tint="@color/transparent"
+                            app:tint="@color/transparent"
+                            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/albumArt2"
+                            app:layout_constraintTop_toBottomOf="@+id/albumArt1"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:text="Playlist"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content" android:id="@+id/name"
+                        android:transitionName="TRANSITION_TITLE"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        android:textColor="@color/textColorPrimary"
+                        android:elevation="0dp" android:layout_marginStart="72dp" android:layout_marginEnd="64dp"
+                        android:textStyle="normal" app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="32dp"
+                        app:layout_constraintTop_toBottomOf="@+id/album_art_container" android:layout_marginTop="32dp"/>
+
+                <Space
+                        android:layout_width="16dp"
+                        android:layout_height="28dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:id="@+id/space5" app:layout_constraintBottom_toBottomOf="@+id/album_art_container"
+                />
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_play_arrow_white_24dp"
+                        app:tint="@color/colorAccent"
+                        app:backgroundTint="@color/colorPrimary"
+                        android:visibility="visible"
+                        app:fabSize="normal"
+                        app:layout_constraintTop_toTopOf="@+id/space5"
+                        app:layout_constraintEnd_toStartOf="@+id/space5"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_height="?attr/actionBarSize"
+                    android:layout_width="match_parent"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/AppThemeNoActionBar.PopupOverlay"
+                    app:menu="@menu/menu_album_detail"
+                    android:layout_marginTop="@dimen/status_bar_height"
+            />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            android:id="@+id/recyclerView" android:clipToPadding="false" android:paddingTop="8dp"
+            android:paddingBottom="8dp" tools:listitem="@layout/album_detail_audio_item"/>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
