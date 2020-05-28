@@ -42,7 +42,7 @@ class ArtistFragment : Fragment() {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = AlphaInAnimationAdapter(artistItemAdapter).apply {
                     setFirstOnly(false)
-                    setDuration(300)
+                    setDuration(200)
                 }
                 setHasFixedSize(true)
             }

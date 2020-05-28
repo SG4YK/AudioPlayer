@@ -2,14 +2,11 @@ package com.github.sg4yk.audioplayer.utils
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
-import com.github.sg4yk.audioplayer.extensions.isPlaying
-import com.github.sg4yk.audioplayer.extensions.isPrepared
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -30,46 +27,49 @@ object PlaybackManager {
         context.stopService(Intent(context, PlaybackService::class.java))
     }
 
-    fun playAudioFromId(mediaId: String, pauseAllowed: Boolean = true) {
-        GlobalScope.launch {
-            val nowPlaying = connection.nowPlaying.value
-            val controls = connection.transportControls
-            val isPrepared = connection.playbackState.value?.isPrepared ?: false
-            if (isPrepared && mediaId == nowPlaying?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)) {
-                connection.playbackState.value?.let { playbackState ->
-                    when {
-                        playbackState.isPlaying ->
-                            if (pauseAllowed) controls.pause() else Unit
-                        playbackState.isPlayEnabled -> controls.play()
-                        else -> {
-                            Log.w(
-                                "PlayAudio", "Playable item clicked but neither play nor pause are enabled!" +
-                                        " (mediaId=$mediaId)"
-                            )
-                        }
-                    }
-                }
-            } else {
-                controls.prepareFromMediaId(mediaId, null)
-                controls.play()
-            }
-        }
-
-    }
 
     fun playAll() {
         GlobalScope.launch {
             val controls = connection.transportControls
-            controls.prepareFromMediaId(MEDIA_ID_PLAY_ALL, null)
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_ALL)
+            }
+            controls.prepareFromMediaId("PLAYALL", bundle)
             controls.play()
         }
     }
 
-    fun loadAllAndSkipTo(id: Long) {
+    fun loadAllAndSkipTo(audioId: String) {
         GlobalScope.launch {
             val controls = connection.transportControls
-            controls.playFromMediaId(MEDIA_ID_PLAY_ALL, null)
-            controls.skipToQueueItem(id)
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_ALL_AND_SKIP_TO_AUDIO)
+            }
+            controls.prepareFromMediaId(audioId, bundle)
+            controls.play()
+        }
+    }
+
+    fun playAlbum(albumId: String) {
+        GlobalScope.launch {
+            val controls = connection.transportControls
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_ALBUM)
+            }
+            controls.prepareFromMediaId(albumId, bundle)
+            controls.play()
+        }
+    }
+
+    fun loadAlbumAndSkipTo(albumId: String, audioId: String) {
+        GlobalScope.launch {
+            val controls = connection.transportControls
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO)
+                putString(PlaybackPreparer.AUDIO_ID_TAG, audioId)
+            }
+            controls.prepareFromMediaId(albumId, bundle)
+            controls.play()
         }
     }
 
@@ -80,7 +80,6 @@ object PlaybackManager {
     fun play() {
         connection.transportControls.play()
     }
-
 
     fun skipNext() {
         connection.transportControls.skipToNext()

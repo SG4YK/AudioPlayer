@@ -19,10 +19,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.media.session.MediaButtonReceiver
 import com.bumptech.glide.Glide
 import com.github.sg4yk.audioplayer.R
-import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
-import com.github.sg4yk.audioplayer.extensions.isPlaying
-import com.github.sg4yk.audioplayer.extensions.isSkipToNextEnabled
-import com.github.sg4yk.audioplayer.extensions.isSkipToPreviousEnabled
+import com.github.sg4yk.audioplayer.extensions.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -61,15 +58,18 @@ class NotificationBuilder(private val context: Context, private val controller: 
     private val stopPendingIntent =
         MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP)
 
-    suspend fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
+    suspend fun buildNotification(
+        sessionToken: MediaSessionCompat.Token,
+        playbackState: PlaybackStateCompat,
+        metadata: MediaMetadataCompat
+    ): Notification {
         if (shouldCreateNowPlayingChannel()) {
             createNowPlayingChannel()
         }
 
-        val description = controller.metadata.description
+        val description = metadata.description
 
-        val playbackState = controller.playbackState
-
+        Log.d("NotificationBuilder", "${description.title} + ${playbackState.stateName}")
         val builder = NotificationCompat.Builder(context, PLAYBACK_CHANNEL)
 
         var playPauseIndex = 0

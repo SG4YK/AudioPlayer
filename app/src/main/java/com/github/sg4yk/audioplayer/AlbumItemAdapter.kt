@@ -93,7 +93,6 @@ class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>(
                         }
                     }
                 }
-
         }
     }
 

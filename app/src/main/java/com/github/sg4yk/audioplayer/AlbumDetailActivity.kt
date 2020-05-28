@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
@@ -14,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
@@ -24,8 +22,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.FutureTarget
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.activity_album_detail.*
 import kotlinx.android.synthetic.main.album_detail_audio_item.view.*
@@ -42,17 +40,20 @@ class AlbumDetailActivity : AppCompatActivity() {
         private val whiteFilter = PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.DST)
     }
 
-    private val adapter = AlbumDetailAdapter()
+    private lateinit var albumDetailAdapter: AlbumDetailAdapter
     private lateinit var decorView: View
     private var navIcon: Drawable? = null
     private var songsInAlbum: MutableList<MediaMetadataCompat> = mutableListOf()
     private val albumArtJob = SupervisorJob()
+    private lateinit var metadata: Array<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_album_detail)
 
         decorView = window.decorView
+        metadata = intent.getStringArrayExtra(METADATA_TAG)
+        albumDetailAdapter = AlbumDetailAdapter(metadata[2])
 
         toolbar.post {
             setUpAppBar(intent.getBooleanExtra(IS_DARK_ALBUM_ART_TAG, false))
@@ -68,19 +69,15 @@ class AlbumDetailActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Not implemented yet", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
-
         GlobalScope.launch(Dispatchers.Main) {
-            val layoutManager = LinearLayoutManager(this@AlbumDetailActivity)
-            recyclerView.layoutManager = layoutManager
-            recyclerView.adapter = AlphaInAnimationAdapter(adapter).apply {
-                setFirstOnly(false)
-                setDuration(300)
+            recyclerView.apply {
+                layoutManager = LinearLayoutManager(this@AlbumDetailActivity)
+                adapter = AlphaInAnimationAdapter(albumDetailAdapter).apply {
+                    setFirstOnly(false)
+                    setDuration(200)
+                }
+                setHasFixedSize(true)
             }
-            recyclerView.setHasFixedSize(true)
         }
     }
 
@@ -97,14 +94,11 @@ class AlbumDetailActivity : AppCompatActivity() {
         fab.show()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+    //    @RequiresApi(Build.VERSION_CODES.Q)
     private fun loadData() {
-        // load album metadata
-        val extras = intent.getStringArrayExtra(METADATA_TAG)
-
         GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             // set album art
-            val albumArtUri = MediaHunter.getArtUriFromAlbumId(extras[2].toLong())
+            val albumArtUri = MediaHunter.getArtUriFromAlbumId(metadata[2].toLong())
 
             var bitmap = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
 
@@ -145,17 +139,22 @@ class AlbumDetailActivity : AppCompatActivity() {
         }
 
         // load metadata
-        albumTitle.text = extras[0]
-        artist.text = extras[1]
-        toolbar.title = extras[0]
+        albumTitle.text = metadata[0]
+        artist.text = metadata[1]
+        toolbar.title = metadata[0]
 
         // load songs in album
         GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             delay(200)
-            songsInAlbum = MediaHunter.getAudioByAlbumId(this@AlbumDetailActivity, extras[2])
+            songsInAlbum = MediaHunter.getAudioByAlbumId(this@AlbumDetailActivity, metadata[2])
             withContext(Dispatchers.Main) {
-                adapter.setSongsInAlbum(songsInAlbum)
+                albumDetailAdapter.setSongsInAlbum(songsInAlbum)
             }
+        }
+
+        // set up fab
+        fab.setOnClickListener {
+            PlaybackManager.playAlbum(metadata[2])
         }
     }
 
@@ -168,17 +167,17 @@ class AlbumDetailActivity : AppCompatActivity() {
             appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
                 private var cachedOffset = 0
                 override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
-                    if (cachedOffset > threshold!! && verticalOffset <= threshold!!) {
+                    if (threshold!! in verticalOffset until cachedOffset) {
                         collapse()
-                    } else if (cachedOffset < threshold!! && verticalOffset >= threshold!!) {
+                    } else if (threshold!! in (cachedOffset + 1)..verticalOffset) {
                         expand()
                     }
 
-                    if (cachedOffset > statusBarPosThreshold!! && verticalOffset <= statusBarPosThreshold!!) {
+                    if (statusBarPosThreshold!! in verticalOffset until cachedOffset) {
                         // collapsing
                         navIcon?.clearColorFilter()
                         Generic.setLightStatusBar(decorView, true)
-                    } else if (cachedOffset < statusBarPosThreshold!! && verticalOffset >= statusBarPosThreshold!!) {
+                    } else if (statusBarPosThreshold!! in (cachedOffset + 1)..verticalOffset) {
                         // expanding
                         navIcon?.colorFilter = whiteFilter
                         Generic.setLightStatusBar(decorView, false)
@@ -211,7 +210,7 @@ class AlbumDetailActivity : AppCompatActivity() {
     }
 }
 
-class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHolder>() {
+class AlbumDetailAdapter(val albumId: String) : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHolder>() {
     var audioItems: MutableList<MediaMetadataCompat> = mutableListOf()
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -232,6 +231,14 @@ class AlbumDetailAdapter : RecyclerView.Adapter<AlbumDetailAdapter.AudioViewHold
         holder.artist.text = audioItems[position].description.subtitle
         holder.duration.text =
             Generic.msecToStr(audioItems[position].getLong(MediaMetadataCompat.METADATA_KEY_DURATION))
+        holder.view.setOnClickListener {
+            audioItems[position].description.mediaId?.let { audioId ->
+                PlaybackManager.loadAlbumAndSkipTo(
+                    albumId,
+                    audioId
+                )
+            }
+        }
     }
 
     override fun getItemCount(): Int = audioItems.size

@@ -67,202 +67,28 @@ object MediaHunter {
         MediaStore.Audio.Media.ALBUM_ID
     )
 
-    suspend fun getAllAudio(ctx: Context): MutableList<Audio> {
-        val audioList = mutableListOf<Audio>()
-        ctx.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            audioProjection, null, null,
-            "${MediaStore.Audio.Media.DATE_ADDED} DESC"
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-            var id: Long = 0L
-            var title: String? = null
-            var artist: String? = null
-            var album: String? = null
-            var albumId: Long? = null
-            var year: Int? = null
-            var duration: Long? = null
-            var contentUri: Uri = Uri.EMPTY
-
-            cachedIdMapping.put(id, albumId ?: ALBUM_NOT_EXIST)
-
-            while (cursor.moveToNext()) {
-                id = cursor.getLong(idColumn)
-                title = cursor.getStringOrNull(titleColumn)
-                artist = cursor.getStringOrNull(artistColumn)
-                album = cursor.getStringOrNull(albumColumn)
-                albumId = cursor.getLongOrNull(albumIdColumn)
-                year = cursor.getIntOrNull(yearColumn)
-                duration = cursor.getLongOrNull(durationColumn)
-                contentUri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    id
-                )
-                try {
-                    cachedIdMapping.put(id, albumId ?: ALBUM_NOT_EXIST)
-                } catch (e: Exception) {
-                    Log.w("MediaHunter", e.message)
-                }
-                audioList.add(Audio(contentUri, id, title, artist, album, albumId, year, duration))
-            }
-
-            title = null
-            artist = null
-            album = null
-            albumId = null
-            year = null
-            duration = null
-        }
-        return audioList
+    fun getAllAudio(ctx: Context): MutableList<Audio> {
+        return queryAudio(ctx, sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC")
     }
 
     fun getAllMetadata(ctx: Context): List<MediaMetadataCompat> {
-        // Not loading album art for performance
-
-        val metaList = mutableListOf<MediaMetadataCompat>()
-        ctx.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            audioProjection, null, null,
-            "${MediaStore.Audio.Media.DATE_ADDED} DESC"
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-            var id: Long? = null
-            var title: String? = null
-            var artist: String? = null
-            var album: String? = null
-            var year: Int? = null
-            var audioUri: Uri? = null
-            var duration: Int? = null
-
-            while (cursor.moveToNext()) {
-                id = cursor.getLong(idColumn)
-                title = cursor.getStringOrNull(titleColumn)
-                artist = cursor.getStringOrNull(artistColumn)
-                album = cursor.getStringOrNull(albumColumn)
-                year = cursor.getIntOrNull(yearColumn)
-                duration = cursor.getIntOrNull(durationColumn)
-                audioUri = id.let {
-                    ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        it
-                    )
-                }
-
-                val metadata = MediaMetadataCompat.Builder().apply {
-                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
-                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                    putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                    year?.toLong()?.let { putLong(MediaMetadataCompat.METADATA_KEY_YEAR, it) }
-                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, audioUri.toString())
-                    putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "$artist - $album")
-                    putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration!!.toLong())
-                }.build()
-                metaList += metadata
-            }
-        }
-        return metaList
+        val metadata = queryMetadata(ctx, sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC")
+        return metadata
     }
 
     fun getAudioByAlbumId(ctx: Context, albumId: String): MutableList<MediaMetadataCompat> {
-        val metaList = mutableListOf<MediaMetadataCompat>()
-        ctx.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            audioProjection,
-            "${MediaStore.Audio.Media.ALBUM_ID} = ?",
-            arrayOf(albumId),
-            null,
-            null
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-            var id: Long = 0
-            var title: String? = null
-            var artist: String? = null
-            var album: String? = null
-            var year: Int? = null
-            var audioUri: Uri? = null
-            var duration: Int? = null
-
-            while (cursor.moveToNext()) {
-                id = cursor.getLong(idColumn)
-                title = cursor.getStringOrNull(titleColumn)
-                artist = cursor.getStringOrNull(artistColumn)
-                album = cursor.getStringOrNull(albumColumn)
-                year = cursor.getIntOrNull(yearColumn)
-                duration = cursor.getIntOrNull(durationColumn)
-                audioUri = id.let {
-                    ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        it
-                    )
-                }
-
-                val metadata = MediaMetadataCompat.Builder().apply {
-                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
-                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                    putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                    year?.toLong()?.let { putLong(MediaMetadataCompat.METADATA_KEY_YEAR, it) }
-                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, audioUri.toString())
-                    putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "$artist - $album")
-                    putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration!!.toLong())
-                }.build()
-                metaList += metadata
-            }
-        }
-        return metaList
+//        val metadata = queryMetadata(ctx, sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC")
+        val metadata = queryMetadata(
+            ctx,
+            selection = "${MediaStore.Audio.Media.ALBUM_ID} = ?",
+            args = arrayOf(albumId),
+            sortOrder = MediaStore.Audio.Media.DEFAULT_SORT_ORDER
+        )
+        return metadata
     }
 
-
     fun getAllAlbums(ctx: Context): MutableList<Album> {
-        val albumList = mutableListOf<Album>()
-        ctx.contentResolver.query(
-            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-            albumProjection, null, null,
-            MediaStore.Audio.Albums.DEFAULT_SORT_ORDER
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ARTIST)
-            val firstYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.FIRST_YEAR)
-            val lastYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.LAST_YEAR)
-            val songsColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.NUMBER_OF_SONGS)
-
-            while (cursor.moveToNext()) {
-                val id = idColumn.let { cursor.getLong(it) }
-                val album = albumColumn.let { cursor.getStringOrNull(it) }
-                val artist = artistColumn.let { cursor.getStringOrNull(it) }
-                val firstYear = firstYearColumn.let { cursor.getIntOrNull(it) }
-                val lastYear = lastYearColumn.let { cursor.getIntOrNull(it) }
-                val songs = songsColumn.let { cursor.getIntOrNull(it) }
-                val contentUri =
-                    ContentUris.withAppendedId(
-                        MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-                albumList += Album(contentUri, id, album, artist, firstYear, lastYear, songs)
-            }
-        }
-        return albumList
+        return queryAlbum(ctx)
     }
 
     suspend fun getAlbumIdFromAudioId(ctx: Context, mediaId: String, noCache: Boolean = false): Long {
@@ -367,50 +193,155 @@ object MediaHunter {
     )
 
     fun getAllArtists(ctx: Context): MutableList<Artist> {
-        val artistList = mutableListOf<Artist>()
-        ctx.contentResolver.query(
-            MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
-            artistProjection, null, null,
-            MediaStore.Audio.Artists.DEFAULT_SORT_ORDER
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)
-
-            var id: Long? = null
-            var artist: String? = null
-
-            while (cursor.moveToNext()) {
-                id = idColumn.let { cursor.getLong(it) }
-                artist = artistColumn.let { cursor.getStringOrNull(it) }
-                val contentUri =
-                    ContentUris.withAppendedId(
-                        MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-                val artist = Artist(contentUri, id, artist)
-                artistList += artist
-            }
-        }
-        return artistList
+        return queryArtist(ctx)
     }
 
     fun getAlbumsByArtistId(ctx: Context, artistId: Long): MutableList<Album> {
-        val uri = MediaStore.Audio.Artists.Albums.getContentUri(VOLUME_EXTERNAL, artistId)
-        val albumList = mutableListOf<Album>()
-        val projection = arrayOf(
-            MediaStore.Audio.Artists.Albums.ALBUM_ID
+        return queryAlbum(
+            ctx,
+            uri = MediaStore.Audio.Artists.Albums.getContentUri(VOLUME_EXTERNAL, artistId),
+            projection = artistAlbumProjection
         )
+    }
+
+    private fun queryMetadata(
+        ctx: Context,
+        uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+        projection: Array<String> = audioProjection,
+        selection: String? = null,
+        args: Array<String>? = null,
+        sortOrder: String? = null
+    ): MutableList<MediaMetadataCompat> {
+        val metadataList = mutableListOf<MediaMetadataCompat>()
+        ctx.contentResolver.query(
+            uri, projection, selection, args, sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+
+            var id: Long? = null
+            var title: String? = null
+            var artist: String? = null
+            var album: String? = null
+            var year: Int? = null
+            var audioUri: Uri? = null
+            var duration: Int? = null
+
+            while (cursor.moveToNext()) {
+                id = cursor.getLong(idColumn)
+                title = cursor.getStringOrNull(titleColumn)
+                artist = cursor.getStringOrNull(artistColumn)
+                album = cursor.getStringOrNull(albumColumn)
+                year = cursor.getIntOrNull(yearColumn)
+                duration = cursor.getIntOrNull(durationColumn)
+                audioUri = id.let {
+                    ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        it
+                    )
+                }
+
+                val metadata = MediaMetadataCompat.Builder().apply {
+                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id.toString())
+                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                    putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                    year?.toLong()?.let { putLong(MediaMetadataCompat.METADATA_KEY_YEAR, it) }
+                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, audioUri.toString())
+                    putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "$artist - $album")
+                    putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration!!.toLong())
+                }.build()
+                metadataList += metadata
+            }
+        }
+        return metadataList
+    }
+
+    private fun queryAudio(
+        ctx: Context,
+        uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+        projection: Array<String> = audioProjection,
+        selection: String? = null,
+        args: Array<String>? = null,
+        sortOrder: String? = null
+    ): MutableList<Audio> {
+        val audioList = mutableListOf<Audio>()
+        ctx.contentResolver.query(
+            uri, projection, selection, args, sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+
+            var id: Long = 0L
+            var title: String? = null
+            var artist: String? = null
+            var album: String? = null
+            var albumId: Long? = null
+            var year: Int? = null
+            var duration: Long? = null
+            var contentUri: Uri = Uri.EMPTY
+
+            cachedIdMapping[id] = albumId ?: ALBUM_NOT_EXIST
+
+            while (cursor.moveToNext()) {
+                id = cursor.getLong(idColumn)
+                title = cursor.getStringOrNull(titleColumn)
+                artist = cursor.getStringOrNull(artistColumn)
+                album = cursor.getStringOrNull(albumColumn)
+                albumId = cursor.getLongOrNull(albumIdColumn)
+                year = cursor.getIntOrNull(yearColumn)
+                duration = cursor.getLongOrNull(durationColumn)
+                contentUri = ContentUris.withAppendedId(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+                try {
+                    cachedIdMapping.put(id, albumId ?: ALBUM_NOT_EXIST)
+                } catch (e: Exception) {
+                    Log.w("MediaHunter", e.message)
+                }
+                audioList.add(Audio(contentUri, id, title, artist, album, albumId, year, duration))
+            }
+
+            title = null
+            artist = null
+            album = null
+            albumId = null
+            year = null
+            duration = null
+        }
+        return audioList
+    }
+
+    private fun queryAlbum(
+        ctx: Context,
+        uri: Uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+        projection: Array<String> = albumProjection,
+        selection: String? = null,
+        args: Array<String>? = null,
+        sortOrder: String? = MediaStore.Audio.Albums.DEFAULT_SORT_ORDER
+    ): MutableList<Album> {
+        val albumList = mutableListOf<Album>()
         ctx.contentResolver.query(
             uri,
-            artistAlbumProjection, null, null,
-            MediaStore.Audio.Albums.DEFAULT_SORT_ORDER
+            projection, selection, args,
+            sortOrder
         )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM_ID)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ALBUM)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.ARTIST)
-            val firstYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.FIRST_YEAR)
-            val lastYearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.LAST_YEAR)
-            val songsColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.Albums.NUMBER_OF_SONGS)
+            val idColumn = cursor.getColumnIndexOrThrow(projection[0])
+            val albumColumn = cursor.getColumnIndexOrThrow(projection[1])
+            val artistColumn = cursor.getColumnIndexOrThrow(projection[2])
+            val firstYearColumn = cursor.getColumnIndexOrThrow(projection[3])
+            val lastYearColumn = cursor.getColumnIndexOrThrow(projection[4])
+            val songsColumn = cursor.getColumnIndexOrThrow(projection[5])
 
             while (cursor.moveToNext()) {
                 val id = idColumn.let { cursor.getLong(it) }
@@ -428,5 +359,37 @@ object MediaHunter {
             }
         }
         return albumList
+    }
+
+    private fun queryArtist(
+        ctx: Context,
+        uri: Uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+        projection: Array<String> = artistProjection,
+        selection: String? = null,
+        args: Array<String>? = null,
+        sortOrder: String? = MediaStore.Audio.Artists.DEFAULT_SORT_ORDER
+    ): MutableList<Artist> {
+        val artistList = mutableListOf<Artist>()
+        ctx.contentResolver.query(
+            uri, projection, selection, args, sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists._ID)
+            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST)
+
+            var id: Long? = null
+            var artist: String? = null
+
+            while (cursor.moveToNext()) {
+                id = idColumn.let { cursor.getLong(it) }
+                artist = artistColumn.let { cursor.getStringOrNull(it) }
+                val contentUri =
+                    ContentUris.withAppendedId(
+                        MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                artistList += Artist(contentUri, id, artist)
+            }
+        }
+        return artistList
     }
 }

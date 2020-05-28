@@ -43,7 +43,7 @@ class LibraryFragment : Fragment() {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = AlphaInAnimationAdapter(audioItemAdapter).apply {
                     setFirstOnly(true)
-                    setDuration(300)
+                    setDuration(200)
                 }
                 setHasFixedSize(true)
             }

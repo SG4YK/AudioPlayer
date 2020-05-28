@@ -140,12 +140,35 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
         state = STATE_INITIALIZING
     }
 
-    override suspend fun load(){
+    override suspend fun load() {
         try {
             list = MediaHunter.getAllMetadata(context)
+//            list = MediaHunter.getAudioByAlbumId(context, "3")
             state = STATE_INITIALIZED
         } catch (e: Exception) {
             Log.e("MetadataSource", e.message)
+        }
+    }
+
+    override fun iterator(): Iterator<MediaMetadataCompat> {
+        return list.iterator()
+    }
+}
+
+class AlbumSource(private val context: Context, private val albumId: String) : AbstractMusicSource() {
+
+    var list: List<MediaMetadataCompat> = listOf()
+
+    init {
+        state = STATE_INITIALIZING
+    }
+
+    override suspend fun load() {
+        try {
+            list = MediaHunter.getAudioByAlbumId(context, albumId).toList()
+            state = STATE_INITIALIZED
+        } catch (e: Exception) {
+            Log.e("AlbumSource", e.message)
         }
     }
 

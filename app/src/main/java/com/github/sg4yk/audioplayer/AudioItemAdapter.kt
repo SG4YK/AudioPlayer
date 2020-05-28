@@ -47,7 +47,7 @@ class AudioItemAdapter : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>(
                 holder.description.text = "${audio.artist ?: "Unknown artist"} - ${audio.album ?: "Unknown album"}"
                 holder.duration.text = Generic.msecToStr(audioItems[position].duration ?: 0)
                 holder.view.setOnClickListener {
-                    PlaybackManager.playAudioFromId(audio.id.toString())
+                    PlaybackManager.loadAllAndSkipTo(audio.id.toString())
                 }
             }
 

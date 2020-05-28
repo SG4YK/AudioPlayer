@@ -8,9 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.github.sg4yk.audioplayer.media.Album
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
+import kotlinx.android.synthetic.main.album_fragment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -24,9 +24,7 @@ class AlbumFragment : Fragment() {
     }
 
     private lateinit var viewModel: AppViewModel
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var layoutManager: GridLayoutManager
-    private lateinit var adapter: AlbumItemAdapter
+    private lateinit var albumItemAdapter: AlbumItemAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,25 +35,26 @@ class AlbumFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        adapter = AlbumItemAdapter()
+        albumItemAdapter = AlbumItemAdapter()
 
         GlobalScope.launch(Dispatchers.Main) {
             delay(300)
-            recyclerView = view!!.findViewById(R.id.recycler_album)
-
-            layoutManager = GridLayoutManager(activity, 2)
-            recyclerView.layoutManager = layoutManager
-            recyclerView.adapter = AlphaInAnimationAdapter(adapter).apply {
-                setFirstOnly(true)
-                setDuration(300)
+            recyclerView.apply {
+                layoutManager = GridLayoutManager(activity, 2)
+                adapter = AlphaInAnimationAdapter(albumItemAdapter).apply {
+                    setFirstOnly(true)
+                    setDuration(200)
+                }
+                setHasFixedSize(true)
             }
-            recyclerView.setHasFixedSize(true)
+
             viewModel = activity?.run {
                 ViewModelProvider(this).get(AppViewModel::class.java)
             }!!
+
             val albumList = viewModel.albumItemsLiveData
             val observer = Observer<MutableList<Album>> {
-                adapter.setAlbums(it)
+                albumItemAdapter.setAlbums(it)
             }
             albumList.observe(viewLifecycleOwner, observer)
         }

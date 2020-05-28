@@ -6,10 +6,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.activity_artist_detail.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class ArtistDetailActivity : AppCompatActivity() {
     companion object {
@@ -29,22 +26,21 @@ class ArtistDetailActivity : AppCompatActivity() {
         }
         val albumItemAdapter = AlbumItemAdapter()
 
-
         recyclerView.apply {
             layoutManager = GridLayoutManager(this@ArtistDetailActivity, 2)
             adapter = AlphaInAnimationAdapter(albumItemAdapter).apply {
                 setFirstOnly(true)
-                setDuration(300)
+                setDuration(200)
             }
             setHasFixedSize(true)
         }
 
-
         GlobalScope.launch(Dispatchers.IO) {
+            delay(50)
             val albumList = MediaHunter.getAlbumsByArtistId(this@ArtistDetailActivity, extras[0].toLong())
-//            withContext(Dispatchers.Main) {
-            albumItemAdapter.setAlbums(albumList)
-//            }
+            withContext(Dispatchers.Main) {
+                albumItemAdapter.setAlbums(albumList)
+            }
         }
     }
 

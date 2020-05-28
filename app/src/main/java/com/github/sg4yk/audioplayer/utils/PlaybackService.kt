@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -14,7 +13,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
@@ -67,9 +65,9 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     private val exoPlayer: SimpleExoPlayer by lazy {
-        SimpleExoPlayer.Builder(this).build().also {
-            it.setAudioAttributes(audioAttributes, true)
-            it.playWhenReady = true
+        SimpleExoPlayer.Builder(this).build().apply {
+            setAudioAttributes(audioAttributes, true)
+            playWhenReady = true
         }
     }
 
@@ -103,7 +101,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
         mediaSource = MetadataSource(this)
 
-        GlobalScope.launch {
+        serviceScope.launch() {
             mediaSource.load()
         }
 
@@ -119,15 +117,23 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 this,
                 mediaSource,
                 exoPlayer,
-                dataSourceFactory
+                dataSourceFactory,
+                serviceScope
             )
 
             connector.setPlayer(exoPlayer)
             connector.setPlaybackPreparer(playbackPreparer)
             connector.setQueueNavigator(QueueNavigator(mediaSession))
+            connector.setMediaMetadataProvider(object : MediaSessionConnector.MediaMetadataProvider {
+                override fun getMetadata(player: Player): MediaMetadataCompat {
+                    try {
+                        return player.currentTag as MediaMetadataCompat
+                    } catch (e: Exception) {
+                        return MediaMetadataCompat.Builder().build()
+                    }
+                }
+            })
         }
-
-        Log.d("PlaybackService", "Service started")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -143,7 +149,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        Log.d("PlaybackService", "Stopping service")
         becomingNoisyReceiver.unregister()
         mediaSession.run {
             isActive = false
@@ -158,7 +163,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
         removeNowPlayingNotification()
         stopSelf()
         super.onDestroy()
-        Log.d("PlaybackService", "Service stopped")
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
@@ -225,52 +229,39 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-
-        private var cachedMediaUri: Uri? = null
         private var cachedState: Int = PlaybackStateCompat.STATE_NONE
+
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            // only apply when start playing a new track
-            val s = state!!.state
-            when (s) {
-                PlaybackStateCompat.STATE_NONE -> {
-                    removeNowPlayingNotification()
-                }
-                PlaybackStateCompat.STATE_PLAYING -> {
-                    val currentMediaUri = mediaController.metadata.description.mediaUri
-                    if (cachedState == state.state
-                        && (currentMediaUri == cachedMediaUri || currentMediaUri == null)
-                    ) {
-                        return
-                    }
-                    cachedMediaUri = currentMediaUri
-
-                    serviceScope.launch {
-                        updateNotification(state)
-                    }
-
-                }
-                PlaybackStateCompat.STATE_PAUSED -> {
-                    serviceScope.launch {
-                        updateNotification(state)
-                    }
-                }
+            val metadata = mediaController.metadata
+            // Prevent duplicated update
+            if (state?.state == cachedState) {
+                return
+            }
+            cachedState = state?.state ?: PlaybackStateCompat.STATE_NONE
+            serviceScope.launch {
+                updateNotification(state, mediaController.metadata)
+            }
+            serviceScope.launch {
+                delay(1000)
             }
         }
 
-        private suspend fun updateNotification(state: PlaybackStateCompat) {
-            val updatedState = state.state
+        private suspend fun updateNotification(state: PlaybackStateCompat?, metadata: MediaMetadataCompat) {
+            val updatedState = state?.state ?: PlaybackStateCompat.STATE_NONE
 
-            // Skip building a notification when state is "none" and metadata is null.
-            val notification = if (mediaController.metadata != null
-                && updatedState != PlaybackStateCompat.STATE_NONE
-            ) {
-                notificationBuilder.buildNotification(mediaSession.sessionToken)
-            } else {
-                null
-            }
+            val notification =
+                if (updatedState == PlaybackStateCompat.STATE_PLAYING
+                    || updatedState == PlaybackStateCompat.STATE_PAUSED
+                ) {
+                    notificationBuilder.buildNotification(mediaSession.sessionToken, state!!, metadata)
+                } else {
+                    null
+                }
 
             when (updatedState) {
-                PlaybackStateCompat.STATE_BUFFERING,
+                PlaybackStateCompat.STATE_BUFFERING -> {
+                    // DO NOTHING
+                }
 
                 PlaybackStateCompat.STATE_PLAYING -> {
                     becomingNoisyReceiver.register()
@@ -318,19 +309,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     ) : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat {
             val metadata = player.currentTag as MediaMetadataCompat
-//            val description = metadata.description
-//            val title = description.title
-//            val artist = description.subtitle
-//            val album = description.description
-//            val uri = Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
-//            return MediaDescriptionCompat.Builder()
-//                .setTitle(title)
-//                .setSubtitle(artist)
-//                .setDescription(album)
-//                .setMediaUri(uri)
-//                .build()
             return metadata.description
         }
-
     }
 }

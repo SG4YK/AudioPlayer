@@ -200,12 +200,14 @@ class MainActivity : AppCompatActivity() {
                 buttonSkipNext.setOnClickListener {
                     if (!skipLock) {
                         PlaybackManager.skipNext()
+                        PlaybackManager.play()
                     }
                 }
 
                 buttonSkipPrevious.setOnClickListener {
                     if (!skipLock) {
                         PlaybackManager.skipPrevious()
+                        PlaybackManager.play()
                     }
                 }
 
@@ -228,16 +230,23 @@ class MainActivity : AppCompatActivity() {
                 PlaybackManager.nowPlaying().observe(this, metadataObserver)
 
                 // observe playback state
-                playbackStateObserver = Observer<PlaybackStateCompat> { state ->
-                    when (state?.state) {
-                        PlaybackStateCompat.STATE_PLAYING -> {
-                            setButtonState(BUTTON_STATE_PLAYING)
+                playbackStateObserver = object : Observer<PlaybackStateCompat> {
+                    private var cachedState = PlaybackStateCompat.STATE_NONE
+                    override fun onChanged(state: PlaybackStateCompat?) {
+                        if (state?.state == cachedState) {
+                            return
                         }
-                        PlaybackStateCompat.STATE_BUFFERING -> {
-                            // DO NOTHING
-                        }
-                        else -> {
-                            setButtonState(BUTTON_STATE_NOT_PLAYING)
+                        cachedState = state?.state ?: PlaybackStateCompat.STATE_NONE
+                        when (state?.state) {
+                            PlaybackStateCompat.STATE_PLAYING -> {
+                                setButtonState(BUTTON_STATE_PLAYING)
+                            }
+                            PlaybackStateCompat.STATE_BUFFERING -> {
+                                // DO NOTHING
+                            }
+                            else -> {
+                                setButtonState(BUTTON_STATE_NOT_PLAYING)
+                            }
                         }
                     }
                 }
