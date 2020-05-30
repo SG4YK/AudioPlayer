@@ -40,10 +40,10 @@
             android:id="@+id/space2" app:layout_constraintStart_toEndOf="@+id/imageView"/>
     <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content" android:id="@+id/artist"
+            android:layout_height="wrap_content" android:id="@+id/description"
             android:textAppearance="?attr/textAppearanceListItemSecondary"
             app:layout_constraintBottom_toBottomOf="@+id/space2" app:layout_constraintStart_toEndOf="@+id/space2"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp" android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="@+id/title" android:ellipsize="end"
             android:singleLine="true"/>
     <ImageView
             android:layout_width="24dp"
@@ -52,5 +52,10 @@
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="16dp"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_marginTop="16dp"/>
+    <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" android:id="@+id/menuAnchor"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

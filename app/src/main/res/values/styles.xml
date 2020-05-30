@@ -37,7 +37,7 @@
 
     <style name="CustomToolbarLight" parent="@style/Widget.MaterialComponents.Toolbar">
         <item name="android:elevation" tools:ignore="NewApi,PrivateResource">@dimen/design_appbar_elevation</item>
-        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:background">@color/white</item>
         <item name="titleTextColor">?android:attr/textColorPrimary</item>
         <item name="subtitleTextColor">?android:attr/textColorSecondary</item>
         <item name="android:theme">@style/CustomToolbarLight.Primary</item>

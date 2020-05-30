@@ -165,7 +165,29 @@ class AlbumSource(private val context: Context, private val albumId: String) : A
 
     override suspend fun load() {
         try {
-            list = MediaHunter.getAudioByAlbumId(context, albumId).toList()
+            list = MediaHunter.getMetadataByAlbumId(context, albumId).toList()
+            state = STATE_INITIALIZED
+        } catch (e: Exception) {
+            Log.e("AlbumSource", e.message)
+        }
+    }
+
+    override fun iterator(): Iterator<MediaMetadataCompat> {
+        return list.iterator()
+    }
+}
+
+class PlaylistSource(private val context: Context, private val playlistId: String) : AbstractMusicSource() {
+
+    var list: List<MediaMetadataCompat> = listOf()
+
+    init {
+        state = STATE_INITIALIZING
+    }
+
+    override suspend fun load() {
+        try {
+            list = MediaHunter.getMetadataByPlayListId(context, playlistId).toList()
             state = STATE_INITIALIZED
         } catch (e: Exception) {
             Log.e("AlbumSource", e.message)

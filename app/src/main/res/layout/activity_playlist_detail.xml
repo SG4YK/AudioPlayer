@@ -23,7 +23,7 @@
                 android:layout_height="wrap_content"
                 app:toolbarId="@+id/toolbar"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-                app:contentScrim="@color/colorPrimary"
+                app:contentScrim="@color/white"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:expandedTitleTextAppearance="@style/ActionbarTitle.Transparent"
                 app:collapsedTitleTextAppearance="@style/ActionbarTitle.Light"
@@ -31,18 +31,19 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content" android:background="@color/white">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/album_art_container"
+                        android:id="@+id/albumArtContainer"
                         app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" app:layout_constraintHorizontal_bias="0.0">
+                        app:layout_constraintEnd_toEndOf="parent" app:layout_constraintHorizontal_bias="0.0"
+                        android:background="@color/white">
 
                     <com.github.sg4yk.audioplayer.utils.SquareImageView
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:layout_height="wrap_content" app:srcCompat="@color/white"
                             android:id="@+id/albumArt0" android:tint="@color/transparent"
                             app:tint="@color/transparent" app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
@@ -50,7 +51,7 @@
                             app:layout_constraintBottom_toTopOf="@+id/albumArt2"/>
                     <com.github.sg4yk.audioplayer.utils.SquareImageView
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:layout_height="wrap_content" app:srcCompat="@color/white"
                             android:id="@+id/albumArt1" android:tint="@color/transparent"
                             app:tint="@color/transparent"
                             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent"
@@ -58,7 +59,7 @@
                             app:layout_constraintBottom_toTopOf="@+id/albumArt3"/>
                     <com.github.sg4yk.audioplayer.utils.SquareImageView
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:layout_height="wrap_content" app:srcCompat="@color/white"
                             android:id="@+id/albumArt2" android:tint="@color/transparent"
                             app:tint="@color/transparent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -67,7 +68,7 @@
                             app:layout_constraintTop_toBottomOf="@+id/albumArt0"/>
                     <com.github.sg4yk.audioplayer.utils.SquareImageView
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content" app:srcCompat="@drawable/default_album_art_blue"
+                            android:layout_height="wrap_content" app:srcCompat="@color/white"
                             android:id="@+id/albumArt3" android:tint="@color/transparent"
                             app:tint="@color/transparent"
                             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
@@ -86,13 +87,13 @@
                         android:elevation="0dp" android:layout_marginStart="72dp" android:layout_marginEnd="64dp"
                         android:textStyle="normal" app:layout_constraintBottom_toBottomOf="parent"
                         android:layout_marginBottom="32dp"
-                        app:layout_constraintTop_toBottomOf="@+id/album_art_container" android:layout_marginTop="32dp"/>
+                        app:layout_constraintTop_toBottomOf="@+id/albumArtContainer" android:layout_marginTop="32dp"/>
 
                 <Space
                         android:layout_width="16dp"
                         android:layout_height="28dp"
                         app:layout_constraintEnd_toEndOf="parent"
-                        android:id="@+id/space5" app:layout_constraintBottom_toBottomOf="@+id/album_art_container"
+                        android:id="@+id/space5" app:layout_constraintBottom_toBottomOf="@+id/albumArtContainer"
                 />
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/fab"
@@ -100,8 +101,8 @@
                         android:layout_height="wrap_content"
                         app:srcCompat="@drawable/ic_play_arrow_white_24dp"
                         app:tint="@color/colorAccent"
-                        app:backgroundTint="@color/colorPrimary"
-                        android:visibility="visible"
+                        app:backgroundTint="@color/white"
+                        android:visibility="invisible"
                         app:fabSize="normal"
                         app:layout_constraintTop_toTopOf="@+id/space5"
                         app:layout_constraintEnd_toStartOf="@+id/space5"/>
@@ -125,7 +126,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
             android:id="@+id/recyclerView" android:clipToPadding="false" android:paddingTop="8dp"
-            android:paddingBottom="8dp" tools:listitem="@layout/album_detail_audio_item"/>
+            android:paddingBottom="56dp" tools:listitem="@layout/album_detail_audio_item"/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

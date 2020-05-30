@@ -10,7 +10,7 @@ import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.WorkerThread
-import androidx.core.content.ContextCompat
+import com.github.sg4yk.audioplayer.media.Audio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -120,5 +120,4 @@ object Generic {
             activity.startActivity(intent)
         }
     }
-
 }

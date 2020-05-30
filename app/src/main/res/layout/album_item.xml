@@ -26,30 +26,41 @@
                 android:tint="@color/transparent"
                 android:id="@+id/albumArt"/>
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_height="match_parent">
 
-            <!-- Title, secondary and supporting text -->
-            <androidx.appcompat.widget.AppCompatTextView
+            <Space
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Title"
-                    android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
-                    android:id="@+id/title" android:textStyle="normal"
-                    android:textColor="@color/textColorPrimary"/>
-            <androidx.appcompat.widget.AppCompatTextView
-                    android:layout_width="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+                    android:id="@+id/menuAnchor"/>
+            <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Artist"
-                    android:textAppearance="?attr/textAppearanceBody2"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:id="@+id/artist"/>
+                    android:orientation="vertical"
+                    android:padding="16dp" app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
-        </LinearLayout>
+                <!-- Title, secondary and supporting text -->
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Title"
+                        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+                        android:id="@+id/title" android:textStyle="normal"
+                        android:textColor="@color/textColorPrimary"/>
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Artist"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:id="@+id/description"/>
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Buttons -->
 

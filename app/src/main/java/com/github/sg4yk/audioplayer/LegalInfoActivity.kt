@@ -53,6 +53,9 @@ class LegalInfoActivity : AppCompatActivity() {
                 "mdFont" -> {
                     "https://github.com/templarian/MaterialDesign"
                 }
+                "mdDialog" -> {
+                    "https://github.com/afollestad/material-dialogs"
+                }
                 "recyclerAni" -> {
                     "https://github.com/wasabeef/recyclerview-animators"
                 }

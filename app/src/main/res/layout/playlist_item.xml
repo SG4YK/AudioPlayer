@@ -36,4 +36,9 @@
             android:textAppearance="?attr/textAppearanceListItem"
             android:textColor="@color/textColorPrimary"
     />
+    <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="4dp" android:id="@+id/menuAnchor"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -42,6 +42,11 @@
                 app:title="Material Design Icons"
         />
         <Preference
+                app:key="mdDialog"
+                app:summary="@string/license_apache"
+                app:title="Material Dialogs"
+        />
+        <Preference
                 app:key="recyclerAni"
                 app:summary="@string/license_apache"
                 app:title="RecyclerView Animators"

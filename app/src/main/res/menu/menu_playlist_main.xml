@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-            android:id="@+id/menu_search"
-            android:title="@string/search"
-            android:icon="@drawable/ic_search_gray_24dp"
+            android:id="@+id/menu_create_playlist"
+            android:title="@string/create_playlist"
+            android:icon="@drawable/ic_playlist_add_gray_24dp"
             app:showAsAction="ifRoom"
     />
     <item

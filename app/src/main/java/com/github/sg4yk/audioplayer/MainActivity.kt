@@ -1,5 +1,6 @@
 package com.github.sg4yk.audioplayer
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -23,6 +24,10 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.getInputLayout
+import com.afollestad.materialdialogs.input.input
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.github.sg4yk.audioplayer.utils.Generic
@@ -53,11 +58,12 @@ class MainActivity : AppCompatActivity() {
     private var skipLock = false
     private lateinit var imgLoader: RequestManager
     private lateinit var blur: Blurry.Composer
-
+    private lateinit var viewModel: AppViewModel
     private var currentButtonState = BUTTON_STATE_NOT_PLAYING
 
     private val permissions = arrayOf(
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +74,10 @@ class MainActivity : AppCompatActivity() {
 
         imgLoader = Glide.with(this)
         blur = Blurry.with(this).async().radius(2)
+
+        viewModel = ViewModelProvider(this).get(AppViewModel::class.java).apply {
+            refreshAll()
+        }
 
         drawerLayout.addDrawerListener(
             object : DrawerLayout.DrawerListener {
@@ -123,14 +133,24 @@ class MainActivity : AppCompatActivity() {
                     R.id.nav_artist -> getString(R.string.artist)
                     else -> getString(R.string.app_name)
                 }
+                if (destination.id == R.id.nav_playlist) {
+                    toolbar.menu.clear()
+                    toolbar.inflateMenu(R.menu.menu_playlist_main)
+                } else {
+                    toolbar.menu.clear()
+                    toolbar.inflateMenu(R.menu.app_bar_menu_main)
+                }
             }
 
             // setup menu
-            toolbar.inflateMenu(R.menu.app_bar_menu_main)
             toolbar.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_search -> {
                         // TODO
+                        true
+                    }
+                    R.id.menu_create_playlist -> {
+                        createPlaylist(this)
                         true
                     }
                     R.id.menu_settings -> {
@@ -277,9 +297,7 @@ class MainActivity : AppCompatActivity() {
             1 -> {
                 if (grantResults.size >= 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // refresh data
-                    val appViewModel = ViewModelProvider(this).get(AppViewModel::class.java).apply {
-                        refreshAll()
-                    }
+                    viewModel.refreshAll()
                     GlobalScope.launch(Dispatchers.Main) {
                         startObserve()
                         delay(1000)
@@ -394,6 +412,28 @@ class MainActivity : AppCompatActivity() {
                 buttonPlay.setImageResource(R.drawable.avd_play_to_pause)
                 val icon = buttonPlay.drawable as AnimatedVectorDrawable
                 icon.start()
+            }
+        }
+    }
+
+    private fun createPlaylist(ctx: Context) {
+        val maxLength = 30
+        MaterialDialog(ctx).show {
+            input(maxLength = maxLength)
+//            input()
+            getInputLayout().apply {
+                hint = "Playlist name"
+                this.setStartIconDrawable(R.drawable.ic_playlist_add_gray_24dp)
+                this.isCounterEnabled = true
+            }
+            title(R.string.create_playlist, null)
+            negativeButton(R.string.cancel)
+            positiveButton(R.string.create) { dialog ->
+                val name = dialog.getInputField().text.toString()
+                GlobalScope.launch(Dispatchers.IO) {
+                    MediaHunter.createPlaylist(ctx, name)
+                    viewModel.refreshPlaylistItems()
+                }
             }
         }
     }

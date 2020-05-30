@@ -46,7 +46,6 @@ class ArtistFragment : Fragment() {
                 setHasFixedSize(true)
             }
 
-
             viewModel = activity?.run {
                 ViewModelProvider(this).get(AppViewModel::class.java)
             }!!

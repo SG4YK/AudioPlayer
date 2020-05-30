@@ -27,7 +27,6 @@ object PlaybackManager {
         context.stopService(Intent(context, PlaybackService::class.java))
     }
 
-
     fun playAll() {
         GlobalScope.launch {
             val controls = connection.transportControls
@@ -61,14 +60,37 @@ object PlaybackManager {
         }
     }
 
-    fun loadAlbumAndSkipTo(albumId: String, audioId: String) {
+    fun loadAlbumAndSkipTo(albumId: String, position: Int) {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
                 putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO)
-                putString(PlaybackPreparer.AUDIO_ID_TAG, audioId)
+                putInt(PlaybackPreparer.POSITION_TAG, position)
             }
             controls.prepareFromMediaId(albumId, bundle)
+            controls.play()
+        }
+    }
+
+    fun playPlaylist(playlistId: String) {
+        GlobalScope.launch {
+            val controls = connection.transportControls
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_PLAYLIST)
+            }
+            controls.prepareFromMediaId(playlistId, bundle)
+            controls.play()
+        }
+    }
+
+    fun loadPlaylistAndSkipTo(playlistId: String, position: Int) {
+        GlobalScope.launch {
+            val controls = connection.transportControls
+            val bundle = Bundle().apply {
+                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_PLAYLIST_AND_SKIP_TO)
+                putInt(PlaybackPreparer.POSITION_TAG, position)
+            }
+            controls.prepareFromMediaId(playlistId, bundle)
             controls.play()
         }
     }

@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.media.AlbumSource
 import com.github.sg4yk.audioplayer.media.MetadataSource
+import com.github.sg4yk.audioplayer.media.PlaylistSource
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -27,7 +28,7 @@ class PlaybackPreparer(
     source: MetadataSource,
     player: ExoPlayer,
     factory: DefaultDataSourceFactory,
-    serviceScope: CoroutineScope
+    private var serviceScope: CoroutineScope
 ) : MediaSessionConnector.PlaybackPreparer {
 
     companion object {
@@ -36,10 +37,15 @@ class PlaybackPreparer(
         const val MODE_LOAD_ALL_AND_SKIP_TO_AUDIO = 1
         const val MODE_PLAY_ALBUM = 2
         const val MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO = 3
-        const val MODE_SINGLE_AUDIO = 4
+        const val MODE_PLAY_PLAYLIST = 4
+        const val MODE_LOAD_PLAYLIST_AND_SKIP_TO = 5
+        const val MODE_SINGLE_AUDIO = 6
 
         const val ALBUM_ID_TAG = "ALBUM_ID"
         const val AUDIO_ID_TAG = "AUDIO_ID"
+        const val POSITION_TAG = "POSITION"
+
+        const val LOG_TAG = "PlaybackPreparer"
     }
 
     private val context: Context = ctx
@@ -48,7 +54,6 @@ class PlaybackPreparer(
     private val dataSourceFactory: DataSource.Factory = factory
     private val preparerScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var currentQueue: List<MediaMetadataCompat> = listOf()
-    private var serviceScope: CoroutineScope = serviceScope
 
     override fun getSupportedPrepareActions(): Long =
         PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
@@ -57,8 +62,7 @@ class PlaybackPreparer(
                 PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle) {
-        val mode = extras.get(MODE_KEY)
-        when (mode) {
+        when (extras.get(MODE_KEY)) {
             MODE_PLAY_ALL -> {
                 loadAllAndSkipTo()
             }
@@ -69,7 +73,13 @@ class PlaybackPreparer(
                 loadAlbumAndSkipTo(mediaId)
             }
             MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO -> {
-                loadAlbumAndSkipTo(mediaId, extras.getString(AUDIO_ID_TAG))
+                loadAlbumAndSkipTo(mediaId, extras.getInt(POSITION_TAG))
+            }
+            MODE_PLAY_PLAYLIST -> {
+                loadPlaylistAndSkipTo(mediaId)
+            }
+            MODE_LOAD_PLAYLIST_AND_SKIP_TO -> {
+                loadPlaylistAndSkipTo(mediaId, extras.getInt(POSITION_TAG))
             }
         }
     }
@@ -81,14 +91,16 @@ class PlaybackPreparer(
             }
 
             if (itemToPlay == null) {
-                Log.w(TAG, "Content not found: MediaURI=$uri")
+                Log.w(LOG_TAG, "Content not found: MediaURI=$uri")
             } else {
-                val metadataList = MediaHunter.getAllMetadata(context)
-                val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
-                val initialWindowIndex = metadataList.indexOf(itemToPlay)
-                exoPlayer.prepare(mediaSource)
+                serviceScope.launch {
+                    val metadataList = MediaHunter.getAllMetadata(context)
+                    val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
+                    val initialWindowIndex = metadataList.indexOf(itemToPlay)
+                    exoPlayer.prepare(mediaSource)
 //                exoPlayer.seekTo(initialWindowIndex, 0)
-                exoPlayer.seekTo(0)
+                    exoPlayer.seekTo(0)
+                }
             }
         }
     }
@@ -115,7 +127,7 @@ class PlaybackPreparer(
 
     private fun loadAllAndSkipTo(mediaId: String? = null) {
         mediaSource.whenReady {
-            currentQueue = mediaSource.toList()
+            currentQueue = mediaSource.list
             val playlist = buildMediaSource(currentQueue, dataSourceFactory)
             var initialWindowIndex = -1
             if (mediaId != null) {
@@ -123,7 +135,7 @@ class PlaybackPreparer(
                     item.description.mediaId == mediaId
                 }
                 if (itemToPlay == null) {
-                    Log.d(TAG, "Content not found: MediaID=$mediaId")
+                    Log.d(LOG_TAG, "Content not found: MediaID=$mediaId")
                 } else {
                     initialWindowIndex = mediaSource.list.indexOf(itemToPlay)
                 }
@@ -136,26 +148,41 @@ class PlaybackPreparer(
         }
     }
 
-    private fun loadAlbumAndSkipTo(albumId: String, audioId: String? = null) {
+    private fun loadAlbumAndSkipTo(albumId: String, position: Int = 0) {
         GlobalScope.launch(Dispatchers.IO) {
-            val albumSource = AlbumSource(context, albumId)
-            albumSource.load()
-            albumSource.whenReady {
-                currentQueue = albumSource.list
-                var initialWindowIndex = -1
-
-                if (audioId != null) {
-                    val itemToPlay: MediaMetadataCompat? = currentQueue.find { item ->
-                        item.description.mediaId == audioId
+            AlbumSource(context, albumId).apply {
+                load()
+                whenReady {
+                    currentQueue = list
+                    val playlist = buildMediaSource(currentQueue, dataSourceFactory)
+                    serviceScope.launch {
+                        exoPlayer.prepare(playlist)
+                        try {
+                            exoPlayer.seekTo(position, 0)
+                        } catch (e: Exception) {
+                            Log.w(LOG_TAG, "${e.message}")
+                        }
                     }
-                    initialWindowIndex = currentQueue.indexOf(itemToPlay)
                 }
+            }
+        }
+    }
 
-                val playlist = buildMediaSource(currentQueue, dataSourceFactory)
-                serviceScope.launch {
-                    exoPlayer.prepare(playlist)
-                    if (initialWindowIndex != -1) {
-                        exoPlayer.seekTo(initialWindowIndex, 0)
+
+    private fun loadPlaylistAndSkipTo(playlistId: String, position: Int = 0) {
+        GlobalScope.launch(Dispatchers.IO) {
+            PlaylistSource(context, playlistId).apply {
+                load()
+                whenReady {
+                    currentQueue = list
+                    val playlist = buildMediaSource(currentQueue, dataSourceFactory)
+                    serviceScope.launch {
+                        exoPlayer.prepare(playlist)
+                        try {
+                            exoPlayer.seekTo(position, 0)
+                        } catch (e: Exception) {
+                            Log.w(LOG_TAG, "${e.message}")
+                        }
                     }
                 }
             }
@@ -175,7 +202,5 @@ class PlaybackPreparer(
         }
         return concatenatingMediaSource
     }
-
-    private val TAG = "PlaybackPreparer"
 }
 

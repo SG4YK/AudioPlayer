@@ -18,9 +18,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class AudioItemAdapter : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
-    private var audioItems: MutableList<Audio> = mutableListOf()
-    private lateinit var context: Context
+open class AudioItemAdapter : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>() {
+    protected var audioItems: MutableList<Audio> = mutableListOf()
+    protected lateinit var context: Context
 
     class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
@@ -48,19 +48,6 @@ class AudioItemAdapter : RecyclerView.Adapter<AudioItemAdapter.AudioViewHolder>(
                 holder.duration.text = Generic.msecToStr(audioItems[position].duration ?: 0)
                 holder.view.setOnClickListener {
                     PlaybackManager.loadAllAndSkipTo(audio.id.toString())
-                }
-            }
-
-            async {
-                try {
-                    Glide.with(holder.albumArt)
-                        .load(MediaHunter.getArtUriFromAlbumId(audio.albumId ?: -1))
-                        .placeholder(R.drawable.default_album_art_blue)
-                        .thumbnail(0.25f)
-                        .centerInside()
-                        .into(holder.albumArt)
-                } catch (e: Exception) {
-                    Log.w("AudioItemAdapter", e.message)
                 }
             }
         }

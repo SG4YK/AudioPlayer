@@ -1,17 +1,24 @@
 package com.github.sg4yk.audioplayer
 
 import android.content.Context
-import android.content.Intent
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.github.sg4yk.audioplayer.media.Playlist
+import com.github.sg4yk.audioplayer.utils.MediaHunter
+import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.playlist_item.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-class PlaylistItemAdapter : RecyclerView.Adapter<PlaylistItemAdapter.PlaylistViewHolder>() {
-    private var playlistItems: MutableList<Playlist> = mutableListOf()
-    private lateinit var context: Context
+open class PlaylistItemAdapter : RecyclerView.Adapter<PlaylistItemAdapter.PlaylistViewHolder>() {
+    protected var playlistItems: MutableList<Playlist> = mutableListOf()
+    protected lateinit var context: Context
 
     class PlaylistViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val view = v
@@ -30,7 +37,7 @@ class PlaylistItemAdapter : RecyclerView.Adapter<PlaylistItemAdapter.PlaylistVie
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
         holder.name.text = playlistItems[position].name ?: ""
         holder.view.setOnClickListener {
-            context.startActivity(Intent(context, PlaylistDetailActivity::class.java))
+            PlaylistDetailActivity.start(context, playlistItems[position])
         }
     }
 

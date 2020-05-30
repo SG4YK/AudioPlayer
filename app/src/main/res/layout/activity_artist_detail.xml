@@ -7,7 +7,7 @@
         android:layout_height="match_parent"
         tools:context=".ArtistDetailActivity"
         android:fitsSystemWindows="true"
->
+        android:id="@+id/rootLayout">
 
 
     <com.google.android.material.appbar.MaterialToolbar
