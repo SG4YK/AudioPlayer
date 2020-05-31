@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.content.Context
 import android.content.Intent
@@ -20,11 +20,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.FutureTarget
+import com.github.sg4yk.audioplayer.ui.ArtistDetailActivity
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Audio
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -57,13 +59,25 @@ class AlbumDetailActivity : AppCompatActivity() {
             GlobalScope.launch(Dispatchers.Main) {
                 val albums = MediaHunter.getAllAlbums(context).filter { album -> album.id == albumId }
                 if (albums.size == 1) {
-                    start(context, albums[0], card, albumArt)
+                    start(
+                        context,
+                        albums[0],
+                        card,
+                        albumArt
+                    )
                 }
             }
         }
 
         fun start(context: Context, album: Album, card: View? = null, albumArt: Bitmap? = null) {
-            start(context, album.id, album.album, album.artist, card, albumArt)
+            start(
+                context,
+                album.id,
+                album.album,
+                album.artist,
+                card,
+                albumArt
+            )
         }
 
         private fun start(
@@ -192,7 +206,10 @@ class AlbumDetailActivity : AppCompatActivity() {
                 Glide.with(albumArt).clear(futureTarget)
 
                 toolbar.post {
-                    intent.getIntExtra(IS_DARK_ALBUM_ART_TAG, NOT_SET).let {
+                    intent.getIntExtra(
+                        IS_DARK_ALBUM_ART_TAG,
+                        NOT_SET
+                    ).let {
                         if (it == NOT_SET) {
                             setUpAppBar(it, bitmap)
                         } else {
@@ -249,8 +266,10 @@ class AlbumDetailActivity : AppCompatActivity() {
             IS_DARK_ALBUM -> {
                 // change status bar color dynamically
                 Generic.setLightStatusBar(decorView, false)
-                navIcon?.colorFilter = whiteFilter
-                menuIcon?.colorFilter = whiteFilter
+                navIcon?.colorFilter =
+                    whiteFilter
+                menuIcon?.colorFilter =
+                    whiteFilter
                 appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
                     private var cachedOffset = 0
                     override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
@@ -267,8 +286,10 @@ class AlbumDetailActivity : AppCompatActivity() {
                             Generic.setLightStatusBar(decorView, true)
                         } else if (statusBarPosThreshold!! in (cachedOffset + 1)..verticalOffset) {
                             // expanding
-                            navIcon?.colorFilter = whiteFilter
-                            menuIcon?.colorFilter = whiteFilter
+                            navIcon?.colorFilter =
+                                whiteFilter
+                            menuIcon?.colorFilter =
+                                whiteFilter
                             Generic.setLightStatusBar(decorView, false)
                         }
                         val opacity = (verticalOffset - threshold!!) / 200f

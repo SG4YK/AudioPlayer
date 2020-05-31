@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.content.Context
 import android.content.Intent
@@ -30,10 +30,14 @@ import com.afollestad.materialdialogs.input.getInputLayout
 import com.afollestad.materialdialogs.input.input
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.github.sg4yk.audioplayer.utils.AppViewModel
+import com.github.sg4yk.audioplayer.ui.NowPlayingActivity
+import com.github.sg4yk.audioplayer.R
+import com.github.sg4yk.audioplayer.ui.SettingsActivity
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.Generic.setLightStatusBar
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_main.*
@@ -59,7 +63,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imgLoader: RequestManager
     private lateinit var blur: Blurry.Composer
     private lateinit var viewModel: AppViewModel
-    private var currentButtonState = BUTTON_STATE_NOT_PLAYING
+    private var currentButtonState =
+        BUTTON_STATE_NOT_PLAYING
 
     private val permissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -110,7 +115,10 @@ class MainActivity : AppCompatActivity() {
 
             val appBarConfiguration = AppBarConfiguration(
                 setOf(
-                    R.id.nav_playlist, R.id.nav_library, R.id.nav_album, R.id.nav_artist
+                    R.id.nav_playlist,
+                    R.id.nav_library,
+                    R.id.nav_album,
+                    R.id.nav_artist
                 ),
                 drawerLayout
             )

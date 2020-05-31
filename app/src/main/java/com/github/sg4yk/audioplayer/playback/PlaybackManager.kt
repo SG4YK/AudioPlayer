@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer.utils
+package com.github.sg4yk.audioplayer.playback
 
 import android.content.Context
 import android.content.Intent
@@ -7,6 +7,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
+import com.github.sg4yk.audioplayer.playback.PlaybackService
+import com.github.sg4yk.audioplayer.utils.PlaybackServiceConnection
+import com.github.sg4yk.audioplayer.utils.ServiceInjector
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -21,7 +24,8 @@ object PlaybackManager {
 
     fun connectPlaybackService(context: Context) {
         context.startService(Intent(context, PlaybackService::class.java))
-        connection = ServiceInjector.getPlaybackServiceConnection(context)
+        connection =
+            ServiceInjector.getPlaybackServiceConnection(context)
     }
 
     fun stopPlaybackService(context: Context) {
@@ -35,7 +39,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_ALL)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_PLAY_ALL
+                )
             }
             controls.prepareFromMediaId("PLAYALL", bundle)
             controls.play()
@@ -46,7 +53,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_ALL_AND_SKIP_TO_AUDIO)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_LOAD_ALL_AND_SKIP_TO_AUDIO
+                )
             }
             controls.prepareFromMediaId(audioId, bundle)
             controls.play()
@@ -57,7 +67,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_ALBUM)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_PLAY_ALBUM
+                )
             }
             controls.prepareFromMediaId(albumId, bundle)
             controls.play()
@@ -68,7 +81,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_LOAD_ALBUM_AND_SKIP_TO_AUDIO
+                )
                 putInt(PlaybackPreparer.POSITION_TAG, position)
             }
             controls.prepareFromMediaId(albumId, bundle)
@@ -80,7 +96,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_PLAY_PLAYLIST)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_PLAY_PLAYLIST
+                )
             }
             controls.prepareFromMediaId(playlistId, bundle)
             controls.play()
@@ -91,7 +110,10 @@ object PlaybackManager {
         GlobalScope.launch {
             val controls = connection.transportControls
             val bundle = Bundle().apply {
-                putInt(PlaybackPreparer.MODE_KEY, PlaybackPreparer.MODE_LOAD_PLAYLIST_AND_SKIP_TO)
+                putInt(
+                    PlaybackPreparer.MODE_KEY,
+                    PlaybackPreparer.MODE_LOAD_PLAYLIST_AND_SKIP_TO
+                )
                 putInt(PlaybackPreparer.POSITION_TAG, position)
             }
             controls.prepareFromMediaId(playlistId, bundle)

@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.animation.Animator
 import android.content.Context
@@ -22,15 +22,15 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.github.pwittchen.swipe.library.rx2.Swipe
 import com.github.pwittchen.swipe.library.rx2.SwipeListener
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.extensions.isPlaying
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.exoplayer2.ExoPlayer
 import jp.wasabeef.blurry.Blurry
@@ -209,12 +209,12 @@ class NowPlayingActivity : AppCompatActivity() {
                 }
 
                 override fun onSwipedUp(event: MotionEvent?): Boolean {
-                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND);
+                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND)
                     return true
                 }
 
                 override fun onSwipedDown(event: MotionEvent?): Boolean {
-                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND);
+                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND)
                     return true
                 }
 
@@ -224,7 +224,7 @@ class NowPlayingActivity : AppCompatActivity() {
             )
 
             albumArtSwitcher.setOnTouchListener { view, event ->
-                swipe.dispatchTouchEvent(event);
+                swipe.dispatchTouchEvent(event)
                 true
             }
         }
@@ -516,8 +516,4 @@ class NowPlayingActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        menuInflater.inflate(R.menu.menu_audio_item, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
 }

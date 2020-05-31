@@ -33,7 +33,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:background="@color/white">
 
-                <com.github.sg4yk.audioplayer.utils.SquareImageView
+                <com.github.sg4yk.audioplayer.ui.component.SquareImageView
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
                         app:srcCompat="@drawable/default_album_art_blue"

@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".PlaylistFragment" android:id="@+id/frameLayout">
+        tools:context=".ui.fragment.PlaylistFragment" android:id="@+id/frameLayout">
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent" tools:layout_editor_absoluteY="1dp"

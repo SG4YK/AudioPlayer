@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.fragment
 
 import android.content.Context
 import android.os.Bundle
@@ -12,9 +12,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.github.sg4yk.audioplayer.ui.adapter.AlbumItemAdapter
+import com.github.sg4yk.audioplayer.utils.AppViewModel
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter

@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.fragment
 
 import android.content.Context
 import android.os.Bundle
@@ -15,9 +15,12 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.getInputField
 import com.afollestad.materialdialogs.input.getInputLayout
 import com.afollestad.materialdialogs.input.input
+import com.github.sg4yk.audioplayer.utils.AppViewModel
+import com.github.sg4yk.audioplayer.ui.adapter.PlaylistItemAdapter
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Playlist
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.playlist_fragment.*

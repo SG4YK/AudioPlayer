@@ -1,20 +1,14 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.adapter
 
 import android.content.Context
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.github.sg4yk.audioplayer.ui.PlaylistDetailActivity
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Playlist
-import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.playlist_item.view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 open class PlaylistItemAdapter : RecyclerView.Adapter<PlaylistItemAdapter.PlaylistViewHolder>() {
     protected var playlistItems: MutableList<Playlist> = mutableListOf()
@@ -37,7 +31,10 @@ open class PlaylistItemAdapter : RecyclerView.Adapter<PlaylistItemAdapter.Playli
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
         holder.name.text = playlistItems[position].name ?: ""
         holder.view.setOnClickListener {
-            PlaylistDetailActivity.start(context, playlistItems[position])
+            PlaylistDetailActivity.start(
+                context,
+                playlistItems[position]
+            )
         }
     }
 

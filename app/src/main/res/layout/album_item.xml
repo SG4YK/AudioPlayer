@@ -18,7 +18,7 @@
             android:orientation="vertical">
 
         <!-- Media -->
-        <com.github.sg4yk.audioplayer.utils.SquareImageView
+        <com.github.sg4yk.audioplayer.ui.component.SquareImageView
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 app:srcCompat="@drawable/default_album_art_blue"

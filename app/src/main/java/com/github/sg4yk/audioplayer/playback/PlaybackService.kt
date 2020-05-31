@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer.utils
+package com.github.sg4yk.audioplayer.playback
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -17,9 +17,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
-import com.github.sg4yk.audioplayer.MainActivity
+import com.github.sg4yk.audioplayer.ui.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.*
+import com.github.sg4yk.audioplayer.utils.NOW_PLAYING_NOTIFICATION
+import com.github.sg4yk.audioplayer.utils.NotificationBuilder
+import com.github.sg4yk.audioplayer.utils.PrefManager
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -82,7 +85,10 @@ class PlaybackService : MediaBrowserServiceCompat() {
             Intent(this, MainActivity::class.java), 0
         )
 
-        mediaSession = MediaSessionCompat(this, SESSION_TAG)
+        mediaSession = MediaSessionCompat(
+            this,
+            SESSION_TAG
+        )
             .apply {
                 setSessionActivity(pendingIntent)
                 isActive = true
@@ -96,15 +102,20 @@ class PlaybackService : MediaBrowserServiceCompat() {
             it.registerCallback(MediaControllerCallback())
         }
 
-        notificationBuilder = NotificationBuilder(this, mediaController)
+        notificationBuilder =
+            NotificationBuilder(this, mediaController)
 
         notificationManager = NotificationManagerCompat.from(this)
 
-        becomingNoisyReceiver = BecomingNoisyReceiver(this, mediaSession.sessionToken)
+        becomingNoisyReceiver =
+            BecomingNoisyReceiver(
+                this,
+                mediaSession.sessionToken
+            )
 
         mediaSource = MetadataSource(this)
 
-        serviceScope.launch() {
+        serviceScope.launch {
             mediaSource.load()
         }
 
@@ -194,8 +205,14 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 MEDIA_SEARCH_SUPPORTED, true
             )
             putBoolean(CONTENT_STYLE_SUPPORTED, true)
-            putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID)
-            putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_LIST)
+            putInt(
+                CONTENT_STYLE_BROWSABLE_HINT,
+                CONTENT_STYLE_GRID
+            )
+            putInt(
+                CONTENT_STYLE_PLAYABLE_HINT,
+                CONTENT_STYLE_LIST
+            )
         }
 
         return BrowserRoot(BROWSABLE_ROOT, rootExtras)

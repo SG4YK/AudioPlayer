@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.sg4yk.audioplayer.utils.AppViewModel
+import com.github.sg4yk.audioplayer.ui.adapter.ArtistItemAdapter
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Artist
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.artist_fragment.*

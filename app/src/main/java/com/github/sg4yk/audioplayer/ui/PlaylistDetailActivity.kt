@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.content.Context
 import android.content.Intent
@@ -14,11 +14,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Playlist
 import com.github.sg4yk.audioplayer.media.PlaylistAudio
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter

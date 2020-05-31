@@ -166,7 +166,7 @@
             android:outAnimation="@anim/fade_out_400ms"
             android:outlineProvider="bounds" android:elevation="8dp">
 
-        <com.github.sg4yk.audioplayer.utils.SquareImageView
+        <com.github.sg4yk.audioplayer.ui.component.SquareImageView
                 android:id="@+id/albumArt"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -179,7 +179,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toTopOf="@+id/control"
                 android:visibility="visible"/>
-        <com.github.sg4yk.audioplayer.utils.SquareImageView
+        <com.github.sg4yk.audioplayer.ui.component.SquareImageView
                 android:id="@+id/albumArt2"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"

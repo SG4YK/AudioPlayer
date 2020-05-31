@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import androidx.annotation.WorkerThread
+import com.github.sg4yk.audioplayer.playback.PlaybackService
 
 object ServiceInjector {
     fun getPlaybackServiceConnection(context: Context): PlaybackServiceConnection {

@@ -14,20 +14,20 @@
             android:theme="@style/AppThemeNoActionBar"
             android:requestLegacyExternalStorage="true"
     >
-        <activity android:name=".PlaylistDetailActivity">
+        <activity android:name=".ui.PlaylistDetailActivity">
         </activity>
         <activity
-                android:name=".ArtistDetailActivity"
+                android:name=".ui.ArtistDetailActivity"
                 android:theme="@style/AppThemeNoActionBar">
         </activity>
         <activity
-                android:name=".AlbumDetailActivity"
+                android:name=".ui.AlbumDetailActivity"
                 android:label="@string/title_activity_album_detail"
                 android:theme="@style/AppThemeNoActionBar">
         </activity>
 
         <service
-                android:name=".utils.PlaybackService"
+                android:name=".playback.PlaybackService"
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>
@@ -43,21 +43,21 @@
         </receiver>
 
         <activity
-                android:name=".LegalInfoActivity"
+                android:name=".ui.LegalInfoActivity"
                 android:label="@string/title_activity_licenses">
         </activity>
         <activity
-                android:name=".SettingsActivity"
+                android:name=".ui.SettingsActivity"
                 android:label="@string/title_activity_settings"
                 android:theme="@style/AppThemeNoActionBar">
         </activity>
         <activity
-                android:name=".NowPlayingActivity"
+                android:name=".ui.NowPlayingActivity"
                 android:launchMode="singleTask"
                 android:theme="@style/AppThemeNoActionBarDark">
         </activity>
         <activity
-                android:name=".MainActivity"
+                android:name=".ui.MainActivity"
                 android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

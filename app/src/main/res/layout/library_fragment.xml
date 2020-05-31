@@ -5,7 +5,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".LibraryFragment"
+        tools:context=".ui.fragment.LibraryFragment"
         android:id="@+id/frameLayout2">
 
     <androidx.recyclerview.widget.RecyclerView

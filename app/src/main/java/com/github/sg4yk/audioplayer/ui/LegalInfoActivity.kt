@@ -1,10 +1,11 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.utils.Generic
 
 class LegalInfoActivity : AppCompatActivity() {
@@ -17,7 +18,10 @@ class LegalInfoActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.settings, SettingsFragment())
+            .replace(
+                R.id.settings,
+                SettingsFragment()
+            )
             .commit()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }

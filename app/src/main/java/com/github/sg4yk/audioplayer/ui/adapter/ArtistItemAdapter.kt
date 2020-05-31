@@ -1,13 +1,14 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Artist
+import com.github.sg4yk.audioplayer.ui.ArtistDetailActivity
 import kotlinx.android.synthetic.main.artist_item.view.*
 
 class ArtistItemAdapter : RecyclerView.Adapter<ArtistItemAdapter.ArtistViewHolder>() {

@@ -1,19 +1,19 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.adapter
 
 import android.content.Context
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Album
+import com.github.sg4yk.audioplayer.ui.AlbumDetailActivity
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import kotlinx.android.synthetic.main.album_item.view.*
 import kotlinx.coroutines.Dispatchers

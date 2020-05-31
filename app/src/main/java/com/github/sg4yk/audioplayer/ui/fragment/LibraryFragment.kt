@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.fragment
 
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +13,12 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.github.sg4yk.audioplayer.*
 import com.github.sg4yk.audioplayer.media.Audio
+import com.github.sg4yk.audioplayer.ui.AlbumDetailActivity
+import com.github.sg4yk.audioplayer.ui.ArtistDetailActivity
+import com.github.sg4yk.audioplayer.ui.adapter.AudioItemAdapter
+import com.github.sg4yk.audioplayer.utils.AppViewModel
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar

@@ -1,18 +1,16 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui.adapter
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Audio
 import com.github.sg4yk.audioplayer.utils.Generic
-import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async

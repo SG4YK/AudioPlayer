@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
 import android.content.Context
 import android.content.Intent
@@ -8,10 +8,12 @@ import android.view.Gravity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.GridLayoutManager
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Album
 import com.github.sg4yk.audioplayer.media.Artist
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.utils.PlaybackManager
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
+import com.github.sg4yk.audioplayer.ui.adapter.AlbumItemAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
@@ -38,7 +40,11 @@ class ArtistDetailActivity : AppCompatActivity() {
 
 
         fun start(ctx: Context, artist: Artist) {
-            start(ctx, artist.id, artist.artist)
+            start(
+                ctx,
+                artist.id,
+                artist.artist
+            )
         }
     }
 
@@ -104,7 +110,7 @@ class ArtistDetailActivity : AppCompatActivity() {
         private fun addToPlaylist(ctx: Context, album: Album) {
             GlobalScope.launch(Dispatchers.IO) {
                 val playlistList = MediaHunter.getAllPlaylists(ctx)
-                playlistList?.let { playlists ->
+                playlistList.let { playlists ->
                     val items = Array(playlists.size) { "1" }
                     for (position in playlists.indices) {
                         items[position] = playlists[position].name.toString()

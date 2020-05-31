@@ -1,14 +1,12 @@
-package com.github.sg4yk.audioplayer
+package com.github.sg4yk.audioplayer.ui
 
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceManager
+import com.github.sg4yk.audioplayer.ui.LegalInfoActivity
+import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.google.android.material.appbar.MaterialToolbar
 

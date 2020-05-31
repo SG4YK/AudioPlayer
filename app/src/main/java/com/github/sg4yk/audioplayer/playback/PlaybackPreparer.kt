@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer.utils
+package com.github.sg4yk.audioplayer.playback
 
 import android.content.Context
 import android.net.Uri
@@ -11,6 +11,7 @@ import androidx.annotation.WorkerThread
 import com.github.sg4yk.audioplayer.media.AlbumSource
 import com.github.sg4yk.audioplayer.media.MetadataSource
 import com.github.sg4yk.audioplayer.media.PlaylistSource
+import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -94,7 +95,8 @@ class PlaybackPreparer(
                 Log.w(LOG_TAG, "Content not found: MediaURI=$uri")
             } else {
                 serviceScope.launch {
-                    val metadataList = MediaHunter.getAllMetadata(context)
+                    val metadataList =
+                        MediaHunter.getAllMetadata(context)
                     val mediaSource = buildMediaSource(metadataList, dataSourceFactory)
                     val initialWindowIndex = metadataList.indexOf(itemToPlay)
                     exoPlayer.prepare(mediaSource)

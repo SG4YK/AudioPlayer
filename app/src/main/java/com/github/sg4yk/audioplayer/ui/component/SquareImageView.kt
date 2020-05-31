@@ -1,4 +1,4 @@
-package com.github.sg4yk.audioplayer.utils
+package com.github.sg4yk.audioplayer.ui.component
 
 import android.content.Context
 import android.util.AttributeSet
