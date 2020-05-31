@@ -3,23 +3,24 @@ package com.github.sg4yk.audioplayer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
-import com.github.sg4yk.audioplayer.media.Audio
 import com.github.sg4yk.audioplayer.media.Playlist
+import com.github.sg4yk.audioplayer.media.PlaylistAudio
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.snackbar.Snackbar
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter
 import kotlinx.android.synthetic.main.activity_playlist_detail.*
 import kotlinx.android.synthetic.main.album_detail_audio_item.view.*
@@ -33,7 +34,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
         fun start(context: Context, playlist: Playlist) {
             val intent = Intent(context, PlaylistDetailActivity::class.java).apply {
                 putExtra(
-                    PlaylistDetailActivity.EXTRA_TAG,
+                    EXTRA_TAG,
                     arrayOf(
                         playlist.id.toString(),
                         playlist.name
@@ -46,14 +47,17 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
     private lateinit var extras: Array<String>
     private val playlistDetailJob = SupervisorJob()
-    private var audioInPlaylist: MutableList<Audio> = mutableListOf()
+    private var audioInPlaylist: MutableList<PlaylistAudio> = mutableListOf()
     private lateinit var playlistDetailAdapter: PlaylistDetailAdapter
+    private lateinit var playlistId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playlist_detail)
 
         extras = intent.getStringArrayExtra(EXTRA_TAG)
-        playlistDetailAdapter = PlaylistDetailAdapter(extras[0])
+        playlistId = extras[0]
+        playlistDetailAdapter = PlaylistDetailAdapter(playlistId)
 
         if (threshold == null) {
             threshold = -(resources.displayMetrics.widthPixels shr 1)
@@ -65,18 +69,14 @@ class PlaylistDetailActivity : AppCompatActivity() {
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
+            toolbar.inflateMenu(R.menu.menu_album_item)
             setUpAppBar()
         }
 
         // load songs in playlist
         GlobalScope.launch(Dispatchers.IO + playlistDetailJob) {
             async {
-                audioInPlaylist = MediaHunter.getAudioByPlayListId(this@PlaylistDetailActivity, extras[0].toLong())
-                setAlbumArt(audioInPlaylist)
-                delay(200)
-                withContext(Dispatchers.Main) {
-                    playlistDetailAdapter.setSongsInAlbum(audioInPlaylist)
-                }
+                loadAudio()
             }
 
             withContext(Dispatchers.Main) {
@@ -100,7 +100,17 @@ class PlaylistDetailActivity : AppCompatActivity() {
         setUpAppBar()
     }
 
-    private fun setAlbumArt(audioList: MutableList<Audio>) {
+    private suspend fun loadAudio() {
+        audioInPlaylist =
+            MediaHunter.getPlaylistAudioByPlayListId(this@PlaylistDetailActivity, extras[0].toLong())
+        setAlbumArt(audioInPlaylist)
+        delay(200)
+        withContext(Dispatchers.Main) {
+            playlistDetailAdapter.setSongsInPlaylist(audioInPlaylist)
+        }
+    }
+
+    private fun setAlbumArt(audioList: MutableList<PlaylistAudio>) {
         if (audioList.size == 0) {
             return
         }
@@ -109,7 +119,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
             val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
             for (i in albumArts.indices) {
                 async {
-                    audioList[i % audioList.size].albumId?.let {
+                    audioList[i % audioList.size].audio.albumId?.let {
                         val view = albumArts[i] as ImageView
                         val uri = MediaHunter.getArtUriFromAlbumId(it)
                         withContext(Dispatchers.Main) {
@@ -146,11 +156,58 @@ class PlaylistDetailActivity : AppCompatActivity() {
         return super.onSupportNavigateUp()
     }
 
-    private class PlaylistDetailAdapter(val playlistId: String) :
-        RecyclerView.Adapter<PlaylistDetailAdapter.AudioViewHolder>() {
-        private var audioItems: MutableList<Audio> = mutableListOf()
+    private fun removeFromPlaylist(audio: PlaylistAudio) {
+        MaterialDialog(this).show {
+            title(null, "Remove from playlist")
+            message(
+                null, "${audio.audio.title}\nRemove from current playlist?\n\n" +
+                        "This action will not remove the audio from library."
+            )
 
-        class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            negativeButton(R.string.cancel)
+            positiveButton(null, "Remove") {
+                GlobalScope.launch(Dispatchers.IO) {
+                    val res = MediaHunter.removeFromPlaylist(
+                        this@PlaylistDetailActivity,
+                        playlistId.toLong(), audio.id
+                    )
+                    withContext(Dispatchers.Main) {
+                        if (res == 1) {
+                            loadAudio()
+                        } else {
+                            Snackbar.make(
+                                rootLayout, "Operation failed",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_playlist_detail, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.play -> {
+                fab.callOnClick()
+            }
+            R.id.rename -> {
+
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private inner class PlaylistDetailAdapter(val playlistId: String) :
+        RecyclerView.Adapter<PlaylistDetailAdapter.AudioViewHolder>() {
+        private var audioItems: MutableList<PlaylistAudio> = mutableListOf()
+
+        inner class AudioViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val view = v
             val title: TextView = v.title
             val description: TextView = v.description
@@ -164,21 +221,61 @@ class PlaylistDetailActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: AudioViewHolder, position: Int) {
-            holder.title.text = audioItems[position].title
-            holder.description.text = "${audioItems[position].artist} - ${audioItems[position].album}"
-            holder.duration.text =
-                Generic.msecToStr(audioItems[position].duration ?: 0)
+            val item = audioItems[position]
+            holder.title.text = item.audio.title
+            holder.description.text = "${item.audio.artist} - ${item.audio.album}"
+            holder.duration.text = Generic.msecToStr(item.audio.duration ?: 0)
+
             holder.view.setOnClickListener {
                 PlaybackManager.loadPlaylistAndSkipTo(
                     playlistId,
                     holder.adapterPosition
                 )
             }
+
+            holder.view.setOnLongClickListener {
+                PopupMenu(it.context, it.menuAnchor, Gravity.END).apply {
+                    inflate(R.menu.menu_playlist_audio_item)
+                    setOnMenuItemClickListener { it ->
+                        when (it.itemId) {
+                            R.id.play -> {
+                                holder.view.callOnClick()
+                            }
+
+                            R.id.view_artist -> {
+                                item.audio.artistId?.let { artistId ->
+                                    ArtistDetailActivity.start(
+                                        this@PlaylistDetailActivity,
+                                        artistId = artistId,
+                                        artistName = item.audio.artist
+                                    )
+                                }
+                            }
+
+                            R.id.view_album -> {
+                                item.audio.albumId?.let {
+                                    AlbumDetailActivity.start(
+                                        this@PlaylistDetailActivity,
+                                        albumId = item.audio.albumId
+                                    )
+                                }
+                            }
+
+                            R.id.remove -> {
+                                removeFromPlaylist(item)
+                            }
+                        }
+                        true
+                    }
+                    show()
+                }
+                true
+            }
         }
 
         override fun getItemCount(): Int = audioItems.size
 
-        fun setSongsInAlbum(list: MutableList<Audio>) {
+        fun setSongsInPlaylist(list: MutableList<PlaylistAudio>) {
             audioItems = list
             notifyDataSetChanged()
         }

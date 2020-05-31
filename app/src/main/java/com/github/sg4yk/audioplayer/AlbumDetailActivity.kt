@@ -7,13 +7,9 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -45,8 +41,9 @@ class AlbumDetailActivity : AppCompatActivity() {
     companion object {
         private var threshold: Int? = null
         private var statusBarPosThreshold: Int? = null
-        const val STATUS_BAR_LUMINANCE_THRESHOLD = 128
-        const val FAB_LUMINANCE_THRESHOLD = 128
+
+        const val STATUS_BAR_LUMINANCE_THRESHOLD = 100
+        const val FAB_LUMINANCE_THRESHOLD = 127
         const val METADATA_TAG = "EXTRA_METADATA"
         const val IS_DARK_ALBUM_ART_TAG = "EXTRA_IS_DARK_ALBUM_ART"
 
@@ -60,9 +57,7 @@ class AlbumDetailActivity : AppCompatActivity() {
             GlobalScope.launch(Dispatchers.Main) {
                 val albums = MediaHunter.getAllAlbums(context).filter { album -> album.id == albumId }
                 if (albums.size == 1) {
-//                    withContext(Dispatchers.Main) {
                     start(context, albums[0], card, albumArt)
-//                    }
                 }
             }
         }
@@ -90,6 +85,7 @@ class AlbumDetailActivity : AppCompatActivity() {
                 )
             }
             if (albumArt != null) {
+                // Determine whether should use light status bar
                 Palette.from(albumArt).generate { palette ->
                     GlobalScope.launch {
                         val primaryColor = palette?.getDominantColor(Color.WHITE) ?: Color.WHITE
@@ -112,6 +108,7 @@ class AlbumDetailActivity : AppCompatActivity() {
                     }
                 }
             } else {
+                // If no album art passed, calculate later in setupAppBar()
                 intent.putExtra(
                     IS_DARK_ALBUM_ART_TAG,
                     NOT_SET
@@ -123,7 +120,6 @@ class AlbumDetailActivity : AppCompatActivity() {
 
     private lateinit var albumDetailAdapter: AlbumDetailAdapter
     private lateinit var decorView: View
-    private var navIcon: Drawable? = null
     private var songsInAlbum: MutableList<Audio> = mutableListOf()
     private val albumArtJob = SupervisorJob()
     private lateinit var metadata: Array<String>
@@ -141,7 +137,7 @@ class AlbumDetailActivity : AppCompatActivity() {
         metadata = intent.getStringArrayExtra(METADATA_TAG)
         albumDetailAdapter = AlbumDetailAdapter(metadata[2])
 
-        updateUI()
+        setUpUI()
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -154,6 +150,15 @@ class AlbumDetailActivity : AppCompatActivity() {
                     setDuration(200)
                 }
                 setHasFixedSize(true)
+            }
+        }
+
+        // load songs in album
+        GlobalScope.launch(Dispatchers.IO + albumArtJob) {
+            delay(200)
+            songsInAlbum = MediaHunter.getAudioByAlbumId(this@AlbumDetailActivity, metadata[2])
+            withContext(Dispatchers.Main) {
+                albumDetailAdapter.setSongsInAlbum(songsInAlbum)
             }
         }
     }
@@ -171,7 +176,7 @@ class AlbumDetailActivity : AppCompatActivity() {
         fab.show()
     }
 
-    private fun updateUI() {
+    private fun setUpUI() {
         GlobalScope.launch(Dispatchers.IO + albumArtJob) {
             // set album art
             val albumArtUri = MediaHunter.getArtUriFromAlbumId(metadata[2].toLong())
@@ -217,6 +222,7 @@ class AlbumDetailActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.w("AlbumDetailActivity", "e.message")
                 bitmap = getDrawable(R.drawable.default_album_art_blue)!!.toBitmap(512, 512)
+                setUpAppBar(IS_DARK_ALBUM, bitmap)
             }
 
             withContext(Dispatchers.Main) {
@@ -225,19 +231,10 @@ class AlbumDetailActivity : AppCompatActivity() {
             }
         }
 
-        // load metadata
+        // set metadata
         albumTitle.text = metadata[0]
         description.text = metadata[1]
         toolbar.title = metadata[0]
-
-        // load songs in album
-        GlobalScope.launch(Dispatchers.IO + albumArtJob) {
-            delay(200)
-            songsInAlbum = MediaHunter.getAudioByAlbumId(this@AlbumDetailActivity, metadata[2])
-            withContext(Dispatchers.Main) {
-                albumDetailAdapter.setSongsInAlbum(songsInAlbum)
-            }
-        }
 
         // set up fab
         fab.setOnClickListener {
@@ -246,12 +243,14 @@ class AlbumDetailActivity : AppCompatActivity() {
     }
 
     private fun setUpAppBar(isAlbumArtDark: Int, bitmap: Bitmap? = null) {
-        navIcon = toolbar.navigationIcon
+        val navIcon = toolbar.navigationIcon
+        val menuIcon = toolbar.overflowIcon
         when (isAlbumArtDark) {
             IS_DARK_ALBUM -> {
                 // change status bar color dynamically
                 Generic.setLightStatusBar(decorView, false)
                 navIcon?.colorFilter = whiteFilter
+                menuIcon?.colorFilter = whiteFilter
                 appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
                     private var cachedOffset = 0
                     override fun onOffsetChanged(appBarLayout: AppBarLayout?, verticalOffset: Int) {
@@ -264,10 +263,12 @@ class AlbumDetailActivity : AppCompatActivity() {
                         if (statusBarPosThreshold!! in verticalOffset until cachedOffset) {
                             // collapsing
                             navIcon?.clearColorFilter()
+                            menuIcon?.clearColorFilter()
                             Generic.setLightStatusBar(decorView, true)
                         } else if (statusBarPosThreshold!! in (cachedOffset + 1)..verticalOffset) {
                             // expanding
                             navIcon?.colorFilter = whiteFilter
+                            menuIcon?.colorFilter = whiteFilter
                             Generic.setLightStatusBar(decorView, false)
                         }
                         val opacity = (verticalOffset - threshold!!) / 200f
@@ -315,25 +316,42 @@ class AlbumDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_album_item, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.play -> {
+                fab.callOnClick()
+            }
+            R.id.add_to_playlist -> {
+                addToPlaylist(songsInAlbum)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun addToPlaylist(audioList: List<Audio>) {
         GlobalScope.launch(Dispatchers.IO) {
             val playlistList = MediaHunter.getAllPlaylists(this@AlbumDetailActivity)
+
             playlistList.let { playlists ->
+                // prepare playlist items
                 val items = Array(playlists.size) { "1" }
                 for (position in playlists.indices) {
                     items[position] = playlists[position].name.toString()
                 }
+
+                // show dialog
                 MaterialAlertDialogBuilder(this@AlbumDetailActivity).apply {
                     setTitle("Add to playlist")
                     setItems(items) { dialog, position ->
                         val playlist = playlists[position]
                         Log.d("AddToPlaylist", playlist.toString())
                         GlobalScope.launch(Dispatchers.IO) {
-                            if (MediaHunter.addToPlaylist(
-                                    this@AlbumDetailActivity,
-                                    playlist.id, audioList
-                                ) == 0
-                            ) {
+                            if (MediaHunter.addToPlaylist(this@AlbumDetailActivity, playlist.id, audioList) == 0) {
                                 withContext(Dispatchers.Main) {
                                     Snackbar.make(
                                         rootLayout,

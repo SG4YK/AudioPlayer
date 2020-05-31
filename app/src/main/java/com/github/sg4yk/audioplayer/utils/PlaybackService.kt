@@ -21,6 +21,7 @@ import com.github.sg4yk.audioplayer.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.*
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -67,6 +68,8 @@ class PlaybackService : MediaBrowserServiceCompat() {
     private val exoPlayer: SimpleExoPlayer by lazy {
         SimpleExoPlayer.Builder(this).build().apply {
             setAudioAttributes(audioAttributes, true)
+            repeatMode = ExoPlayer.REPEAT_MODE_ALL
+            shuffleModeEnabled = false
             playWhenReady = true
         }
     }
@@ -243,6 +246,14 @@ class PlaybackService : MediaBrowserServiceCompat() {
             }
             serviceScope.launch {
                 delay(1000)
+            }
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            val state = mediaController.playbackState
+            val metadata = mediaController.metadata
+            serviceScope.launch {
+                updateNotification(state, metadata)
             }
         }
 

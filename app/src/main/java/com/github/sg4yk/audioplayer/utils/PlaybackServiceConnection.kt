@@ -18,13 +18,17 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
     val isConnected = MutableLiveData<Boolean>()
         .apply { postValue(false) }
 
-    val rootMediaId: String get() = mediaBrowser.root
-
     val playbackState = MutableLiveData<PlaybackStateCompat>()
         .apply { postValue(EMPTY_PLAYBACK_STATE) }
 
     val nowPlaying = MutableLiveData<MediaMetadataCompat>()
         .apply { postValue(NOTHING_PLAYING) }
+
+    val repeatMode = MutableLiveData<Int>()
+        .apply { postValue(PlaybackStateCompat.REPEAT_MODE_NONE) }
+
+    val shuffleMode = MutableLiveData<Int>()
+        .apply { postValue(PlaybackStateCompat.SHUFFLE_MODE_NONE) }
 
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
@@ -75,32 +79,23 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
 
     private inner class MediaBrowserConnectionCallback(private val context: Context) :
         MediaBrowserCompat.ConnectionCallback() {
-        /**
-         * Invoked after [MediaBrowserCompat.connect] when the request has successfully
-         * completed.
-         */
         override fun onConnected() {
-            // Get a MediaController for the MediaSession.
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
 
             nowPlaying.postValue(mediaController.metadata)
             playbackState.postValue(mediaController.playbackState)
+            repeatMode.postValue(mediaController.repeatMode)
+            shuffleMode.postValue(mediaController.shuffleMode)
             isConnected.postValue(true)
         }
 
-        /**
-         * Invoked when the client is disconnected from the media browser.
-         */
         override fun onConnectionSuspended() {
             Log.d("MediaBrowser", "Connection suspended")
             isConnected.postValue(false)
         }
 
-        /**
-         * Invoked when the connection to the media browser failed.
-         */
         override fun onConnectionFailed() {
             Log.d("MediaBrowser", "Connection failed")
             isConnected.postValue(false)
@@ -120,12 +115,14 @@ class PlaybackServiceConnection(context: Context, serviceComponent: ComponentNam
         override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
         }
 
-        /**
-         * Normally if a [MediaBrowserServiceCompat] drops its connection the callback comes via
-         * [MediaControllerCompat.Callback] (here). But since other connection status events
-         * are sent to [MediaBrowserCompat.ConnectionCallback], we catch the disconnect here and
-         * send it on to the other callback.
-         */
+        override fun onRepeatModeChanged(mode: Int) {
+            repeatMode.postValue(mode)
+        }
+
+        override fun onShuffleModeChanged(mode: Int) {
+            shuffleMode.postValue(mode)
+        }
+
         override fun onSessionDestroyed() {
             mediaBrowserConnectionCallback.onConnectionSuspended()
         }

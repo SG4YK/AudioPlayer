@@ -420,7 +420,6 @@ class MainActivity : AppCompatActivity() {
         val maxLength = 30
         MaterialDialog(ctx).show {
             input(maxLength = maxLength)
-//            input()
             getInputLayout().apply {
                 hint = "Playlist name"
                 this.setStartIconDrawable(R.drawable.ic_playlist_add_gray_24dp)

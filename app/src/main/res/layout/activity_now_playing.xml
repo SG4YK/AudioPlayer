@@ -44,7 +44,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             style="@style/TransparentToolBarLight"
-            android:layout_marginTop="@dimen/status_bar_height"/>
+            android:layout_marginTop="@dimen/status_bar_height"
+            app:subtitleTextColor="@color/material_on_primary_emphasis_medium"/>
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -54,6 +55,25 @@
             app:layout_constraintHorizontal_bias="1.0"
             android:id="@+id/control" android:layout_marginBottom="56dp">
 
+        <ImageButton
+                android:layout_width="28dp"
+                android:layout_height="28dp" app:srcCompat="@drawable/exo_icon_shuffle_off"
+                android:id="@+id/buttonShuffleMode" android:background="?attr/selectableItemBackgroundBorderless"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/seekbar"
+                app:layout_constraintStart_toEndOf="@+id/buttonSkipNext" android:layout_marginEnd="8dp"
+                android:tint="#A6FFFFFF" android:scaleType="fitCenter"
+                android:tintMode="src_in"
+        />
+        <ImageButton
+                android:layout_width="28dp"
+                android:layout_height="30dp" app:srcCompat="@drawable/exo_icon_repeat_all"
+                android:id="@+id/buttonRepeatMode"
+                android:background="@color/transparent" android:scaleType="fitCenter"
+                app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toBottomOf="@+id/seekbar"
+                app:layout_constraintEnd_toStartOf="@+id/buttonSkipPrevious"
+                app:layout_constraintStart_toStartOf="parent" android:tint="#A6FFFFFF"
+                android:tintMode="src_in" android:layout_marginStart="8dp"/>
         <androidx.appcompat.widget.AppCompatTextView
                 android:text="00:00"
                 android:layout_width="wrap_content"
@@ -61,7 +81,7 @@
                 android:id="@+id/position"
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginStart="32dp"
-                android:textColor="#80FFFFFF"
+                android:textColor="@color/material_on_primary_emphasis_medium"
                 app:layout_constraintBottom_toBottomOf="@+id/seekbar"/>
         <androidx.appcompat.widget.AppCompatSeekBar
                 android:layout_width="0dp"
@@ -127,7 +147,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/duration"
                 app:layout_constraintBottom_toBottomOf="@+id/seekbar"
-                android:textColor="#80FFFFFF"
+                android:textColor="@color/material_on_primary_emphasis_medium"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginEnd="32dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>

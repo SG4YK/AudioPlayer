@@ -14,3 +14,9 @@ data class Audio(
     val year: Int?,
     val duration: Long?
 )
+
+class PlaylistAudio(
+    val audio: Audio,
+    val id: Long,
+    val playOrder: Int?
+)

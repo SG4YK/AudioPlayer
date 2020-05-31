@@ -16,10 +16,7 @@ import androidx.annotation.WorkerThread
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
-import com.github.sg4yk.audioplayer.media.Album
-import com.github.sg4yk.audioplayer.media.Artist
-import com.github.sg4yk.audioplayer.media.Audio
-import com.github.sg4yk.audioplayer.media.Playlist
+import com.github.sg4yk.audioplayer.media.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
@@ -82,7 +79,9 @@ object MediaHunter {
         MediaStore.Audio.Playlists.Members.ALBUM_ID,
         MediaStore.Audio.Playlists.Members.TRACK,
         MediaStore.Audio.Playlists.Members.YEAR,
-        MediaStore.Audio.Playlists.Members.DURATION
+        MediaStore.Audio.Playlists.Members.DURATION,
+        MediaStore.Audio.Playlists.Members._ID,
+        MediaStore.Audio.Playlists.Members.PLAY_ORDER
     )
 
     private val metadataProjection = arrayOf(
@@ -318,6 +317,16 @@ object MediaHunter {
         }
     }
 
+    suspend fun removeFromPlaylist(ctx: Context, playlistId: Long, id: Long): Int {
+        val resolver = ctx.contentResolver
+        val uri = MediaStore.Audio.Playlists.Members.getContentUri(VOLUME_EXTERNAL, playlistId)
+        return resolver.delete(
+            uri,
+            "${MediaStore.Audio.Playlists.Members._ID} = ?",
+            arrayOf(id.toString())
+        )
+    }
+
     private fun queryMetadata(
         ctx: Context,
         uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -551,5 +560,92 @@ object MediaHunter {
             }
         }
         return playlistList
+    }
+
+    // for playlist ui only
+    suspend fun getPlaylistAudioByPlayListId(ctx: Context, playlistId: Long): MutableList<PlaylistAudio> {
+        val uri = MediaStore.Audio.Playlists.Members.getContentUri(VOLUME_EXTERNAL, playlistId)
+        val audioList = mutableListOf<PlaylistAudio>()
+
+        ctx.contentResolver.query(
+            uri,
+            playlistAudioProjection, null, null,
+            MediaStore.Audio.Playlists.Members.PLAY_ORDER
+        )?.use { cursor ->
+            val audioIdColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[0])
+            val titleColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[1])
+            val artistColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[2])
+            val artistIdColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[3])
+            val albumColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[4])
+            val albumIdColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[5])
+            val trackColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[6])
+            val yearColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[7])
+            val durationColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[8])
+            val idColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[9])
+            val playOrderColumn = cursor.getColumnIndexOrThrow(playlistAudioProjection[10])
+
+            var audioId: Long = 0L
+            var title: String? = null
+            var artist: String? = null
+            var artistId: Long? = null
+            var album: String? = null
+            var albumId: Long? = null
+            var track: Int? = null
+            var year: Int? = null
+            var duration: Long? = null
+            var contentUri: Uri = Uri.EMPTY
+            var id: Long = 0L
+            var playOrder: Int? = null
+
+            while (cursor.moveToNext()) {
+                audioId = cursor.getLong(audioIdColumn)
+                title = cursor.getStringOrNull(titleColumn)
+                artist = cursor.getStringOrNull(artistColumn)
+                artistId = cursor.getLongOrNull(artistIdColumn)
+                album = cursor.getStringOrNull(albumColumn)
+                albumId = cursor.getLongOrNull(albumIdColumn)
+                track = cursor.getIntOrNull(trackColumn)
+                year = cursor.getIntOrNull(yearColumn)
+                duration = cursor.getLongOrNull(durationColumn)
+                id = cursor.getLong(idColumn)
+                playOrder = cursor.getIntOrNull(playOrderColumn)
+
+                contentUri = ContentUris.withAppendedId(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    audioId
+                )
+                try {
+                    cachedIdMapping.put(audioId, albumId ?: ALBUM_NOT_EXIST)
+                } catch (e: Exception) {
+                    Log.w("MediaHunter", e.message)
+                }
+                audioList.add(
+                    PlaylistAudio(
+                        Audio(
+                            contentUri,
+                            audioId,
+                            title,
+                            artist,
+                            artistId,
+                            album,
+                            albumId,
+                            track,
+                            year,
+                            duration
+                        ),
+                        id,
+                        playOrder
+                    )
+                )
+            }
+
+            title = null
+            artist = null
+            album = null
+            albumId = null
+            year = null
+            duration = null
+        }
+        return audioList
     }
 }

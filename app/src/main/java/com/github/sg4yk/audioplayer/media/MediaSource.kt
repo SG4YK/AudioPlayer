@@ -143,7 +143,6 @@ class MetadataSource(private val context: Context) : AbstractMusicSource() {
     override suspend fun load() {
         try {
             list = MediaHunter.getAllMetadata(context)
-//            list = MediaHunter.getAudioByAlbumId(context, "3")
             state = STATE_INITIALIZED
         } catch (e: Exception) {
             Log.e("MetadataSource", e.message)

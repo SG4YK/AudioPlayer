@@ -14,9 +14,6 @@ import kotlinx.coroutines.*
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class AppViewModel(application: Application) : AndroidViewModel(application) {
-    companion object {
-        private const val preloadItemsCount = 15
-    }
 
     var audioItemsLiveData: MutableLiveData<MutableList<Audio>> = MutableLiveData()
 

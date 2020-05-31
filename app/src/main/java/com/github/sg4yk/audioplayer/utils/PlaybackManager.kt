@@ -15,6 +15,10 @@ object PlaybackManager {
 
 //    private lateinit var controls: MediaControllerCompat.TransportControls
 
+    fun repeatMode() = connection.repeatMode
+
+    fun shuffleMode() = connection.shuffleMode
+
     fun connectPlaybackService(context: Context) {
         context.startService(Intent(context, PlaybackService::class.java))
         connection = ServiceInjector.getPlaybackServiceConnection(context)
@@ -142,5 +146,13 @@ object PlaybackManager {
 
     fun closeConnection() {
         connection.close()
+    }
+
+    fun setRepeatMode(repeatMode: Int) {
+        connection.transportControls.setRepeatMode(repeatMode)
+    }
+
+    fun setShuffleMode(shuffleMode: Int) {
+        connection.transportControls.setShuffleMode(shuffleMode)
     }
 }

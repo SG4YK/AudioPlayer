@@ -18,13 +18,20 @@ import kotlinx.coroutines.launch
 
 object Generic {
 
-    @WorkerThread
+    /**
+     * Convert milliseconds to readable string
+     * e.g., 01:32
+     *
+     * @param msec milliseconds
+     * @return
+     */
     fun msecToStr(msec: Long): String {
         val seconds = msec / 1000
         val minutes = seconds / 60
         return "%02d:%02d".format(minutes, seconds % 60)
     }
 
+    @Deprecated("This method is no longer used")
     fun crossFade(v1: ImageView, v2: ImageView, duration: Long = 300, delay: Long = 0) {
         if (v1.visibility == v2.visibility) {
             return
@@ -38,6 +45,7 @@ object Generic {
         }
     }
 
+    @Deprecated("This method is no longer used")
     private fun crossFader(old: ImageView, new: ImageView, duration: Long, delay: Long) {
         new.alpha = 0f
         new.visibility = View.VISIBLE
@@ -81,6 +89,13 @@ object Generic {
         return metrics.density
     }
 
+
+    /**
+     * Calculate approximate luminance of color
+     *
+     * @param color
+     * @return Luminance
+     */
     fun luminance(color: Int): Int {
         val b = color and 0xff
         val g = (color and 0xff00) shr 8
@@ -88,6 +103,13 @@ object Generic {
         return (r + r + r + b + g + g + g + g) shr 3
     }
 
+    /**
+     * Change the opacity of color
+     *
+     * @param color
+     * @param alpha Opacity, from 0 to 255
+     * @return
+     */
     fun setAlpha(color: Int, alpha: Int): Int {
         val b = color and 0xff
         val g = (color and 0xff00) shr 8
@@ -95,6 +117,14 @@ object Generic {
         return Color.argb(alpha, r, g, b)
     }
 
+    /**
+     * Set light status bar on or off
+     *
+     * Notice: A light status bar has dark icon
+     *
+     * @param view The decoration view of window
+     * @param on [true] for light status bar, [false] for dark status bar
+     */
     fun setLightStatusBar(view: View, on: Boolean) {
         GlobalScope.launch(Dispatchers.Main) {
             if (on) {

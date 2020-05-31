@@ -1,18 +1,18 @@
 package com.github.sg4yk.audioplayer
 
 import android.animation.Animator
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.AnimatedVectorDrawable
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewAnimationUtils
+import android.view.*
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -22,6 +22,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.github.pwittchen.swipe.library.rx2.Swipe
@@ -31,6 +32,7 @@ import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.MediaHunter
 import com.github.sg4yk.audioplayer.utils.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
+import com.google.android.exoplayer2.ExoPlayer
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_now_playing.*
 import kotlinx.coroutines.*
@@ -59,7 +61,12 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var connectionObserver: Observer<Boolean>
     private lateinit var metadataObserver: Observer<MediaMetadataCompat>
     private lateinit var playbackStateObserver: Observer<PlaybackStateCompat>
+    private lateinit var repeatModeObserver: Observer<Int>
+    private lateinit var shuffleModeObserver: Observer<Int>
     private lateinit var seekbarJob: Job
+
+    private lateinit var audioManager: AudioManager
+
     private var setBgJob: Job = Job()
 
     private var skipLock = false
@@ -72,6 +79,7 @@ class NowPlayingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
 
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         toolbar.post {
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -148,6 +156,34 @@ class NowPlayingActivity : AppCompatActivity() {
             }
         }
 
+        buttonRepeatMode.setOnClickListener {
+            // switch repeat mode
+            when (PlaybackManager.repeatMode().value) {
+                ExoPlayer.REPEAT_MODE_OFF -> {
+                    PlaybackManager.setRepeatMode(ExoPlayer.REPEAT_MODE_ALL)
+                }
+                ExoPlayer.REPEAT_MODE_ALL -> {
+                    PlaybackManager.setRepeatMode(ExoPlayer.REPEAT_MODE_ONE)
+                }
+                ExoPlayer.REPEAT_MODE_ONE -> {
+                    PlaybackManager.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF)
+                }
+            }
+        }
+
+        buttonShuffleMode.setOnClickListener {
+            when (PlaybackManager.shuffleMode().value) {
+                PlaybackStateCompat.SHUFFLE_MODE_NONE -> {
+                    PlaybackManager.setShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_ALL)
+                }
+                PlaybackStateCompat.SHUFFLE_MODE_ALL -> {
+                    PlaybackManager.setShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
+                }
+            }
+        }
+
+
+        // Swipe control
         albumArtSwitcher.post {
             val swipe = Swipe()
             swipe.setListener(object : SwipeListener {
@@ -160,6 +196,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 }
 
                 override fun onSwipingRight(event: MotionEvent?) {
+
                 }
 
                 override fun onSwipedRight(event: MotionEvent?): Boolean {
@@ -168,13 +205,16 @@ class NowPlayingActivity : AppCompatActivity() {
                 }
 
                 override fun onSwipingUp(event: MotionEvent?) {
+
                 }
 
                 override fun onSwipedUp(event: MotionEvent?): Boolean {
+                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND);
                     return true
                 }
 
                 override fun onSwipedDown(event: MotionEvent?): Boolean {
+                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND);
                     return true
                 }
 
@@ -255,6 +295,33 @@ class NowPlayingActivity : AppCompatActivity() {
                     }
                 }
                 PlaybackManager.nowPlaying().observe(this, metadataObserver)
+
+                repeatModeObserver = Observer<Int> { mode ->
+                    when (mode) {
+                        ExoPlayer.REPEAT_MODE_OFF -> {
+                            buttonRepeatMode.setImageResource(R.drawable.exo_icon_repeat_off)
+                        }
+                        ExoPlayer.REPEAT_MODE_ALL -> {
+                            buttonRepeatMode.setImageResource(R.drawable.exo_icon_repeat_all)
+                        }
+                        ExoPlayer.REPEAT_MODE_ONE -> {
+                            buttonRepeatMode.setImageResource(R.drawable.exo_icon_repeat_one)
+                        }
+                    }
+                }
+                PlaybackManager.repeatMode().observe(this, repeatModeObserver)
+
+                shuffleModeObserver = Observer<Int> { mode ->
+                    when (mode) {
+                        PlaybackStateCompat.SHUFFLE_MODE_NONE -> {
+                            buttonShuffleMode.setImageResource(R.drawable.exo_icon_shuffle_off)
+                        }
+                        PlaybackStateCompat.SHUFFLE_MODE_ALL -> {
+                            buttonShuffleMode.setImageResource(R.drawable.exo_icon_shuffle_on)
+                        }
+                    }
+                }
+                PlaybackManager.shuffleMode().observe(this, shuffleModeObserver)
             }
         }
         PlaybackManager.isConnected().observe(this, connectionObserver)
@@ -447,5 +514,10 @@ class NowPlayingActivity : AppCompatActivity() {
                 icon.start()
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.menu_audio_item, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 }
