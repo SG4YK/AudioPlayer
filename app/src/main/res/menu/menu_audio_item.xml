@@ -4,4 +4,5 @@
     <item android:title="Add to playlist" android:id="@+id/add_to_playlist"/>
     <item android:title="View artist" android:id="@+id/view_artist"/>
     <item android:title="View album" android:id="@+id/view_album"/>
+    <item android:title="Select" android:id="@+id/select"/>
 </menu>

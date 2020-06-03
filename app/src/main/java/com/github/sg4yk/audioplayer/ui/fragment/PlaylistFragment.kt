@@ -55,7 +55,7 @@ class PlaylistFragment : Fragment() {
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = AlphaInAnimationAdapter(playlistItemAdapter).apply {
-                    setFirstOnly(false)
+                    setFirstOnly(true)
                     setDuration(200)
                 }
                 setHasFixedSize(true)

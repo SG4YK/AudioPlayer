@@ -6,16 +6,16 @@
             app:startDestination="@id/nav_library" tools:ignore="UnusedNavigation">
     <fragment android:id="@+id/nav_library"
               android:name="com.github.sg4yk.audioplayer.ui.fragment.LibraryFragment"
-              android:label="library_fragment"
+              android:label="@string/library"
               tools:layout="@layout/library_fragment"/>
     <fragment android:id="@+id/nav_playlist"
               android:name="com.github.sg4yk.audioplayer.ui.fragment.PlaylistFragment"
-              android:label="playlist_fragment"
+              android:label="@string/playlist"
               tools:layout="@layout/playlist_fragment"/>
     <fragment android:id="@+id/nav_album" android:name="com.github.sg4yk.audioplayer.ui.fragment.AlbumFragment"
-              android:label="album_fragment" tools:layout="@layout/album_fragment"/>
+              android:label="@string/album" tools:layout="@layout/album_fragment"/>
     <fragment android:id="@+id/nav_artist" android:name="com.github.sg4yk.audioplayer.ui.fragment.ArtistFragment"
-              android:label="artist_fragment" tools:layout="@layout/artist_fragment"/>
+              android:label="@string/artist" tools:layout="@layout/artist_fragment"/>
     <fragment android:id="@+id/nav_folder" android:name="com.github.sg4yk.audioplayer.ui.fragment.FolderFragment"
               android:label="folder_fragment" tools:layout="@layout/folder_fragment"/>
     <action android:id="@+id/action_global_nav_library2" app:destination="@id/nav_library" app:launchSingleTop="true"

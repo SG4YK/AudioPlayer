@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.Playlist
@@ -84,7 +85,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
                 recyclerView.apply {
                     layoutManager = LinearLayoutManager(this@PlaylistDetailActivity)
                     adapter = AlphaInAnimationAdapter(playlistDetailAdapter).apply {
-                        setFirstOnly(false)
+                        setFirstOnly(true)
                         setDuration(200)
                     }
                     setHasFixedSize(true)
@@ -126,7 +127,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             Glide.with(view)
                                 .load(uri)
-//                                .transition(withCrossFade())
+                                .transition(withCrossFade())
                                 .error(R.drawable.default_album_art_blue)
                                 .into(view)
                         }

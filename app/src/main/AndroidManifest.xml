@@ -17,13 +17,11 @@
         <activity android:name=".ui.PlaylistDetailActivity">
         </activity>
         <activity
-                android:name=".ui.ArtistDetailActivity"
-                android:theme="@style/AppThemeNoActionBar">
+                android:name=".ui.ArtistDetailActivity">
         </activity>
         <activity
                 android:name=".ui.AlbumDetailActivity"
-                android:label="@string/title_activity_album_detail"
-                android:theme="@style/AppThemeNoActionBar">
+                android:label="@string/title_activity_album_detail">
         </activity>
 
         <service
@@ -48,8 +46,7 @@
         </activity>
         <activity
                 android:name=".ui.SettingsActivity"
-                android:label="@string/title_activity_settings"
-                android:theme="@style/AppThemeNoActionBar">
+                android:label="@string/title_activity_settings">
         </activity>
         <activity
                 android:name=".ui.NowPlayingActivity"

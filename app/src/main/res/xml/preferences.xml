@@ -41,7 +41,7 @@
 
         <Preference
                 app:key="version"
-                app:summary="0.0.1 alpha"
+                app:summary="0.1 alpha"
                 app:icon="@drawable/ic_info_white_24dp"
                 app:title="Version"
         />

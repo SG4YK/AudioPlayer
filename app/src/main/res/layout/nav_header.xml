@@ -4,7 +4,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/nav_header_layout" android:background="@color/colorPrimaryDark">
+        android:id="@+id/navHeader" android:background="@color/colorPrimaryDark">
 
     <!--    <io.alterac.blurkit.BlurLayout-->
     <!--            android:id="@+id/blurLayout"-->
@@ -61,23 +61,24 @@
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/infoArea" app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/status_bar_height">
 
         <androidx.appcompat.widget.AppCompatTextView
                 android:text="@string/now_playing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/textView2"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="?attr/textAppearanceBody1"
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:textColor="#B3FFFFFF"
-                android:textSize="18sp"
                 android:drawableStart="@drawable/ic_play_arrow_white_24dp"
                 android:drawablePadding="2dp"
                 app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginStart="16dp" android:layout_marginTop="40dp"
-                app:layout_constraintTop_toTopOf="parent"/>
+                android:layout_marginStart="16dp" android:layout_marginTop="8dp"
+                app:layout_constraintTop_toTopOf="parent" android:textSize="18sp" android:drawableTint="#B3FFFFFF"
+                android:drawableTintMode="src_in" app:drawableTintMode="src_in"/>
         <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -85,20 +86,18 @@
                 android:ellipsize="marquee"
                 android:singleLine="false"
                 android:theme="@style/SecondaryTextLight"
-                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:textAppearance="@android:style/TextAppearance.Material.Display1"
                 android:textColor="#CCFFFFFF"
-                android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/textView2"
                 android:layout_marginTop="8dp" app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginEnd="16dp" android:layout_marginStart="16dp"/>
+                android:layout_marginEnd="16dp" android:layout_marginStart="16dp" android:textSize="20sp"/>
         <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/navHeaderArtist"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
                 android:theme="@style/SecondaryTextLight"
                 android:textColor="#B3FFFFFF"
-                android:textSize="14sp"
                 android:ellipsize="end"
                 android:singleLine="true"
                 app:layout_constraintEnd_toEndOf="@+id/navHeaderTitle"
@@ -108,9 +107,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/navHeaderAlbum"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
                 android:textColor="#B3FFFFFF"
-                android:textSize="14sp"
                 android:ellipsize="end"
                 android:singleLine="true"
                 app:layout_constraintEnd_toEndOf="@+id/navHeaderTitle"
@@ -140,7 +138,6 @@
             android:theme="@style/Widget.MaterialComponents.FloatingActionButton"
             android:focusable="true"
             android:outlineProvider="none"
-            android:layout_marginTop="8dp"
             android:contextClickable="true"
     />
 

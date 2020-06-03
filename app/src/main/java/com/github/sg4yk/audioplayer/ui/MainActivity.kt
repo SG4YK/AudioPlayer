@@ -12,10 +12,12 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.core.app.ActivityOptionsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
@@ -30,14 +32,12 @@ import com.afollestad.materialdialogs.input.getInputLayout
 import com.afollestad.materialdialogs.input.input
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.github.sg4yk.audioplayer.utils.AppViewModel
-import com.github.sg4yk.audioplayer.ui.NowPlayingActivity
 import com.github.sg4yk.audioplayer.R
-import com.github.sg4yk.audioplayer.ui.SettingsActivity
+import com.github.sg4yk.audioplayer.playback.PlaybackManager
+import com.github.sg4yk.audioplayer.utils.AppViewModel
 import com.github.sg4yk.audioplayer.utils.Generic
 import com.github.sg4yk.audioplayer.utils.Generic.setLightStatusBar
 import com.github.sg4yk.audioplayer.utils.MediaHunter
-import com.github.sg4yk.audioplayer.playback.PlaybackManager
 import com.github.sg4yk.audioplayer.utils.PrefManager
 import jp.wasabeef.blurry.Blurry
 import kotlinx.android.synthetic.main.activity_main.*
@@ -84,6 +84,8 @@ class MainActivity : AppCompatActivity() {
             refreshAll()
         }
 
+        setSupportActionBar(toolbar)
+
         drawerLayout.addDrawerListener(
             object : DrawerLayout.DrawerListener {
                 private var lastNavSlideOffset: Float = 0f
@@ -128,19 +130,21 @@ class MainActivity : AppCompatActivity() {
             navDrawer.setupWithNavController(navControl)
 
             infoArea.setOnClickListener {
-                this@MainActivity.startActivity(Intent(this@MainActivity, NowPlayingActivity::class.java))
+                val intent = Intent(this@MainActivity, NowPlayingActivity::class.java)
+                if (PrefManager.animationReduced(this)) {
+                    this@MainActivity.startActivity(intent)
+                } else {
+                    val options = ActivityOptionsCompat.makeClipRevealAnimation(
+                        navHeader,
+                        0, 0,
+                        navHeader.width,
+                        navHeader.height
+                    )
+                    this@MainActivity.startActivity(intent, options.toBundle())
+                }
             }
 
             navControl.addOnDestinationChangedListener { controller, destination, arguments ->
-                // Change toolbar title when navigate between fragments
-                toolbar.title = when (destination.id) {
-                    R.id.nav_playlist -> getString(R.string.playlist)
-                    R.id.nav_library -> getString(R.string.library)
-                    R.id.nav_album -> getString(R.string.album)
-                    R.id.nav_folder -> getString(R.string.folder)
-                    R.id.nav_artist -> getString(R.string.artist)
-                    else -> getString(R.string.app_name)
-                }
                 if (destination.id == R.id.nav_playlist) {
                     toolbar.menu.clear()
                     toolbar.inflateMenu(R.menu.menu_playlist_main)
@@ -150,29 +154,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // setup menu
-            toolbar.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.menu_search -> {
-                        // TODO
-                        true
-                    }
-                    R.id.menu_create_playlist -> {
-                        createPlaylist(this)
-                        true
-                    }
-                    R.id.menu_settings -> {
-                        startActivity(Intent(this, SettingsActivity::class.java))
-                        true
-                    }
-                    R.id.menu_exit -> {
-                        PlaybackManager.stopPlaybackService(this)
-                        finishAffinity()
-                        true
-                    }
-                    else -> true
-                }
-            }
         }
 
         // setup fab
@@ -207,6 +188,25 @@ class MainActivity : AppCompatActivity() {
         } else {
             requestPermissions(permissions, PERMISSION_REQUEST_CODE)
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_search -> {
+                // TODO
+            }
+            R.id.menu_create_playlist -> {
+                createPlaylist(this)
+            }
+            R.id.menu_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+            R.id.menu_exit -> {
+                PlaybackManager.stopPlaybackService(this)
+                finishAffinity()
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun startObserve() {
@@ -378,6 +378,7 @@ class MainActivity : AppCompatActivity() {
                                 luminance - 150
                             }
                         }
+                        Log.d("MainActivity", alpha.toString())
                         blur.color(Color.argb(alpha, 0, 0, 0)).from(bitmap).into(nextView)
                     }
                 } catch (e: Exception) {
@@ -402,6 +403,10 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         PlaybackManager.nowPlaying().removeObservers(this)
         PlaybackManager.closeConnection()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return super.onSupportNavigateUp()
     }
 
     private fun setButtonState(state: Int) {
@@ -444,6 +449,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onSupportActionModeStarted(mode: ActionMode) {
+        super.onSupportActionModeStarted(mode)
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        window.statusBarColor = Color.WHITE
+    }
+
+    override fun onSupportActionModeFinished(mode: ActionMode) {
+        super.onSupportActionModeFinished(mode)
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(400)
+            window.statusBarColor = Color.TRANSPARENT
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+    }
 }
+
 
 const val PERMISSION_REQUEST_CODE = 1
