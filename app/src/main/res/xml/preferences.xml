@@ -5,11 +5,10 @@
     <PreferenceCategory
             app:title="PLAYBACK">
         <SwitchPreferenceCompat
-                app:key="autoPause"
-                app:title="Auto pause (TODO)"
-                app:enabled="false"
-                android:defaultValue="false"
-                app:summary="Pause on headphones disconnect"
+                app:key="@string/auto_pause"
+                app:title="Auto pause"
+                android:defaultValue="true"
+                app:summary="Pause when headphones disconnected"
                 app:icon="@drawable/ic_pause_white_24dp"
         />
         <SwitchPreferenceCompat

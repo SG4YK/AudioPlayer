@@ -378,7 +378,6 @@ class MainActivity : AppCompatActivity() {
                                 luminance - 150
                             }
                         }
-                        Log.d("MainActivity", alpha.toString())
                         blur.color(Color.argb(alpha, 0, 0, 0)).from(bitmap).into(nextView)
                     }
                 } catch (e: Exception) {

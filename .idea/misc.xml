@@ -6,7 +6,8 @@
     <list size="0" />
   </component>
   <component name="FrameworkDetectionExcludesConfiguration">
-    <file type="web" url="file://$USER_HOME$/mnt/Games/Workspace/Course/AudioPlayer" />
+    <file type="web" url="file://$PROJECT_DIR$" />
+    <file type="web" url="file://$PROJECT_DIR$/../../../AudioPlayer" />
   </component>
   <component name="JavaScriptSettings">
     <option name="languageLevel" value="ES6" />

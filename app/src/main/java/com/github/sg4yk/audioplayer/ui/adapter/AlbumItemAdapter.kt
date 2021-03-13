@@ -18,6 +18,7 @@ import com.github.sg4yk.audioplayer.utils.MediaHunter
 import kotlinx.android.synthetic.main.album_item.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 open class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHolder>() {
@@ -47,13 +48,16 @@ open class AlbumItemAdapter : RecyclerView.Adapter<AlbumItemAdapter.AlbumViewHol
         holder.artist.text = albumList[position].artist
         try {
             GlobalScope.launch(Dispatchers.Main) {
-                val uri = MediaHunter.getArtUriFromAlbumId(albumList[position].id)
-                Glide.with(holder.view)
-                    .load(uri)
-                    .thumbnail(0.25f)
-                    .centerInside()
-                    .placeholder(R.drawable.default_album_art_blue)
-                    .into(holder.albumArt)
+                async{
+                    val uri = MediaHunter.getArtUriFromAlbumId(albumList[position].id)
+                    Glide.with(holder.view)
+                        .load(uri)
+                        .thumbnail(0.25f)
+                        .centerInside()
+                        .placeholder(R.drawable.default_album_art_blue)
+                        .error(R.drawable.default_album_art_blue)
+                        .into(holder.albumArt)
+                }
             }
         } catch (e: Exception) {
             Log.w("AlbumItemAdapter", e.message)

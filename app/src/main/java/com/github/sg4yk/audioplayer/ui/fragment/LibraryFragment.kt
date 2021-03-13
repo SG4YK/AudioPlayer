@@ -195,9 +195,6 @@ class LibraryFragment : Fragment() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             val list = audioItemAdapter.selectedAudioItems()
-            list.forEach {
-                Log.d("MultiSelect", it.title)
-            }
             audioItemAdapter.clearSelection()
             isActionMode = false
         }

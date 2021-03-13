@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 
-
 @WorkerThread
 object MediaHunter {
 
@@ -100,23 +99,21 @@ object MediaHunter {
 
     fun getMetadataByAlbumId(ctx: Context, albumId: String): MutableList<MediaMetadataCompat> {
 //        val metadata = queryMetadata(ctx, sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC")
-        val metadata = queryMetadata(
+        return queryMetadata(
             ctx,
             selection = "${MediaStore.Audio.Media.ALBUM_ID} = ?",
             args = arrayOf(albumId),
             sortOrder = MediaStore.Audio.Media.TRACK
         )
-        return metadata
     }
 
     suspend fun getAudioByAlbumId(ctx: Context, albumId: String): MutableList<Audio> {
-        val metadata = queryAudio(
+        return queryAudio(
             ctx,
             selection = "${MediaStore.Audio.Media.ALBUM_ID} = ?",
             args = arrayOf(albumId),
             sortOrder = MediaStore.Audio.Media.TRACK
         )
-        return metadata
     }
 
     suspend fun getAllAlbums(ctx: Context): MutableList<Album> {
@@ -188,7 +185,6 @@ object MediaHunter {
                 albumArt
             }
         }
-
     }
 
     suspend fun getAlbumArtFromAlbumId(ctx: Context, albumId: String): Bitmap? {
@@ -229,11 +225,19 @@ object MediaHunter {
     }
 
     suspend fun getAlbumsByArtistId(ctx: Context, artistId: Long): MutableList<Album> {
-        return queryAlbum(
-            ctx,
-            uri = MediaStore.Audio.Artists.Albums.getContentUri(VOLUME_EXTERNAL, artistId),
-            projection = artistAlbumProjection
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return queryAlbum(
+                ctx,
+                uri = MediaStore.Audio.Artists.Albums.getContentUri(VOLUME_EXTERNAL, artistId),
+                projection = artistAlbumProjection
+            )
+        } else {
+            return queryAlbum(
+                ctx,
+                selection = "${MediaStore.Audio.Albums.ARTIST_ID} = ?",
+                args = arrayOf(artistId.toString())
+            )
+        }
     }
 
     suspend fun getAllPlaylists(ctx: Context): MutableList<Playlist> {
@@ -274,14 +278,10 @@ object MediaHunter {
 
     suspend fun getMetadataByPlayListId(ctx: Context, playlistId: String): MutableList<MediaMetadataCompat> {
         val uri = MediaStore.Audio.Playlists.Members.getContentUri(VOLUME_EXTERNAL, playlistId.toLong())
-        Log.d("MediaHunter", "GettingMetadataForplaylist $playlistId")
         val result = queryMetadata(
             ctx, uri = uri, projection = playlistAudioProjection,
             sortOrder = MediaStore.Audio.Playlists.Members.PLAY_ORDER
         )
-        result.forEach {
-            Log.d("MediaHunter", "${it.description.title}")
-        }
         return result
     }
 
@@ -467,6 +467,7 @@ object MediaHunter {
         sortOrder: String? = MediaStore.Audio.Albums.DEFAULT_SORT_ORDER
     ): MutableList<Album> {
         val albumList = mutableListOf<Album>()
+
         ctx.contentResolver.query(
             uri,
             projection, selection, args,

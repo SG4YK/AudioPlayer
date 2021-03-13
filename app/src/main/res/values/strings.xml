@@ -20,6 +20,7 @@
 
     <string name="reduce_animation">reduceAnimation</string>
     <string name="keep_bg_service">keepBgService</string>
+    <string name="auto_pause">autoPause</string>
 
     <string name="skip_to_previous">Skip to previous track</string>
     <string name="play">Play</string>

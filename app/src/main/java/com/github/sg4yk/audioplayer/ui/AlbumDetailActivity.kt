@@ -370,7 +370,6 @@ class AlbumDetailActivity : AppCompatActivity() {
                     setTitle("Add to playlist")
                     setItems(items) { dialog, position ->
                         val playlist = playlists[position]
-                        Log.d("AddToPlaylist", playlist.toString())
                         GlobalScope.launch(Dispatchers.IO) {
                             if (MediaHunter.addToPlaylist(this@AlbumDetailActivity, playlist.id, audioList) == 0) {
                                 withContext(Dispatchers.Main) {

@@ -17,13 +17,16 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media.session.MediaButtonReceiver
-import com.bumptech.glide.Glide
 import com.github.sg4yk.audioplayer.R
-import com.github.sg4yk.audioplayer.extensions.*
+import com.github.sg4yk.audioplayer.extensions.isPlayEnabled
+import com.github.sg4yk.audioplayer.extensions.isPlaying
+import com.github.sg4yk.audioplayer.extensions.isSkipToNextEnabled
+import com.github.sg4yk.audioplayer.extensions.isSkipToPreviousEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 const val PLAYBACK_CHANNEL: String = "com.github.sg4yk.AudioPlayer.media.PLAYBACK"
 const val NOW_PLAYING_NOTIFICATION: Int = 128
@@ -104,19 +107,16 @@ class NotificationBuilder(private val context: Context, private val controller: 
                 val albumId = MediaHunter.getAlbumIdFromAudioId(context, audioId.toLong())
                 if (albumId != MediaHunter.ALBUM_NOT_EXIST) {
                     try {
-                        val futureTarget = Glide.with(context)
-                            .asBitmap()
-                            .load(MediaHunter.getArtUriFromAlbumId(albumId))
-                            .submit(300, 300)
-                        albumArt = futureTarget.get()
-                        Glide.with(context).clear(futureTarget)
+                        albumArt = MediaHunter.getAlbumArtFromAlbumId(
+                            context, albumId.toString()
+                        )
                     } catch (e: Exception) {
                         Log.w("NotificationBuilder", e.message)
                     }
                 }
             }
         }
-//        albumArt = controller.metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
+        albumArt = controller.metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
         return builder.setContentIntent(controller.sessionActivity)
             .setContentText("${description.subtitle} - ${description.description}")

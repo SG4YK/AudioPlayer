@@ -43,7 +43,7 @@ class ArtistFragment : Fragment() {
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = AlphaInAnimationAdapter(artistItemAdapter).apply {
-                    setFirstOnly(false)
+                    setFirstOnly(true)
                     setDuration(200)
                 }
                 setHasFixedSize(true)

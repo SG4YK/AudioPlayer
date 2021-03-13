@@ -16,4 +16,9 @@ object PrefManager {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(context.getString(R.string.keep_bg_service), true)
     }
+
+    fun autoPause(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(context.getString(R.string.auto_pause), false)
+    }
 }

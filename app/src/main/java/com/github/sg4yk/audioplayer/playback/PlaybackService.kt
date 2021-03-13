@@ -13,13 +13,14 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
-import com.github.sg4yk.audioplayer.ui.MainActivity
 import com.github.sg4yk.audioplayer.R
 import com.github.sg4yk.audioplayer.media.*
+import com.github.sg4yk.audioplayer.ui.MainActivity
 import com.github.sg4yk.audioplayer.utils.NOW_PLAYING_NOTIFICATION
 import com.github.sg4yk.audioplayer.utils.NotificationBuilder
 import com.github.sg4yk.audioplayer.utils.PrefManager
@@ -28,7 +29,6 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.audio.AuxEffectInfo
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
@@ -94,7 +94,6 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 setSessionActivity(pendingIntent)
                 isActive = true
             }
-
 
 
         sessionToken = mediaSession.sessionToken
@@ -243,7 +242,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+            if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY && PrefManager.autoPause(this.context)) {
                 controller.transportControls.pause()
             }
         }
@@ -259,11 +258,8 @@ class PlaybackService : MediaBrowserServiceCompat() {
                 return
             }
             cachedState = state?.state ?: PlaybackStateCompat.STATE_NONE
-            serviceScope.launch {
+            GlobalScope.launch(SupervisorJob()) {
                 updateNotification(state, mediaController.metadata)
-            }
-            serviceScope.launch {
-                delay(1000)
             }
         }
 

@@ -12,11 +12,10 @@
         <option name="gradleJvm" value="14" />
         <option name="modules">
           <set>
-            <option value="$USER_HOME$/mnt/Games/Workspace/Course/AudioPlayer" />
-            <option value="$USER_HOME$/mnt/Games/Workspace/Course/AudioPlayer/app" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
           </set>
         </option>
-        <option name="useQualifiedModuleNames" value="true" />
       </GradleProjectSettings>
     </option>
   </component>

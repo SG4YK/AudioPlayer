@@ -3,6 +3,7 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="13">
       <module name="app" target="14" />
+      <module name="Audio_Player.app" target="14" />
     </bytecodeTargetLevel>
   </component>
 </project>

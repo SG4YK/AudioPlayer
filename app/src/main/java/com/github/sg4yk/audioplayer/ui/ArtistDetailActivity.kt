@@ -59,6 +59,7 @@ class ArtistDetailActivity : AppCompatActivity() {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             supportActionBar?.setDisplayShowHomeEnabled(true)
         }
+
         val albumItemAdapter = AlbumItemAdapterExt(this)
 
         recyclerView.apply {
@@ -69,6 +70,7 @@ class ArtistDetailActivity : AppCompatActivity() {
             }
             setHasFixedSize(true)
         }
+
 
         GlobalScope.launch(Dispatchers.IO) {
             delay(50)
@@ -120,7 +122,6 @@ class ArtistDetailActivity : AppCompatActivity() {
                         setTitle("Add to playlist")
                         setItems(items) { dialog, position ->
                             val playlist = playlists[position]
-                            Log.d("AddToPlaylist", playlist.toString())
                             GlobalScope.launch(Dispatchers.IO) {
                                 val audioList = MediaHunter.getAudioByAlbumId(ctx, album.id.toString())
                                 if (MediaHunter.addToPlaylist(ctx, playlist.id, audioList) == 0) {
